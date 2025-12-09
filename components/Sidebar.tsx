@@ -32,19 +32,38 @@ const Sidebar: React.FC<SidebarProps> = ({
   const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
 
   const allMenuItems = [
-    { id: 'dashboard', label: t('dashboard'), icon: LayoutDashboard, roles: ['admin', 'manager', 'teacher'] },
-    { id: 'students', label: t('students'), icon: Users, roles: ['admin', 'manager', 'teacher'] },
-    { id: 'attendance', label: t('attendance'), icon: CalendarCheck, roles: ['admin', 'manager', 'teacher'] },
-    { id: 'reports-archive', label: t('reportsArchive'), icon: FileClock, roles: ['admin', 'manager', 'teacher'] },
-    { id: 'directory', label: t('directoryTitle'), icon: Contact, roles: ['admin', 'manager', 'teacher'] },
-    { id: 'ai-planner', label: t('aiPlanner'), icon: Sparkles, roles: ['admin', 'manager', 'teacher'] },
-    { id: 'classes', label: t('classes'), icon: School, roles: ['admin', 'manager'] },
-    { id: 'users', label: t('users'), icon: UserCog, roles: ['admin'] },
-    { id: 'database', label: t('database'), icon: Database, roles: ['admin', 'manager'] },
-    { id: 'parent-view', label: t('myChild'), icon: Home, roles: ['parent'] },
+    { id: 'dashboard', label: t('dashboard'), icon: LayoutDashboard, defaultRoles: ['admin', 'manager', 'teacher'] },
+    { id: 'students', label: t('students'), icon: Users, defaultRoles: ['admin', 'manager', 'teacher'] },
+    { id: 'attendance', label: t('attendance'), icon: CalendarCheck, defaultRoles: ['admin', 'manager', 'teacher'] },
+    { id: 'reports-archive', label: t('reportsArchive'), icon: FileClock, defaultRoles: ['admin', 'manager', 'teacher'] },
+    { id: 'directory', label: t('directoryTitle'), icon: Contact, defaultRoles: ['admin', 'manager', 'teacher'] },
+    { id: 'ai-planner', label: t('aiPlanner'), icon: Sparkles, defaultRoles: ['admin', 'manager', 'teacher'] },
+    { id: 'classes', label: t('classes'), icon: School, defaultRoles: ['admin', 'manager'] },
+    { id: 'users', label: t('users'), icon: UserCog, defaultRoles: ['admin'] },
+    { id: 'database', label: t('database'), icon: Database, defaultRoles: ['admin', 'manager'] },
+    { id: 'parent-view', label: t('myChild'), icon: Home, defaultRoles: ['parent'] },
   ];
 
-  const menuItems = allMenuItems.filter(item => user && item.roles.includes(user.role));
+  const hasPermission = (item: any) => {
+    if (!user) return false;
+    
+    // Admin always sees everything (except parent view usually)
+    if (user.role === 'admin' && item.id !== 'parent-view') return true;
+
+    // Parent always sees parent view
+    if (user.role === 'parent' && item.id === 'parent-view') return true;
+    if (user.role === 'parent') return false;
+
+    // If explicit permissions exist for the user, use them
+    if (user.permissions && user.permissions.length > 0) {
+      return user.permissions.includes(item.id);
+    }
+
+    // Fallback to default role-based permissions
+    return item.defaultRoles.includes(user.role);
+  };
+
+  const menuItems = allMenuItems.filter(item => hasPermission(item));
 
   const getRoleLabel = (role?: string) => {
     if (role === 'admin') return t('roleAdmin');

@@ -170,6 +170,8 @@ export const translations = {
     selectClass: "اختر الفصل...",
     noClassAssigned: "غير معين لفصل",
     usernameExists: "اسم المستخدم هذا مسجل بالفعل",
+    permissions: "صلاحيات الوصول",
+    selectPermissions: "تحديد الصفحات المسموح بها",
     
     // Class Management
     classManagement: "إدارة الفصول",
@@ -255,6 +257,8 @@ export const translations = {
     dbSaved: "تم حفظ الإعدادات بنجاح",
     syncSuccess: "تمت المزامنة بنجاح",
     syncError: "فشل المزامنة، تأكد من البيانات",
+    dbConnectionError: "فشل الاتصال بقاعدة البيانات. تأكد من الإعدادات.",
+    dbConnectionSuccess: "تم الاتصال بقاعدة البيانات بنجاح",
   },
   en: {
     // General
@@ -425,6 +429,8 @@ export const translations = {
     selectClass: "Select Class...",
     noClassAssigned: "No Class Assigned",
     usernameExists: "Username already exists",
+    permissions: "Access Permissions",
+    selectPermissions: "Select Allowed Pages",
 
     // Class Management
     classManagement: "Class Management",
@@ -510,5 +516,7 @@ export const translations = {
     dbSaved: "Settings saved successfully",
     syncSuccess: "Sync completed successfully",
     syncError: "Sync failed, check configuration",
+    dbConnectionError: "Connection to database failed. Check settings.",
+    dbConnectionSuccess: "Connected to database successfully",
   }
 };

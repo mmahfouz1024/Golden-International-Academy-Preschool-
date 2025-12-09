@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useRef } from 'react';
 import Sidebar from './components/Sidebar';
 import Dashboard from './components/Dashboard';
@@ -33,12 +34,22 @@ const AppContent: React.FC = () => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
   const { t, dir, language } = useLanguage();
-  const { unreadCount } = useNotification();
+  const { unreadCount, addNotification } = useNotification();
   const notificationRef = useRef<HTMLDivElement>(null);
 
   // Initialize DB
   useEffect(() => {
-    initStorage().then(() => setIsInitialized(true));
+    initStorage().then((result) => {
+      setIsInitialized(true);
+      if (!result.success) {
+        // Show error if connection failed
+        console.error("DB Init Failed:", result.message);
+        addNotification(t('systemMsg'), `${t('dbConnectionError')}: ${result.message}`, 'alert');
+      } else if (result.message === 'Connected') {
+         // Optional: notify success silently or log
+         console.log("DB Connected Successfully");
+      }
+    });
   }, []);
 
   useEffect(() => {
@@ -80,7 +91,14 @@ const AppContent: React.FC = () => {
         setCurrentView('parent-view');
       }
     } else {
-      setCurrentView('dashboard');
+      // Logic to determine first view based on permissions
+      if (loggedInUser.role === 'admin') {
+         setCurrentView('dashboard');
+      } else if (loggedInUser.permissions && loggedInUser.permissions.length > 0) {
+         setCurrentView(loggedInUser.permissions[0]);
+      } else {
+         setCurrentView('dashboard');
+      }
     }
   };
 
@@ -125,7 +143,12 @@ const AppContent: React.FC = () => {
       if (user?.role === 'parent') {
         setCurrentView('parent-view');
       } else {
-        setCurrentView('dashboard');
+        // Fallback to dashboard if allowed, else first allowed permission
+        if (user?.permissions?.includes('dashboard') || user?.role === 'admin') {
+           setCurrentView('dashboard');
+        } else if (user?.permissions && user.permissions.length > 0) {
+           setCurrentView(user.permissions[0]);
+        }
       }
     }
   };
@@ -141,6 +164,25 @@ const AppContent: React.FC = () => {
           readOnly={user?.role === 'parent' || !!selectedReportDate} // Read only if viewing archive, unless we want to allow editing history
         />
       );
+    }
+
+    // Safety check for permissions (simple enforcement)
+    // Admin always allowed. Parent always allowed 'parent-view'. Others need specific permission or role default.
+    const isAllowed = (view: string) => {
+       if (!user) return false;
+       if (view === 'profile') return true;
+       if (user.role === 'admin') return true;
+       if (user.role === 'parent' && view === 'parent-view') return true;
+       
+       if (user.permissions && user.permissions.length > 0) {
+         return user.permissions.includes(view);
+       }
+       // Fallback for old users without permissions array
+       return true; 
+    };
+
+    if (!isAllowed(currentView)) {
+      return <div className="p-8 text-center text-gray-500">{t('contactAdmin')} (Access Denied)</div>;
     }
 
     switch (currentView) {

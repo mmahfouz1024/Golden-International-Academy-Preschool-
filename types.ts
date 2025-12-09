@@ -76,6 +76,7 @@ export interface User {
   password?: string; // In real app, never store plain password
   name: string;
   role: UserRole;
+  permissions?: string[]; // Array of allowed view IDs (e.g., ['dashboard', 'students'])
   linkedStudentId?: string; // If role is parent
   avatar?: string;
   email?: string;

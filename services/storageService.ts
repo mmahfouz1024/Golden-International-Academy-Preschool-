@@ -1,4 +1,5 @@
 
+
 import { MOCK_USERS, MOCK_STUDENTS, MOCK_CLASSES, MOCK_REPORTS } from '../constants';
 import { User, Student, ClassGroup, DailyReport, DatabaseConfig } from '../types';
 import { initSupabase, syncDataToCloud, fetchDataFromCloud } from './supabaseClient';
@@ -22,31 +23,52 @@ const DEFAULT_CONFIG: DatabaseConfig = {
   autoSync: true
 };
 
-export const initStorage = async () => {
+export const initStorage = async (): Promise<{ success: boolean; message?: string }> => {
   const config = getDatabaseConfig();
   
   if (config.isEnabled && config.url && config.key) {
     const connected = initSupabase(config);
     isCloudEnabled = connected;
 
-    if (connected && config.autoSync) {
+    if (!connected) {
+      console.error("⚠️ Failed to initialize Supabase client with provided keys.");
+      return { success: false, message: 'Invalid URL or Key format' };
+    }
+
+    if (config.autoSync) {
       console.log("🔗 Connected to Supabase. Checking for remote data...");
       try {
-        // Try to fetch users to see if DB is initialized with our data
-        const { data } = await fetchDataFromCloud(KEYS.USERS);
+        // Try to fetch users to see if DB is initialized and readable
+        const { data, error } = await fetchDataFromCloud(KEYS.USERS);
+        
+        if (error) {
+          // If we get an error (like connection refused, 404, or invalid key), we report it
+          console.error("⚠️ Error reading from Supabase:", error);
+          return { success: false, message: error.message || 'Connection Error' };
+        }
         
         if (!data) {
           console.log("☁️ Database appears empty. Seeding with local/mock data...");
-          await forceSyncToCloud();
+          const seeded = await forceSyncToCloud();
+          if (!seeded) return { success: false, message: 'Failed to seed database' };
         } else {
           console.log("📥 Data found in cloud. Syncing down to device...");
-          await syncAllFromCloud();
+          const synced = await syncAllFromCloud();
+          if (!synced) return { success: false, message: 'Failed to sync data' };
         }
-      } catch (error) {
-        console.error("⚠️ Error during initial sync check:", error);
+
+        return { success: true, message: 'Connected' };
+
+      } catch (error: any) {
+        console.error("⚠️ Exception during initial sync check:", error);
+        return { success: false, message: error?.message || 'Unknown connection error' };
       }
     }
+    return { success: true, message: 'Connected (Auto-sync disabled)' };
   }
+  
+  // If disabled, we still consider initialization a "success" (local mode)
+  return { success: true, message: 'Local Mode' };
 };
 
 // Database Config

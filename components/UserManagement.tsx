@@ -1,7 +1,7 @@
 
 
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Edit2, Trash2, Shield, X, Save, School, Briefcase, AlertCircle } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, Shield, X, Save, School, Briefcase, AlertCircle, CheckSquare, Square } from 'lucide-react';
 import { getUsers, saveUsers, getStudents, getClasses, saveClasses } from '../services/storageService';
 import { User, UserRole, Student, ClassGroup } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -16,6 +16,26 @@ const UserManagement: React.FC = () => {
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [error, setError] = useState('');
 
+  // Default permissions for each role
+  const DEFAULT_PERMISSIONS = {
+    admin: ['dashboard', 'students', 'attendance', 'reports-archive', 'directory', 'ai-planner', 'classes', 'users', 'database'],
+    manager: ['dashboard', 'students', 'attendance', 'reports-archive', 'directory', 'ai-planner', 'classes', 'database'],
+    teacher: ['dashboard', 'students', 'attendance', 'reports-archive', 'directory', 'ai-planner'],
+    parent: ['parent-view']
+  };
+
+  const ALL_PAGES = [
+    { id: 'dashboard', label: t('dashboard') },
+    { id: 'students', label: t('students') },
+    { id: 'attendance', label: t('attendance') },
+    { id: 'reports-archive', label: t('reportsArchive') },
+    { id: 'directory', label: t('directoryTitle') },
+    { id: 'ai-planner', label: t('aiPlanner') },
+    { id: 'classes', label: t('classes') },
+    { id: 'users', label: t('users') },
+    { id: 'database', label: t('database') },
+  ];
+
   // Load users, students, and classes from storage on mount
   useEffect(() => {
     setUsers(getUsers());
@@ -28,6 +48,7 @@ const UserManagement: React.FC = () => {
     username: '',
     password: '',
     role: 'teacher',
+    permissions: [],
     linkedStudentId: '',
     assignedClassId: ''
   });
@@ -44,6 +65,7 @@ const UserManagement: React.FC = () => {
         username: user.username,
         password: user.password,
         role: user.role,
+        permissions: user.permissions || DEFAULT_PERMISSIONS[user.role as keyof typeof DEFAULT_PERMISSIONS] || [],
         linkedStudentId: user.linkedStudentId || '',
         assignedClassId: assignedClass ? assignedClass.id : ''
       });
@@ -54,11 +76,29 @@ const UserManagement: React.FC = () => {
         username: '',
         password: '',
         role: 'teacher',
+        permissions: DEFAULT_PERMISSIONS['teacher'],
         linkedStudentId: '',
         assignedClassId: ''
       });
     }
     setIsModalOpen(true);
+  };
+
+  const handleRoleChange = (role: UserRole) => {
+    setFormData({
+      ...formData,
+      role,
+      permissions: DEFAULT_PERMISSIONS[role as keyof typeof DEFAULT_PERMISSIONS] || []
+    });
+  };
+
+  const togglePermission = (pageId: string) => {
+    const currentPerms = formData.permissions || [];
+    if (currentPerms.includes(pageId)) {
+      setFormData({ ...formData, permissions: currentPerms.filter(id => id !== pageId) });
+    } else {
+      setFormData({ ...formData, permissions: [...currentPerms, pageId] });
+    }
   };
 
   const handleSave = (e: React.FormEvent) => {
@@ -68,8 +108,9 @@ const UserManagement: React.FC = () => {
     if (!formData.username || !formData.name || !formData.password) return;
 
     // Check for duplicate username
+    const usernameToCheck = formData.username.trim().toLowerCase();
     const isDuplicate = users.some(u => 
-      u.username.toLowerCase() === formData.username!.toLowerCase() && 
+      u.username.toLowerCase() === usernameToCheck && 
       (!editingUser || u.id !== editingUser.id)
     );
 
@@ -83,15 +124,16 @@ const UserManagement: React.FC = () => {
 
     // 1. Save User Logic
     if (editingUser) {
-      updatedUsers = users.map(u => u.id === editingUser.id ? { ...u, ...formData, id: userId } as User : u);
+      updatedUsers = users.map(u => u.id === editingUser.id ? { ...u, ...formData, username: formData.username.trim(), id: userId } as User : u);
     } else {
       const newUser: User = {
         id: userId,
         avatar: `https://picsum.photos/seed/${Date.now()}/100/100`,
         name: formData.name!,
-        username: formData.username!,
+        username: formData.username.trim(),
         password: formData.password!,
         role: formData.role || 'teacher',
+        permissions: formData.permissions,
         linkedStudentId: formData.linkedStudentId,
       } as User;
       updatedUsers = [...users, newUser];
@@ -119,8 +161,11 @@ const UserManagement: React.FC = () => {
     setIsModalOpen(false);
   };
 
-  const handleDelete = (id: string) => {
-    if (confirm(t('deleteUserConfirm'))) {
+  const handleDelete = (e: React.MouseEvent, id: string) => {
+    e.preventDefault();
+    e.stopPropagation(); // Stop event bubbling
+    
+    if (window.confirm(t('deleteUserConfirm'))) {
       const updatedUsers = users.filter(u => u.id !== id);
       setUsers(updatedUsers);
       saveUsers(updatedUsers); 
@@ -234,18 +279,19 @@ const UserManagement: React.FC = () => {
                       )}
                     </td>
                     <td className="px-6 py-4">
-                      <div className="flex gap-2 justify-end">
+                      <div className="flex gap-2 justify-end" onClick={(e) => e.stopPropagation()}>
                         <button 
-                          onClick={() => handleOpenModal(user)}
+                          onClick={(e) => { e.stopPropagation(); handleOpenModal(user); }}
                           className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
                         >
                           <Edit2 size={18} />
                         </button>
                         <button 
-                          onClick={() => handleDelete(user.id)}
-                          className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          type="button"
+                          onClick={(e) => handleDelete(e, user.id)}
+                          className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors pointer-events-auto"
                         >
-                          <Trash2 size={18} />
+                          <Trash2 size={18} className="pointer-events-none" />
                         </button>
                       </div>
                     </td>
@@ -259,7 +305,7 @@ const UserManagement: React.FC = () => {
 
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden animate-fade-in">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden animate-fade-in max-h-[90vh] overflow-y-auto">
             <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
               <h3 className="text-lg font-bold text-gray-800">{editingUser ? t('editUser') : t('addUser')}</h3>
               <button 
@@ -321,7 +367,7 @@ const UserManagement: React.FC = () => {
                     <button
                       key={role}
                       type="button"
-                      onClick={() => setFormData({...formData, role})}
+                      onClick={() => handleRoleChange(role)}
                       className={`py-2 rounded-lg text-xs font-medium transition-all ${
                         formData.role === role
                           ? 'bg-indigo-600 text-white border-indigo-600'
@@ -333,6 +379,27 @@ const UserManagement: React.FC = () => {
                   ))}
                 </div>
               </div>
+
+              {/* Permissions Section - Only for roles that have sidebar access */}
+              {formData.role !== 'parent' && formData.role !== 'admin' && (
+                <div className="animate-fade-in p-4 bg-gray-50 rounded-xl border border-gray-100">
+                  <label className="block text-sm font-medium text-gray-700 mb-3">{t('selectPermissions')}</label>
+                  <div className="grid grid-cols-2 gap-3">
+                    {ALL_PAGES.map(page => {
+                      // Admin can't lose 'users' permission logic could be enforced here if needed
+                      const isChecked = formData.permissions?.includes(page.id);
+                      return (
+                        <label key={page.id} className="flex items-center gap-2 cursor-pointer group">
+                           <div onClick={() => togglePermission(page.id)} className={`transition-colors ${isChecked ? 'text-indigo-600' : 'text-gray-400 group-hover:text-gray-600'}`}>
+                             {isChecked ? <CheckSquare size={20} /> : <Square size={20} />}
+                           </div>
+                           <span className={`text-sm ${isChecked ? 'text-gray-800 font-medium' : 'text-gray-600'}`}>{page.label}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               {(formData.role === 'teacher' || formData.role === 'manager') && (
                 <div className="animate-fade-in p-4 bg-blue-50 rounded-xl border border-blue-100">

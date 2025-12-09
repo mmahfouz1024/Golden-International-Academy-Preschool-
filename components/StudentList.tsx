@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, Plus, Phone, Star, ChevronLeft, ChevronRight, X, Save, Filter, Camera, ShieldCheck, Edit2, Trash2 } from 'lucide-react';
+import { Search, Plus, Phone, Star, ChevronLeft, ChevronRight, X, Save, Filter, Camera, ShieldCheck, Edit2, Trash2, AlertCircle } from 'lucide-react';
 import { Student, StudentStatus, User, ClassGroup } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
 import { getStudents, saveStudents, getUsers, saveUsers, getClasses } from '../services/storageService';
@@ -22,6 +22,7 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [newStudentAvatar, setNewStudentAvatar] = useState<string>('');
+  const [error, setError] = useState('');
   
   // State to track if we are editing
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
@@ -59,6 +60,7 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
   };
 
   const handleOpenModal = (student?: Student) => {
+    setError('');
     if (student) {
       // Edit Mode
       setEditingStudent(student);
@@ -113,7 +115,26 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
 
   const handleSaveStudent = (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
     if (!studentData.name || !studentData.parentName) return;
+
+    // Check parent username duplicate if provided
+    if (studentData.parentUsername) {
+      const allUsers = getUsers();
+      const parentUser = editingStudent 
+        ? allUsers.find(u => u.linkedStudentId === editingStudent.id && u.role === 'parent')
+        : null;
+
+      const isDuplicate = allUsers.some(u => 
+        u.username.toLowerCase() === studentData.parentUsername.trim().toLowerCase() && 
+        (!parentUser || u.id !== parentUser.id)
+      );
+
+      if (isDuplicate) {
+        setError(t('usernameExists' as any));
+        return;
+      }
+    }
 
     let updatedStudentsList: Student[];
     let currentStudentId = '';
@@ -162,7 +183,7 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
       updatedUsers[existingParentIndex] = {
         ...updatedUsers[existingParentIndex],
         name: studentData.parentName,
-        username: studentData.parentUsername || updatedUsers[existingParentIndex].username,
+        username: studentData.parentUsername.trim() || updatedUsers[existingParentIndex].username,
         // Only update password if provided
         password: studentData.parentPassword || updatedUsers[existingParentIndex].password,
         phone: studentData.phone
@@ -173,7 +194,7 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
       const newUser: User = {
         id: `u-${Date.now()}`,
         name: studentData.parentName,
-        username: studentData.parentUsername,
+        username: studentData.parentUsername.trim(),
         password: studentData.parentPassword,
         role: 'parent',
         linkedStudentId: currentStudentId,
@@ -345,11 +366,12 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
                          <Edit2 size={18} />
                        </button>
                        <button 
+                         type="button"
                          onClick={(e) => handleDeleteStudent(e, student.id)}
-                         className="text-gray-400 hover:text-red-600 p-2 hover:bg-red-50 rounded-lg transition-colors"
+                         className="text-gray-400 hover:text-red-600 p-2 hover:bg-red-50 rounded-lg transition-colors pointer-events-auto"
                          title={t('delete')}
                        >
-                         <Trash2 size={18} />
+                         <Trash2 size={18} className="pointer-events-none" />
                        </button>
                        <div className="text-gray-300 px-1">|</div>
                        <button 
@@ -412,6 +434,13 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
                   {t('changePhoto')}
                 </span>
               </div>
+
+              {error && (
+                <div className="bg-red-50 text-red-600 px-4 py-3 rounded-xl border border-red-100 flex items-center gap-2 text-sm animate-fade-in">
+                  <AlertCircle size={18} />
+                  {error}
+                </div>
+              )}
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-2">
