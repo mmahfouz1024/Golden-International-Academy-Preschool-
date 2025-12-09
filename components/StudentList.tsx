@@ -89,8 +89,10 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
   };
 
   const handleDeleteStudent = (e: React.MouseEvent, id: string) => {
+    e.preventDefault();
     e.stopPropagation();
-    if (confirm(t('deleteStudentConfirm'))) {
+    
+    if (window.confirm(t('deleteStudentConfirm'))) {
       const updatedList = students.filter(s => s.id !== id);
       setStudents(updatedList);
       saveStudents(updatedList);
