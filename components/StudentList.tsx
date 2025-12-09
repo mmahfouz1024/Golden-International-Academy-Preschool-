@@ -1,10 +1,9 @@
 
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Search, Plus, Phone, Star, ChevronLeft, ChevronRight, X, Save, Filter, Camera, ShieldCheck, Edit2, Trash2 } from 'lucide-react';
-import { Student, StudentStatus, User } from '../types';
+import { Student, StudentStatus, User, ClassGroup } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
-import { getStudents, saveStudents, getUsers, saveUsers } from '../services/storageService';
+import { getStudents, saveStudents, getUsers, saveUsers, getClasses } from '../services/storageService';
 
 interface StudentListProps {
   onStudentSelect: (student: Student) => void;
@@ -13,6 +12,7 @@ interface StudentListProps {
 const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
   const { t, language } = useLanguage();
   const [students, setStudents] = useState<Student[]>([]);
+  const [classes, setClasses] = useState<ClassGroup[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   
   const [filterClass, setFilterClass] = useState('All');
@@ -29,16 +29,22 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
   const [studentData, setStudentData] = useState({
     name: '',
     age: '',
-    classGroup: 'البراعم',
+    classGroup: '',
     parentName: '',
     phone: '',
     parentUsername: '',
     parentPassword: ''
   });
 
-  // Load students from storage on mount
+  // Load students and classes from storage on mount
   useEffect(() => {
     setStudents(getStudents());
+    const loadedClasses = getClasses();
+    setClasses(loadedClasses);
+    // Set default class for new students
+    if (loadedClasses.length > 0) {
+      setStudentData(prev => ({ ...prev, classGroup: loadedClasses[0].name }));
+    }
   }, []);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -75,10 +81,11 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
       // Add Mode
       setEditingStudent(null);
       setNewStudentAvatar('');
+      const defaultClass = classes.length > 0 ? classes[0].name : 'البراعم';
       setStudentData({ 
         name: '', 
         age: '', 
-        classGroup: 'البراعم', 
+        classGroup: defaultClass, 
         parentName: '', 
         phone: '', 
         parentUsername: '', 
@@ -235,9 +242,16 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
               onChange={(e) => setFilterClass(e.target.value)}
             >
               <option value="All">{t('filterClass')}</option>
-              <option value="البراعم">البراعم</option>
-              <option value="العصافير">العصافير</option>
-              <option value="النجوم">النجوم</option>
+              {classes.map(cls => (
+                <option key={cls.id} value={cls.name}>{cls.name}</option>
+              ))}
+              {classes.length === 0 && (
+                <>
+                  <option value="البراعم">البراعم</option>
+                  <option value="العصافير">العصافير</option>
+                  <option value="النجوم">النجوم</option>
+                </>
+              )}
             </select>
           </div>
 
@@ -430,9 +444,16 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
                     value={studentData.classGroup}
                     onChange={e => setStudentData({...studentData, classGroup: e.target.value})}
                   >
-                    <option value="البراعم">البراعم</option>
-                    <option value="العصافير">العصافير</option>
-                    <option value="النجوم">النجوم</option>
+                    {classes.map(cls => (
+                       <option key={cls.id} value={cls.name}>{cls.name}</option>
+                    ))}
+                    {classes.length === 0 && (
+                      <>
+                        <option value="البراعم">البراعم</option>
+                        <option value="العصافير">العصافير</option>
+                        <option value="النجوم">النجوم</option>
+                      </>
+                    )}
                   </select>
                 </div>
 
