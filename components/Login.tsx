@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { LogIn, Languages } from 'lucide-react';
+import { LogIn } from 'lucide-react';
 import { getUsers } from '../services/storageService';
 import { User } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -13,7 +13,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const { t, language, toggleLanguage, dir } = useLanguage();
+  const { t, dir } = useLanguage();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,14 +31,6 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   return (
     <div className={`min-h-screen flex items-center justify-center p-4 relative z-10 ${dir === 'rtl' ? 'text-right' : 'text-left'}`} dir={dir}>
       
-      <button 
-        onClick={toggleLanguage}
-        className="absolute top-6 right-6 flex items-center gap-2 bg-white/90 backdrop-blur px-4 py-2 rounded-xl shadow-sm text-gray-600 hover:text-indigo-600 hover:shadow-md transition-all font-medium z-10"
-      >
-        <Languages size={20} />
-        <span>{language === 'ar' ? 'English' : 'العربية'}</span>
-      </button>
-
       <div className="bg-white/90 backdrop-blur-md w-full max-w-md rounded-2xl shadow-xl overflow-hidden relative border border-white/50">
         <div className="p-8 bg-indigo-600/90 text-center">
           <div className="flex justify-center mb-6">

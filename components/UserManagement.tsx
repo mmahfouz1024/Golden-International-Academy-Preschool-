@@ -1,7 +1,6 @@
 
-
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Edit2, Trash2, Shield, X, Save, School, Briefcase, AlertCircle, CheckSquare, Square } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, Shield, X, School, Briefcase, AlertCircle, Save } from 'lucide-react';
 import { getUsers, saveUsers, getStudents, getClasses, saveClasses } from '../services/storageService';
 import { User, UserRole, Student, ClassGroup } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -200,6 +199,7 @@ const UserManagement: React.FC = () => {
         </div>
         <button 
           onClick={() => handleOpenModal()}
+          type="button"
           className="flex items-center gap-2 bg-indigo-600 text-white px-5 py-2.5 rounded-xl hover:bg-indigo-700 transition-colors shadow-sm font-medium"
         >
           <Plus size={20} />
@@ -282,9 +282,10 @@ const UserManagement: React.FC = () => {
                       <div className="flex gap-2 justify-end" onClick={(e) => e.stopPropagation()}>
                         <button 
                           onClick={(e) => { e.stopPropagation(); handleOpenModal(user); }}
-                          className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                          type="button"
+                          className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors pointer-events-auto"
                         >
-                          <Edit2 size={18} />
+                          <Edit2 size={18} className="pointer-events-none" />
                         </button>
                         <button 
                           type="button"
@@ -333,7 +334,7 @@ const UserManagement: React.FC = () => {
                   className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                   value={formData.name}
                   onChange={e => setFormData({...formData, name: e.target.value})}
-                  placeholder="الاسم الكامل"
+                  placeholder="Full Name"
                 />
               </div>
 
@@ -352,7 +353,7 @@ const UserManagement: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">{t('password')}</label>
                   <input 
                     required
-                    type="text" 
+                    type="password" 
                     className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                     value={formData.password}
                     onChange={e => setFormData({...formData, password: e.target.value})}
@@ -380,65 +381,72 @@ const UserManagement: React.FC = () => {
                 </div>
               </div>
 
-              {/* Permissions Section - Only for roles that have sidebar access */}
-              {formData.role !== 'parent' && formData.role !== 'admin' && (
-                <div className="animate-fade-in p-4 bg-gray-50 rounded-xl border border-gray-100">
-                  <label className="block text-sm font-medium text-gray-700 mb-3">{t('selectPermissions')}</label>
-                  <div className="grid grid-cols-2 gap-3">
-                    {ALL_PAGES.map(page => {
-                      // Admin can't lose 'users' permission logic could be enforced here if needed
-                      const isChecked = formData.permissions?.includes(page.id);
-                      return (
-                        <label key={page.id} className="flex items-center gap-2 cursor-pointer group">
-                           <div onClick={() => togglePermission(page.id)} className={`transition-colors ${isChecked ? 'text-indigo-600' : 'text-gray-400 group-hover:text-gray-600'}`}>
-                             {isChecked ? <CheckSquare size={20} /> : <Square size={20} />}
-                           </div>
-                           <span className={`text-sm ${isChecked ? 'text-gray-800 font-medium' : 'text-gray-600'}`}>{page.label}</span>
-                        </label>
-                      );
-                    })}
+              {/* Conditional Fields based on Role */}
+              {formData.role === 'parent' && (
+                <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('linkedStudent')}</label>
+                  <div className="flex items-center gap-3">
+                    <select
+                      className="flex-1 px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-white"
+                      value={formData.linkedStudentId || ''}
+                      onChange={e => setFormData({...formData, linkedStudentId: e.target.value})}
+                    >
+                      <option value="">{t('selectStudent')}</option>
+                      {students.map(student => (
+                        <option key={student.id} value={student.id}>{student.name}</option>
+                      ))}
+                    </select>
                   </div>
                 </div>
               )}
 
               {(formData.role === 'teacher' || formData.role === 'manager') && (
-                <div className="animate-fade-in p-4 bg-blue-50 rounded-xl border border-blue-100">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('assignClass')}</label>
-                  <select
-                    className="w-full px-4 py-2 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white"
-                    value={formData.assignedClassId}
-                    onChange={e => setFormData({...formData, assignedClassId: e.target.value})}
-                  >
-                    <option value="">{t('selectClass')}</option>
-                    {classes.map(cls => (
-                      <option key={cls.id} value={cls.id}>
-                        {cls.name} {cls.teacherId && cls.teacherId !== editingUser?.id ? `(مشغولة)` : ''}
-                      </option>
-                    ))}
-                  </select>
+                <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-100">
+                   <label className="block text-sm font-medium text-indigo-800 mb-2 flex items-center gap-2">
+                     <School size={16} />
+                     {t('assignClass')}
+                   </label>
+                   <select
+                      className="w-full px-4 py-2 border border-indigo-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-white"
+                      value={formData.assignedClassId || ''}
+                      onChange={e => setFormData({...formData, assignedClassId: e.target.value})}
+                    >
+                      <option value="">{t('selectClass')}</option>
+                      {classes.map(cls => (
+                        <option key={cls.id} value={cls.id}>
+                          {cls.name} {cls.teacherId && cls.teacherId !== (editingUser?.id) ? `(${t('assignedTeacher')})` : ''}
+                        </option>
+                      ))}
+                    </select>
                 </div>
               )}
 
-              {formData.role === 'parent' && (
-                <div className="animate-fade-in p-4 bg-yellow-50 rounded-xl border border-yellow-100">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('linkedStudent')}</label>
-                  <select
-                    className="w-full px-4 py-2 border border-yellow-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500/20 focus:border-yellow-500 bg-white"
-                    value={formData.linkedStudentId}
-                    onChange={e => setFormData({...formData, linkedStudentId: e.target.value})}
-                  >
-                    <option value="">{t('selectStudent')}</option>
-                    {students.map(student => (
-                      <option key={student.id} value={student.id}>
-                        {student.name} ({student.classGroup})
-                      </option>
-                    ))}
-                  </select>
-                  <p className="text-xs text-gray-500 mt-2">
-                    * سيتمكن ولي الأمر هذا من رؤية تقارير الطالب المختار فقط.
-                  </p>
+              {/* Permissions Section */}
+              <div className="pt-2 border-t border-gray-100">
+                <label className="block text-sm font-bold text-gray-800 mb-3">{t('permissions')}</label>
+                <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto p-1">
+                  {ALL_PAGES.map(page => {
+                    const isChecked = formData.permissions?.includes(page.id);
+                    return (
+                      <div 
+                        key={page.id} 
+                        onClick={() => togglePermission(page.id)}
+                        className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-colors ${
+                          isChecked ? 'bg-indigo-50 border border-indigo-200' : 'bg-gray-50 border border-transparent hover:bg-gray-100'
+                        }`}
+                      >
+                         <div className={`w-4 h-4 rounded border flex items-center justify-center ${
+                           isChecked ? 'bg-indigo-600 border-indigo-600' : 'bg-white border-gray-300'
+                         }`}>
+                           {isChecked && <X size={12} className="text-white rotate-45 transform" style={{ transform: 'none' }} >✓</X>} 
+                           {/* Using text checkmark or icon */}
+                         </div>
+                         <span className={`text-xs font-medium ${isChecked ? 'text-indigo-700' : 'text-gray-600'}`}>{page.label}</span>
+                      </div>
+                    );
+                  })}
                 </div>
-              )}
+              </div>
 
               <div className="pt-4 flex gap-3">
                 <button 

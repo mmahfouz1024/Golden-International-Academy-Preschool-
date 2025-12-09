@@ -2,13 +2,13 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { translations } from '../translations';
 
-type Language = 'ar' | 'en';
+type Language = 'en';
 
 interface LanguageContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
-  t: (key: keyof typeof translations.ar) => string;
-  dir: 'rtl' | 'ltr';
+  t: (key: keyof typeof translations.en) => string;
+  dir: 'ltr';
   toggleLanguage: () => void;
 }
 
@@ -17,20 +17,21 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 export const LanguageProvider: React.FC<{children: React.ReactNode}> = ({ children }) => {
   const [language, setLanguage] = useState<Language>('en');
 
-  const t = (key: keyof typeof translations.ar) => {
-    return translations[language][key] || key;
+  const t = (key: keyof typeof translations.en) => {
+    return translations['en'][key] || key;
   };
 
-  const dir = language === 'ar' ? 'rtl' : 'ltr';
-
+  const dir = 'ltr';
+  
   const toggleLanguage = () => {
-    setLanguage(prev => prev === 'ar' ? 'en' : 'ar');
+    // No-op for English only version
+    console.log("Language switching disabled.");
   };
 
   useEffect(() => {
-    document.documentElement.lang = language;
-    document.documentElement.dir = dir;
-  }, [language, dir]);
+    document.documentElement.lang = 'en';
+    document.documentElement.dir = 'ltr';
+  }, []);
 
   return (
     <LanguageContext.Provider value={{ language, setLanguage, t, dir, toggleLanguage }}>

@@ -1,6 +1,7 @@
+
 {
-  "name": "روضتي الذكية",
-  "short_name": "روضتي",
+  "name": "Golden Academy",
+  "short_name": "Golden Academy",
   "start_url": ".",
   "display": "standalone",
   "background_color": "#f8fafc",

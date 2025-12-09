@@ -1,7 +1,6 @@
 
-
 import React, { useState } from 'react';
-import { LayoutDashboard, Users, CalendarCheck, Sparkles, LogOut, Home, Download, Languages, UserCog, School, ChevronRight, ChevronLeft, Contact, FileClock, Palette, Database } from 'lucide-react';
+import { LayoutDashboard, Users, CalendarCheck, Sparkles, LogOut, Home, Download, UserCog, School, ChevronRight, Contact, FileClock, Palette, Database } from 'lucide-react';
 import { User, Theme } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -27,7 +26,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   showInstallButton,
   onInstall
 }) => {
-  const { t, toggleLanguage, language } = useLanguage();
+  const { t } = useLanguage();
   const { theme, setTheme } = useTheme();
   const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
 
@@ -89,8 +88,8 @@ const Sidebar: React.FC<SidebarProps> = ({
       )}
 
       <aside className={`
-        fixed md:static inset-y-0 ${language === 'ar' ? 'right-0' : 'left-0'} z-30 w-64 bg-white border-l border-r border-gray-100 shadow-lg md:shadow-none transform transition-transform duration-300 ease-in-out
-        ${isMobileOpen ? 'translate-x-0' : (language === 'ar' ? 'translate-x-full md:translate-x-0' : '-translate-x-full md:translate-x-0')}
+        fixed md:static inset-y-0 left-0 z-30 w-64 bg-white border-l border-r border-gray-100 shadow-lg md:shadow-none transform transition-transform duration-300 ease-in-out
+        ${isMobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
       `}>
         <div className="flex flex-col h-full">
           <div className="p-4 flex items-center justify-center border-b border-gray-50 bg-indigo-50/20">
@@ -164,14 +163,6 @@ const Sidebar: React.FC<SidebarProps> = ({
 
             <div className="pt-2 mt-2 border-t border-gray-100 space-y-2">
               <button
-                onClick={toggleLanguage}
-                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-gray-600 hover:bg-gray-50"
-              >
-                <Languages size={20} className="text-gray-400" />
-                <span>{language === 'ar' ? 'English' : 'العربية'}</span>
-              </button>
-
-              <button
                 onClick={() => setIsThemeMenuOpen(!isThemeMenuOpen)}
                 className="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-gray-600 hover:bg-gray-50 justify-between group"
               >
@@ -180,9 +171,9 @@ const Sidebar: React.FC<SidebarProps> = ({
                   <span>{t('colorPalette')}</span>
                 </div>
                 {isThemeMenuOpen ? (
-                   language === 'ar' ? <ChevronLeft size={16} /> : <ChevronRight size={16} className="rotate-90" />
+                   <ChevronRight size={16} className="rotate-90" />
                 ) : (
-                   language === 'ar' ? <ChevronLeft size={16} /> : <ChevronRight size={16} />
+                   <ChevronRight size={16} />
                 )}
               </button>
 
@@ -217,7 +208,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                   <p className="text-xs text-gray-500 truncate">{getRoleLabel(user?.role)}</p>
                 </div>
                 <div className="text-gray-300">
-                  {language === 'ar' ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
+                  <ChevronRight size={16} />
                 </div>
               </button>
               <button 
