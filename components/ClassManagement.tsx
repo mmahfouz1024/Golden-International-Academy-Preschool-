@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Plus, Search, Edit2, Trash2, X, Save, School, Users } from 'lucide-react';
-import { getUsers, getClasses, saveClasses } from '../services/storageService';
+import { getUsers, getClasses, saveClasses, getStudents, saveStudents } from '../services/storageService';
 import { ClassGroup, User } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
 
@@ -57,6 +57,18 @@ const ClassManagement: React.FC = () => {
 
     if (editingClass) {
       updatedClasses = classes.map(c => c.id === editingClass.id ? { ...c, ...formData } as ClassGroup : c);
+      
+      // If Class Name Changed, update all students belonging to this class
+      if (formData.name && editingClass.name !== formData.name) {
+        const allStudents = getStudents();
+        const updatedStudents = allStudents.map(student => 
+          student.classGroup === editingClass.name 
+            ? { ...student, classGroup: formData.name! } 
+            : student
+        );
+        saveStudents(updatedStudents);
+      }
+
     } else {
       const newClass: ClassGroup = {
         id: `c-${Date.now()}`,
