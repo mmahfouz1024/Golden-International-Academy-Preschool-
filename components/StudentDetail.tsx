@@ -21,7 +21,16 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
   const { addNotification } = useNotification();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  const [selectedDate, setSelectedDate] = useState<string>(initialDate || new Date().toISOString().split('T')[0]);
+  // Helper to get local date string YYYY-MM-DD
+  const getTodayString = () => {
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const [selectedDate, setSelectedDate] = useState<string>(initialDate || getTodayString());
   
   const [report, setReport] = useState<DailyReport>({
     id: `new-${Date.now()}`,
@@ -53,7 +62,7 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
       setReport({
         id: `new-${Date.now()}`,
         studentId: student.id,
-        date: selectedDate,
+        date: selectedDate, // Ensure date matches selectedDate
         mood: 'neutral',
         moodNotes: '',
         meals: { breakfast: 'none', lunch: 'none', snack: 'none', waterCups: 0, notes: '' },
@@ -157,15 +166,15 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
         </div>
         <div className="flex items-center gap-3">
            <div className={`text-${language === 'ar' ? 'left' : 'right'}`}>
-            <div className="text-sm font-bold text-gray-400">{t('dailyReport')}</div>
+            <div className="text-sm font-bold text-gray-400">{t('reportDate')}</div>
              {/* Date Picker Integration */}
-             <div className="flex items-center gap-2 mt-1">
-               <Calendar size={16} className="text-indigo-500" />
+             <div className="flex items-center gap-2 mt-1 relative">
+               <Calendar size={18} className="text-indigo-500 absolute pointer-events-none" />
                <input 
                  type="date" 
                  value={selectedDate}
                  onChange={(e) => setSelectedDate(e.target.value)}
-                 className="bg-transparent font-bold text-indigo-600 focus:outline-none focus:border-b-2 focus:border-indigo-200"
+                 className={`bg-white border border-gray-200 rounded-lg px-2 py-1 ${language === 'ar' ? 'pr-8' : 'pl-8'} font-bold text-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/20`}
                  disabled={readOnly}
                />
              </div>
