@@ -101,3 +101,11 @@ export interface AppNotification {
 }
 
 export type Theme = 'smart' | 'blossom' | 'garden' | 'sunshine';
+
+export interface DatabaseConfig {
+  isEnabled: boolean;
+  url: string;
+  key: string;
+  autoSync: boolean;
+  lastSync?: string;
+}

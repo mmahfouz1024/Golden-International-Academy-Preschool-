@@ -1,4 +1,5 @@
 
+
 export const translations = {
   ar: {
     // General
@@ -48,6 +49,7 @@ export const translations = {
     themeBlossom: "الزهور (وردي)",
     themeGarden: "الحديقة (أخضر)",
     themeSunshine: "الشمس (برتقالي)",
+    database: "إدارة قاعدة البيانات",
 
     // Dashboard
     statsTotalStudents: "إجمالي الأطفال",
@@ -221,7 +223,27 @@ export const translations = {
     noNotifications: "لا توجد إشعارات جديدة",
     markAllRead: "تحديد الكل كمقروء",
     newReportMsg: "تم تحديث التقرير اليومي للطالب",
-    systemMsg: "إشعار النظام"
+    systemMsg: "إشعار النظام",
+
+    // Database
+    dbSettings: "إعدادات قاعدة البيانات",
+    dbSubtitle: "ربط التطبيق بقاعدة بيانات سحابية (Supabase) للمزامنة",
+    connectionStatus: "حالة الاتصال",
+    connected: "متصل",
+    disconnected: "غير متصل",
+    supabaseUrl: "رابط المشروع (Project URL)",
+    supabaseKey: "مفتاح API (Anon Key)",
+    autoSync: "مزامنة تلقائية",
+    lastSync: "آخر مزامنة",
+    syncNow: "مزامنة الآن",
+    uploadLocal: "رفع البيانات المحلية للسحابة",
+    downloadCloud: "تحميل البيانات من السحابة",
+    generateSql: "توليد كود إنشاء الجدول",
+    sqlInstructions: "انسخ هذا الكود وقم بتشغيله في محرر SQL في Supabase",
+    copySql: "نسخ الكود",
+    dbSaved: "تم حفظ الإعدادات بنجاح",
+    syncSuccess: "تمت المزامنة بنجاح",
+    syncError: "فشل المزامنة، تأكد من البيانات",
   },
   en: {
     // General
@@ -271,6 +293,7 @@ export const translations = {
     themeBlossom: "Blossom (Pink)",
     themeGarden: "Garden (Green)",
     themeSunshine: "Sunshine (Orange)",
+    database: "Database Management",
 
     // Dashboard
     statsTotalStudents: "Total Students",
@@ -444,6 +467,26 @@ export const translations = {
     noNotifications: "No new notifications",
     markAllRead: "Mark all as read",
     newReportMsg: "Daily report updated for student",
-    systemMsg: "System Notification"
+    systemMsg: "System Notification",
+
+    // Database
+    dbSettings: "Database Settings",
+    dbSubtitle: "Connect app to Supabase cloud database for synchronization",
+    connectionStatus: "Connection Status",
+    connected: "Connected",
+    disconnected: "Disconnected",
+    supabaseUrl: "Project URL",
+    supabaseKey: "API Key (Anon)",
+    autoSync: "Auto Sync",
+    lastSync: "Last Sync",
+    syncNow: "Sync Now",
+    uploadLocal: "Upload Local to Cloud",
+    downloadCloud: "Download Cloud to Local",
+    generateSql: "Generate Table SQL",
+    sqlInstructions: "Copy this code and run it in Supabase SQL Editor",
+    copySql: "Copy Code",
+    dbSaved: "Settings saved successfully",
+    syncSuccess: "Sync completed successfully",
+    syncError: "Sync failed, check configuration",
   }
 };

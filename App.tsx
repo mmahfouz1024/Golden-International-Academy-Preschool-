@@ -11,6 +11,7 @@ import ClassManagement from './components/ClassManagement';
 import Directory from './components/Directory';
 import ReportsArchive from './components/ReportsArchive';
 import Profile from './components/Profile';
+import DatabaseControl from './components/DatabaseControl';
 import Login from './components/Login';
 import NotificationDropdown from './components/NotificationDropdown';
 import BackgroundPattern from './components/BackgroundPattern';
@@ -20,6 +21,7 @@ import { MOCK_STUDENTS } from './constants';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import { NotificationProvider, useNotification } from './contexts/NotificationContext';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { initStorage } from './services/storageService';
 
 const AppContent: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -29,9 +31,15 @@ const AppContent: React.FC = () => {
   const [selectedReportDate, setSelectedReportDate] = useState<string | undefined>(undefined);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
   const { t, dir, language } = useLanguage();
   const { unreadCount } = useNotification();
   const notificationRef = useRef<HTMLDivElement>(null);
+
+  // Initialize DB
+  useEffect(() => {
+    initStorage().then(() => setIsInitialized(true));
+  }, []);
 
   useEffect(() => {
     const handler = (e: any) => {
@@ -152,6 +160,8 @@ const AppContent: React.FC = () => {
         return <UserManagement />;
       case 'classes':
         return <ClassManagement />;
+      case 'database':
+        return <DatabaseControl />;
       case 'profile':
         return user ? <Profile user={user} onUpdateUser={handleUpdateUser} /> : null;
       case 'parent-view':
@@ -165,6 +175,17 @@ const AppContent: React.FC = () => {
         return <Dashboard />;
     }
   };
+
+  if (!isInitialized) {
+    return (
+      <div className="h-screen w-screen flex items-center justify-center bg-slate-50">
+        <div className="flex flex-col items-center gap-4">
+           <div className="w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+           <p className="text-gray-500 font-medium">Starting System...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!user) {
     return (
@@ -223,6 +244,7 @@ const AppContent: React.FC = () => {
                       (currentView === 'reports-archive' && t('reportsArchive')) ||
                       (currentView === 'users' && t('users')) ||
                       (currentView === 'classes' && t('classManagement')) ||
+                      (currentView === 'database' && t('dbSettings')) ||
                       (currentView === 'profile' && t('profile'))
                   )
               }

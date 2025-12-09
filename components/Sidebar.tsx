@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { LayoutDashboard, Users, CalendarCheck, Sparkles, LogOut, Home, Download, Languages, UserCog, School, ChevronRight, ChevronLeft, Contact, FileClock, Palette } from 'lucide-react';
+import { LayoutDashboard, Users, CalendarCheck, Sparkles, LogOut, Home, Download, Languages, UserCog, School, ChevronRight, ChevronLeft, Contact, FileClock, Palette, Database } from 'lucide-react';
 import { User, Theme } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -39,6 +39,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     { id: 'ai-planner', label: t('aiPlanner'), icon: Sparkles, roles: ['admin', 'teacher'] },
     { id: 'classes', label: t('classes'), icon: School, roles: ['admin'] },
     { id: 'users', label: t('users'), icon: UserCog, roles: ['admin'] },
+    { id: 'database', label: t('database'), icon: Database, roles: ['admin'] },
     { id: 'parent-view', label: t('myChild'), icon: Home, roles: ['parent'] },
   ];
 
