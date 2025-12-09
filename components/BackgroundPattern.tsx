@@ -1,10 +1,7 @@
 
 import React from 'react';
-import { useTheme } from '../contexts/ThemeContext';
 
 const BackgroundPattern: React.FC = () => {
-  const { theme } = useTheme();
-
   return (
     <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none opacity-30">
       {/* Dynamic Background Elements */}
