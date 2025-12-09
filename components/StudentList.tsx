@@ -1,9 +1,9 @@
 
-import React, { useState, useRef } from 'react';
-import { Search, Plus, Phone, Star, ChevronLeft, ChevronRight, X, Save, Filter, Camera } from 'lucide-react';
-import { MOCK_STUDENTS } from '../constants';
-import { Student, StudentStatus } from '../types';
+import React, { useState, useRef, useEffect } from 'react';
+import { Search, Plus, Phone, Star, ChevronLeft, ChevronRight, X, Save, Filter, Camera, ShieldCheck } from 'lucide-react';
+import { Student, StudentStatus, User } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
+import { getStudents, saveStudents, getUsers, saveUsers } from '../services/storageService';
 
 interface StudentListProps {
   onStudentSelect: (student: Student) => void;
@@ -11,7 +11,7 @@ interface StudentListProps {
 
 const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
   const { t, language } = useLanguage();
-  const [students, setStudents] = useState<Student[]>(MOCK_STUDENTS);
+  const [students, setStudents] = useState<Student[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   
   const [filterClass, setFilterClass] = useState('All');
@@ -27,8 +27,15 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
     age: '',
     classGroup: 'البراعم',
     parentName: '',
-    phone: ''
+    phone: '',
+    parentUsername: '',
+    parentPassword: ''
   });
+
+  // Load students from storage on mount
+  useEffect(() => {
+    setStudents(getStudents());
+  }, []);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -43,10 +50,13 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
 
   const handleAddStudent = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newStudentData.name || !newStudentData.parentName) return;
+    if (!newStudentData.name || !newStudentData.parentName || !newStudentData.parentUsername || !newStudentData.parentPassword) return;
 
+    const studentId = Date.now().toString();
+
+    // 1. Create Student Record
     const newStudent: Student = {
-      id: Date.now().toString(),
+      id: studentId,
       name: newStudentData.name,
       age: parseInt(newStudentData.age) || 4,
       classGroup: newStudentData.classGroup,
@@ -55,12 +65,31 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
       status: StudentStatus.Active,
       attendanceToday: false,
       // Use uploaded avatar or generate a random one
-      avatar: newStudentAvatar || `https://picsum.photos/seed/${Date.now()}/200/200`
+      avatar: newStudentAvatar || `https://picsum.photos/seed/${studentId}/200/200`
     };
 
-    setStudents([newStudent, ...students]);
+    const updatedStudentsList = [newStudent, ...students];
+    setStudents(updatedStudentsList);
+    saveStudents(updatedStudentsList); // Persist students
+
+    // 2. Create Parent User Record
+    const currentUsers = getUsers();
+    const newUser: User = {
+      id: `u-${Date.now()}`,
+      name: newStudentData.parentName,
+      username: newStudentData.parentUsername,
+      password: newStudentData.parentPassword,
+      role: 'parent',
+      linkedStudentId: studentId,
+      phone: newStudentData.phone,
+      avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(newStudentData.parentName)}&background=random`,
+      interests: []
+    };
+    
+    saveUsers([...currentUsers, newUser]); // Persist users
+
     setIsAddModalOpen(false);
-    setNewStudentData({ name: '', age: '', classGroup: 'البراعم', parentName: '', phone: '' });
+    setNewStudentData({ name: '', age: '', classGroup: 'البراعم', parentName: '', phone: '', parentUsername: '', parentPassword: '' });
     setNewStudentAvatar('');
   };
 
@@ -224,7 +253,7 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
 
       {isAddModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden animate-fade-in">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-y-auto max-h-[90vh] animate-fade-in">
             <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
               <h3 className="text-lg font-bold text-gray-800">{t('addStudentTitle')}</h3>
               <button 
@@ -321,6 +350,38 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
                     onChange={e => setNewStudentData({...newStudentData, phone: e.target.value})}
                   />
                 </div>
+              </div>
+
+              {/* Parent Account Section */}
+              <div className="mt-6 pt-4 border-t border-gray-100">
+                 <div className="flex items-center gap-2 mb-4 text-indigo-700">
+                   <ShieldCheck size={20} />
+                   <h4 className="font-bold">{t('parentAccount')}</h4>
+                 </div>
+                 
+                 <div className="grid grid-cols-2 gap-4">
+                    <div className="col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('parentUsername')}</label>
+                      <input 
+                        required
+                        type="text" 
+                        className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-gray-50"
+                        value={newStudentData.parentUsername}
+                        onChange={e => setNewStudentData({...newStudentData, parentUsername: e.target.value})}
+                        placeholder="user123"
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('parentPassword')}</label>
+                      <input 
+                        required
+                        type="password" 
+                        className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-gray-50"
+                        value={newStudentData.parentPassword}
+                        onChange={e => setNewStudentData({...newStudentData, parentPassword: e.target.value})}
+                      />
+                    </div>
+                 </div>
               </div>
 
               <div className="pt-4 flex gap-3">

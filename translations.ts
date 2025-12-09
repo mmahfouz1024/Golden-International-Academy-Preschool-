@@ -80,6 +80,9 @@ export const translations = {
     parentName: "اسم ولي الأمر",
     phone: "رقم الهاتف",
     saveData: "حفظ البيانات",
+    parentAccount: "حساب تطبيق ولي الأمر",
+    parentUsername: "اسم المستخدم (لولي الأمر)",
+    parentPassword: "كلمة المرور",
 
     // Student Detail
     dailyReport: "التقرير اليومي",
@@ -324,6 +327,9 @@ export const translations = {
     parentName: "Parent Name",
     phone: "Phone Number",
     saveData: "Save Data",
+    parentAccount: "Parent App Account",
+    parentUsername: "Username (Parent)",
+    parentPassword: "Password",
 
     // Student Detail
     dailyReport: "Daily Report",
