@@ -14,13 +14,37 @@ const KEYS = {
 // Initialize DB
 let isCloudEnabled = false;
 
+// Default Credentials from user request
+const DEFAULT_CONFIG: DatabaseConfig = {
+  isEnabled: true,
+  url: 'https://jompzhrrgazbsqoetdbh.supabase.co',
+  key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpvbXB6aHJyZ2F6YnNxb2V0ZGJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUyNzkzNDMsImV4cCI6MjA4MDg1NTM0M30.av1WThwU7L0WeUHPzw29bt-OL-esWH-OihZJCIgXbAc',
+  autoSync: true
+};
+
 export const initStorage = async () => {
   const config = getDatabaseConfig();
+  
   if (config.isEnabled && config.url && config.key) {
     const connected = initSupabase(config);
     isCloudEnabled = connected;
+
     if (connected && config.autoSync) {
-      await syncAllFromCloud();
+      console.log("🔗 Connected to Supabase. Checking for remote data...");
+      try {
+        // Try to fetch users to see if DB is initialized with our data
+        const { data } = await fetchDataFromCloud(KEYS.USERS);
+        
+        if (!data) {
+          console.log("☁️ Database appears empty. Seeding with local/mock data...");
+          await forceSyncToCloud();
+        } else {
+          console.log("📥 Data found in cloud. Syncing down to device...");
+          await syncAllFromCloud();
+        }
+      } catch (error) {
+        console.error("⚠️ Error during initial sync check:", error);
+      }
     }
   }
 };
@@ -29,7 +53,9 @@ export const initStorage = async () => {
 export const getDatabaseConfig = (): DatabaseConfig => {
   const stored = localStorage.getItem(KEYS.DB_CONFIG);
   if (!stored) {
-    return { isEnabled: false, url: '', key: '', autoSync: false };
+    // If no config exists, use the defaults and save them so they appear in settings
+    localStorage.setItem(KEYS.DB_CONFIG, JSON.stringify(DEFAULT_CONFIG));
+    return DEFAULT_CONFIG;
   }
   return JSON.parse(stored);
 };
@@ -45,27 +71,33 @@ export const saveDatabaseConfig = (config: DatabaseConfig) => {
 const saveAndSync = async (key: string, data: any) => {
   localStorage.setItem(key, JSON.stringify(data));
   if (isCloudEnabled) {
-    // Fire and forget sync to avoid UI blocking, or handle error silently
-    syncDataToCloud(key, data).catch(console.error);
+    // Fire and forget sync to avoid UI blocking
+    syncDataToCloud(key, data).catch(err => console.error(`Failed to sync ${key}:`, err));
   }
 };
 
 const syncAllFromCloud = async () => {
   try {
     const keys = [KEYS.USERS, KEYS.STUDENTS, KEYS.CLASSES, KEYS.REPORTS];
+    let syncedCount = 0;
     for (const key of keys) {
       const { data } = await fetchDataFromCloud(key);
       if (data) {
         localStorage.setItem(key, JSON.stringify(data));
+        syncedCount++;
       }
     }
     // Update last sync time
-    const config = getDatabaseConfig();
-    config.lastSync = new Date().toISOString();
-    saveDatabaseConfig(config);
-    return true;
+    if (syncedCount > 0) {
+      const config = getDatabaseConfig();
+      config.lastSync = new Date().toISOString();
+      saveDatabaseConfig(config);
+      console.log("✅ Sync from cloud complete.");
+      return true;
+    }
+    return false;
   } catch (e) {
-    console.error("Sync failed", e);
+    console.error("❌ Sync failed", e);
     return false;
   }
 };
@@ -73,6 +105,7 @@ const syncAllFromCloud = async () => {
 export const forceSyncToCloud = async () => {
    if (!isCloudEnabled) return false;
    try {
+     console.log("📤 Uploading all local data to cloud...");
      await syncDataToCloud(KEYS.USERS, getUsers());
      await syncDataToCloud(KEYS.STUDENTS, getStudents());
      await syncDataToCloud(KEYS.CLASSES, getClasses());
@@ -81,8 +114,10 @@ export const forceSyncToCloud = async () => {
      const config = getDatabaseConfig();
      config.lastSync = new Date().toISOString();
      saveDatabaseConfig(config);
+     console.log("✅ Upload complete.");
      return true;
    } catch (e) {
+     console.error("❌ Upload failed", e);
      return false;
    }
 };

@@ -1,6 +1,7 @@
 
+
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, Plus, Phone, Star, ChevronLeft, ChevronRight, X, Save, Filter, Camera, ShieldCheck } from 'lucide-react';
+import { Search, Plus, Phone, Star, ChevronLeft, ChevronRight, X, Save, Filter, Camera, ShieldCheck, Edit2, Trash2 } from 'lucide-react';
 import { Student, StudentStatus, User } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
 import { getStudents, saveStudents, getUsers, saveUsers } from '../services/storageService';
@@ -18,11 +19,14 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
   const [filterAge, setFilterAge] = useState('All');
   const [filterStatus, setFilterStatus] = useState('All');
   
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [newStudentAvatar, setNewStudentAvatar] = useState<string>('');
   
-  const [newStudentData, setNewStudentData] = useState({
+  // State to track if we are editing
+  const [editingStudent, setEditingStudent] = useState<Student | null>(null);
+
+  const [studentData, setStudentData] = useState({
     name: '',
     age: '',
     classGroup: 'البراعم',
@@ -48,49 +52,130 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
     }
   };
 
-  const handleAddStudent = (e: React.FormEvent) => {
+  const handleOpenModal = (student?: Student) => {
+    if (student) {
+      // Edit Mode
+      setEditingStudent(student);
+      setNewStudentAvatar(student.avatar);
+      
+      // Try to find linked parent user to populate credentials
+      const users = getUsers();
+      const parentUser = users.find(u => u.linkedStudentId === student.id && u.role === 'parent');
+
+      setStudentData({
+        name: student.name,
+        age: student.age.toString(),
+        classGroup: student.classGroup,
+        parentName: student.parentName,
+        phone: student.phone,
+        parentUsername: parentUser ? parentUser.username : '',
+        parentPassword: '' // Don't show password for security, only allow reset
+      });
+    } else {
+      // Add Mode
+      setEditingStudent(null);
+      setNewStudentAvatar('');
+      setStudentData({ 
+        name: '', 
+        age: '', 
+        classGroup: 'البراعم', 
+        parentName: '', 
+        phone: '', 
+        parentUsername: '', 
+        parentPassword: '' 
+      });
+    }
+    setIsModalOpen(true);
+  };
+
+  const handleDeleteStudent = (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    if (confirm(t('deleteStudentConfirm'))) {
+      const updatedList = students.filter(s => s.id !== id);
+      setStudents(updatedList);
+      saveStudents(updatedList);
+
+      // Also remove linked parent user? Optional, but good practice
+      const users = getUsers();
+      const updatedUsers = users.filter(u => u.linkedStudentId !== id);
+      saveUsers(updatedUsers);
+    }
+  };
+
+  const handleSaveStudent = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newStudentData.name || !newStudentData.parentName || !newStudentData.parentUsername || !newStudentData.parentPassword) return;
+    if (!studentData.name || !studentData.parentName) return;
 
-    const studentId = Date.now().toString();
+    let updatedStudentsList: Student[];
+    let currentStudentId = '';
 
-    // 1. Create Student Record
-    const newStudent: Student = {
-      id: studentId,
-      name: newStudentData.name,
-      age: parseInt(newStudentData.age) || 4,
-      classGroup: newStudentData.classGroup,
-      parentName: newStudentData.parentName,
-      phone: newStudentData.phone,
-      status: StudentStatus.Active,
-      attendanceToday: false,
-      // Use uploaded avatar or generate a random one
-      avatar: newStudentAvatar || `https://picsum.photos/seed/${studentId}/200/200`
-    };
+    if (editingStudent) {
+      // Update existing student
+      currentStudentId = editingStudent.id;
+      const updatedStudent: Student = {
+        ...editingStudent,
+        name: studentData.name,
+        age: parseInt(studentData.age) || 4,
+        classGroup: studentData.classGroup,
+        parentName: studentData.parentName,
+        phone: studentData.phone,
+        avatar: newStudentAvatar || editingStudent.avatar
+      };
+      
+      updatedStudentsList = students.map(s => s.id === editingStudent.id ? updatedStudent : s);
+    } else {
+      // Create new student
+      currentStudentId = Date.now().toString();
+      const newStudent: Student = {
+        id: currentStudentId,
+        name: studentData.name,
+        age: parseInt(studentData.age) || 4,
+        classGroup: studentData.classGroup,
+        parentName: studentData.parentName,
+        phone: studentData.phone,
+        status: StudentStatus.Active,
+        attendanceToday: false,
+        avatar: newStudentAvatar || `https://picsum.photos/seed/${currentStudentId}/200/200`
+      };
+      updatedStudentsList = [newStudent, ...students];
+    }
 
-    const updatedStudentsList = [newStudent, ...students];
     setStudents(updatedStudentsList);
-    saveStudents(updatedStudentsList); // Persist students
+    saveStudents(updatedStudentsList);
 
-    // 2. Create Parent User Record
+    // Handle Parent User
     const currentUsers = getUsers();
-    const newUser: User = {
-      id: `u-${Date.now()}`,
-      name: newStudentData.parentName,
-      username: newStudentData.parentUsername,
-      password: newStudentData.parentPassword,
-      role: 'parent',
-      linkedStudentId: studentId,
-      phone: newStudentData.phone,
-      avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(newStudentData.parentName)}&background=random`,
-      interests: []
-    };
-    
-    saveUsers([...currentUsers, newUser]); // Persist users
+    const existingParentIndex = currentUsers.findIndex(u => u.linkedStudentId === currentStudentId && u.role === 'parent');
 
-    setIsAddModalOpen(false);
-    setNewStudentData({ name: '', age: '', classGroup: 'البراعم', parentName: '', phone: '', parentUsername: '', parentPassword: '' });
-    setNewStudentAvatar('');
+    if (existingParentIndex >= 0) {
+      // Update existing parent user
+      const updatedUsers = [...currentUsers];
+      updatedUsers[existingParentIndex] = {
+        ...updatedUsers[existingParentIndex],
+        name: studentData.parentName,
+        username: studentData.parentUsername || updatedUsers[existingParentIndex].username,
+        // Only update password if provided
+        password: studentData.parentPassword || updatedUsers[existingParentIndex].password,
+        phone: studentData.phone
+      };
+      saveUsers(updatedUsers);
+    } else if (studentData.parentUsername && studentData.parentPassword) {
+      // Create new parent user if credentials provided
+      const newUser: User = {
+        id: `u-${Date.now()}`,
+        name: studentData.parentName,
+        username: studentData.parentUsername,
+        password: studentData.parentPassword,
+        role: 'parent',
+        linkedStudentId: currentStudentId,
+        phone: studentData.phone,
+        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(studentData.parentName)}&background=random`,
+        interests: []
+      };
+      saveUsers([...currentUsers, newUser]);
+    }
+
+    setIsModalOpen(false);
   };
 
   const filteredStudents = students.filter(student => {
@@ -119,7 +204,7 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
           <p className="text-gray-500 mt-1">{t('manageStudents')}</p>
         </div>
         <button 
-          onClick={() => setIsAddModalOpen(true)}
+          onClick={() => handleOpenModal()}
           className="flex items-center gap-2 bg-indigo-600 text-white px-5 py-2.5 rounded-xl hover:bg-indigo-700 transition-colors shadow-sm font-medium"
         >
           <Plus size={20} />
@@ -235,9 +320,29 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
                     </span>
                   </td>
                   <td className="px-6 py-4 text-left">
-                    <button className="text-gray-400 hover:text-indigo-600 p-2 hover:bg-indigo-50 rounded-lg transition-colors">
-                      {language === 'ar' ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
-                    </button>
+                    <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                       <button 
+                         onClick={(e) => { e.stopPropagation(); handleOpenModal(student); }}
+                         className="text-gray-400 hover:text-indigo-600 p-2 hover:bg-indigo-50 rounded-lg transition-colors"
+                         title={t('edit')}
+                       >
+                         <Edit2 size={18} />
+                       </button>
+                       <button 
+                         onClick={(e) => handleDeleteStudent(e, student.id)}
+                         className="text-gray-400 hover:text-red-600 p-2 hover:bg-red-50 rounded-lg transition-colors"
+                         title={t('delete')}
+                       >
+                         <Trash2 size={18} />
+                       </button>
+                       <div className="text-gray-300 px-1">|</div>
+                       <button 
+                         className="text-gray-300 hover:text-indigo-600 p-2 hover:bg-indigo-50 rounded-lg transition-colors"
+                         onClick={() => onStudentSelect(student)}
+                       >
+                         {language === 'ar' ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
+                       </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -251,20 +356,20 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
         )}
       </div>
 
-      {isAddModalOpen && (
+      {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-y-auto max-h-[90vh] animate-fade-in">
             <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-              <h3 className="text-lg font-bold text-gray-800">{t('addStudentTitle')}</h3>
+              <h3 className="text-lg font-bold text-gray-800">{editingStudent ? t('editStudent') : t('addStudentTitle')}</h3>
               <button 
-                onClick={() => setIsAddModalOpen(false)}
+                onClick={() => setIsModalOpen(false)}
                 className="text-gray-400 hover:text-red-500 transition-colors"
               >
                 <X size={20} />
               </button>
             </div>
             
-            <form onSubmit={handleAddStudent} className="p-6 space-y-4">
+            <form onSubmit={handleSaveStudent} className="p-6 space-y-4">
               
               <div className="flex flex-col items-center justify-center mb-6">
                 <input 
@@ -299,8 +404,8 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
                     required
                     type="text" 
                     className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-                    value={newStudentData.name}
-                    onChange={e => setNewStudentData({...newStudentData, name: e.target.value})}
+                    value={studentData.name}
+                    onChange={e => setStudentData({...studentData, name: e.target.value})}
                   />
                 </div>
 
@@ -311,8 +416,8 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
                     type="number" 
                     min="2" max="7"
                     className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-                    value={newStudentData.age}
-                    onChange={e => setNewStudentData({...newStudentData, age: e.target.value})}
+                    value={studentData.age}
+                    onChange={e => setStudentData({...studentData, age: e.target.value})}
                   />
                 </div>
 
@@ -320,8 +425,8 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">{t('studentClass')}</label>
                   <select 
                     className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-white"
-                    value={newStudentData.classGroup}
-                    onChange={e => setNewStudentData({...newStudentData, classGroup: e.target.value})}
+                    value={studentData.classGroup}
+                    onChange={e => setStudentData({...studentData, classGroup: e.target.value})}
                   >
                     <option value="البراعم">البراعم</option>
                     <option value="العصافير">العصافير</option>
@@ -335,8 +440,8 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
                     required
                     type="text" 
                     className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-                    value={newStudentData.parentName}
-                    onChange={e => setNewStudentData({...newStudentData, parentName: e.target.value})}
+                    value={studentData.parentName}
+                    onChange={e => setStudentData({...studentData, parentName: e.target.value})}
                   />
                 </div>
 
@@ -346,8 +451,8 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
                     required
                     type="tel" 
                     className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-                    value={newStudentData.phone}
-                    onChange={e => setNewStudentData({...newStudentData, phone: e.target.value})}
+                    value={studentData.phone}
+                    onChange={e => setStudentData({...studentData, phone: e.target.value})}
                   />
                 </div>
               </div>
@@ -363,22 +468,21 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
                     <div className="col-span-2">
                       <label className="block text-sm font-medium text-gray-700 mb-1">{t('parentUsername')}</label>
                       <input 
-                        required
                         type="text" 
                         className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-gray-50"
-                        value={newStudentData.parentUsername}
-                        onChange={e => setNewStudentData({...newStudentData, parentUsername: e.target.value})}
+                        value={studentData.parentUsername}
+                        onChange={e => setStudentData({...studentData, parentUsername: e.target.value})}
                         placeholder="user123"
                       />
                     </div>
                     <div className="col-span-2">
                       <label className="block text-sm font-medium text-gray-700 mb-1">{t('parentPassword')}</label>
                       <input 
-                        required
                         type="password" 
                         className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-gray-50"
-                        value={newStudentData.parentPassword}
-                        onChange={e => setNewStudentData({...newStudentData, parentPassword: e.target.value})}
+                        value={studentData.parentPassword}
+                        onChange={e => setStudentData({...studentData, parentPassword: e.target.value})}
+                        placeholder={editingStudent ? t('leaveBlankToKeep') : ""}
                       />
                     </div>
                  </div>
@@ -387,7 +491,7 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
               <div className="pt-4 flex gap-3">
                 <button 
                   type="button"
-                  onClick={() => setIsAddModalOpen(false)}
+                  onClick={() => setIsModalOpen(false)}
                   className="flex-1 py-2.5 border border-gray-200 text-gray-600 rounded-xl font-medium hover:bg-gray-50 transition-colors"
                 >
                   {t('cancel')}

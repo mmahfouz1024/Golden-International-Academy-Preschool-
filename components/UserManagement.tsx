@@ -1,41 +1,49 @@
 
+
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Edit2, Trash2, Shield, X, Save } from 'lucide-react';
-import { getUsers, saveUsers, getStudents } from '../services/storageService';
-import { User, UserRole, Student } from '../types';
+import { Plus, Search, Edit2, Trash2, Shield, X, Save, School } from 'lucide-react';
+import { getUsers, saveUsers, getStudents, getClasses, saveClasses } from '../services/storageService';
+import { User, UserRole, Student, ClassGroup } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
 
 const UserManagement: React.FC = () => {
   const { t, language } = useLanguage();
   const [users, setUsers] = useState<User[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
+  const [classes, setClasses] = useState<ClassGroup[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
 
-  // Load users and students from storage on mount
+  // Load users, students, and classes from storage on mount
   useEffect(() => {
     setUsers(getUsers());
     setStudents(getStudents());
+    setClasses(getClasses());
   }, []);
 
-  const [formData, setFormData] = useState<Partial<User>>({
+  const [formData, setFormData] = useState<Partial<User> & { assignedClassId?: string }>({
     name: '',
     username: '',
     password: '',
     role: 'teacher',
-    linkedStudentId: ''
+    linkedStudentId: '',
+    assignedClassId: ''
   });
 
   const handleOpenModal = (user?: User) => {
     if (user) {
       setEditingUser(user);
+      // Find class where this user is the teacher
+      const assignedClass = classes.find(c => c.teacherId === user.id);
+      
       setFormData({
         name: user.name,
         username: user.username,
         password: user.password,
         role: user.role,
-        linkedStudentId: user.linkedStudentId || ''
+        linkedStudentId: user.linkedStudentId || '',
+        assignedClassId: assignedClass ? assignedClass.id : ''
       });
     } else {
       setEditingUser(null);
@@ -44,7 +52,8 @@ const UserManagement: React.FC = () => {
         username: '',
         password: '',
         role: 'teacher',
-        linkedStudentId: ''
+        linkedStudentId: '',
+        assignedClassId: ''
       });
     }
     setIsModalOpen(true);
@@ -55,12 +64,14 @@ const UserManagement: React.FC = () => {
     if (!formData.username || !formData.name || !formData.password) return;
 
     let updatedUsers: User[];
+    let userId = editingUser ? editingUser.id : `u-${Date.now()}`;
 
+    // 1. Save User Logic
     if (editingUser) {
-      updatedUsers = users.map(u => u.id === editingUser.id ? { ...u, ...formData } as User : u);
+      updatedUsers = users.map(u => u.id === editingUser.id ? { ...u, ...formData, id: userId } as User : u);
     } else {
       const newUser: User = {
-        id: `u-${Date.now()}`,
+        id: userId,
         avatar: `https://picsum.photos/seed/${Date.now()}/100/100`,
         name: formData.name!,
         username: formData.username!,
@@ -70,9 +81,26 @@ const UserManagement: React.FC = () => {
       } as User;
       updatedUsers = [...users, newUser];
     }
-    
     setUsers(updatedUsers);
-    saveUsers(updatedUsers); // Persist to LocalStorage
+    saveUsers(updatedUsers);
+
+    // 2. Assign Class Logic (if teacher)
+    if (formData.role === 'teacher') {
+       const updatedClasses = classes.map(cls => {
+         // If this is the class selected, assign teacher
+         if (cls.id === formData.assignedClassId) {
+           return { ...cls, teacherId: userId };
+         }
+         // If this user was previously assigned to this class but now changed, remove them
+         if (cls.teacherId === userId && cls.id !== formData.assignedClassId) {
+           return { ...cls, teacherId: undefined };
+         }
+         return cls;
+       });
+       setClasses(updatedClasses);
+       saveClasses(updatedClasses);
+    }
+
     setIsModalOpen(false);
   };
 
@@ -80,7 +108,12 @@ const UserManagement: React.FC = () => {
     if (confirm(t('deleteUserConfirm'))) {
       const updatedUsers = users.filter(u => u.id !== id);
       setUsers(updatedUsers);
-      saveUsers(updatedUsers); // Persist to LocalStorage
+      saveUsers(updatedUsers); 
+      
+      // Also unassign from any classes
+      const updatedClasses = classes.map(c => c.teacherId === id ? { ...c, teacherId: undefined } : c);
+      setClasses(updatedClasses);
+      saveClasses(updatedClasses);
     }
   };
 
@@ -133,13 +166,15 @@ const UserManagement: React.FC = () => {
               <tr className="bg-gray-50 border-b border-gray-100">
                 <th className="px-6 py-4 text-sm font-semibold text-gray-600">{t('username')}</th>
                 <th className="px-6 py-4 text-sm font-semibold text-gray-600">{t('role')}</th>
-                <th className="px-6 py-4 text-sm font-semibold text-gray-600">{t('linkedStudent')}</th>
+                <th className="px-6 py-4 text-sm font-semibold text-gray-600">{t('details')}</th>
                 <th className="px-6 py-4 text-sm font-semibold text-gray-600"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
               {filteredUsers.map((user) => {
                 const linkedStudent = students.find(s => s.id === user.linkedStudentId);
+                const assignedClass = classes.find(c => c.teacherId === user.id);
+                
                 return (
                   <tr key={user.id} className="hover:bg-gray-50/50 transition-colors">
                     <td className="px-6 py-4">
@@ -161,12 +196,22 @@ const UserManagement: React.FC = () => {
                       {user.role === 'parent' ? (
                         linkedStudent ? (
                           <div className="flex items-center gap-2 text-sm text-gray-700">
+                            <span className="text-xs text-gray-400">{t('linkedStudent')}:</span>
                             <img src={linkedStudent.avatar} className="w-6 h-6 rounded-full" />
                             {linkedStudent.name}
                           </div>
                         ) : (
                           <span className="text-sm text-red-500 italic">{t('noLinkedStudent')}</span>
                         )
+                      ) : user.role === 'teacher' ? (
+                         assignedClass ? (
+                          <div className="flex items-center gap-2 text-sm text-indigo-700">
+                             <School size={14} />
+                             {assignedClass.name}
+                          </div>
+                         ) : (
+                           <span className="text-xs text-gray-400">{t('noClassAssigned')}</span>
+                         )
                       ) : (
                         <span className="text-gray-400 text-sm">-</span>
                       )}
@@ -263,6 +308,24 @@ const UserManagement: React.FC = () => {
                   ))}
                 </div>
               </div>
+
+              {formData.role === 'teacher' && (
+                <div className="animate-fade-in p-4 bg-blue-50 rounded-xl border border-blue-100">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('assignClass')}</label>
+                  <select
+                    className="w-full px-4 py-2 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white"
+                    value={formData.assignedClassId}
+                    onChange={e => setFormData({...formData, assignedClassId: e.target.value})}
+                  >
+                    <option value="">{t('selectClass')}</option>
+                    {classes.map(cls => (
+                      <option key={cls.id} value={cls.id}>
+                        {cls.name} {cls.teacherId && cls.teacherId !== editingUser?.id ? `(مشغولة)` : ''}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
               {formData.role === 'parent' && (
                 <div className="animate-fade-in p-4 bg-yellow-50 rounded-xl border border-yellow-100">

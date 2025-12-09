@@ -65,6 +65,8 @@ export const translations = {
     studentRegistry: "سجل الأطفال",
     manageStudents: "إدارة ملفات الأطفال والتقارير اليومية",
     newStudent: "تسجيل طفل جديد",
+    editStudent: "تعديل بيانات الطفل",
+    deleteStudentConfirm: "هل أنت متأكد من حذف ملف هذا الطفل نهائياً؟",
     searchPlaceholder: "بحث باسم الطفل أو ولي الأمر...",
     filterClass: "كل الفصول",
     filterAge: "كل الأعمار",
@@ -83,6 +85,7 @@ export const translations = {
     parentAccount: "حساب تطبيق ولي الأمر",
     parentUsername: "اسم المستخدم (لولي الأمر)",
     parentPassword: "كلمة المرور",
+    leaveBlankToKeep: "اتركه فارغاً للإبقاء على كلمة المرور الحالية",
 
     // Student Detail
     dailyReport: "التقرير اليومي",
@@ -151,8 +154,8 @@ export const translations = {
     sendWhatsapp: "إرسال عبر واتساب",
     
     // User Management
-    userManagement: "إدارة المستخدمين",
-    manageUsers: "إدارة الحسابات والصلاحيات",
+    userManagement: "إدارة المستخدمين والمعلمين",
+    manageUsers: "إدارة الحسابات، الصلاحيات، وتعيين الفصول",
     usersList: "قائمة المستخدمين",
     addUser: "إضافة مستخدم",
     editUser: "تعديل مستخدم",
@@ -162,6 +165,9 @@ export const translations = {
     selectStudent: "اختر الطالب...",
     noLinkedStudent: "غير مرتبط",
     permissionLevel: "مستوى الصلاحية",
+    assignClass: "تعيين مسؤولية الفصل",
+    selectClass: "اختر الفصل...",
+    noClassAssigned: "غير معين لفصل",
     
     // Class Management
     classManagement: "إدارة الفصول",
@@ -312,6 +318,8 @@ export const translations = {
     studentRegistry: "Student Registry",
     manageStudents: "Manage student profiles and daily reports",
     newStudent: "Register New Student",
+    editStudent: "Edit Student Profile",
+    deleteStudentConfirm: "Are you sure you want to permanently delete this student?",
     searchPlaceholder: "Search by student or parent name...",
     filterClass: "All Classes",
     filterAge: "All Ages",
@@ -330,6 +338,7 @@ export const translations = {
     parentAccount: "Parent App Account",
     parentUsername: "Username (Parent)",
     parentPassword: "Password",
+    leaveBlankToKeep: "Leave blank to keep current password",
 
     // Student Detail
     dailyReport: "Daily Report",
@@ -398,8 +407,8 @@ export const translations = {
     sendWhatsapp: "Send via WhatsApp",
 
     // User Management
-    userManagement: "User Management",
-    manageUsers: "Manage accounts and permissions",
+    userManagement: "User & Teacher Management",
+    manageUsers: "Manage accounts, permissions, and class assignments",
     usersList: "Users List",
     addUser: "Add User",
     editUser: "Edit User",
@@ -409,6 +418,9 @@ export const translations = {
     selectStudent: "Select Student...",
     noLinkedStudent: "Not Linked",
     permissionLevel: "Permission Level",
+    assignClass: "Assign Class Responsibility",
+    selectClass: "Select Class...",
+    noClassAssigned: "No Class Assigned",
 
     // Class Management
     classManagement: "Class Management",
