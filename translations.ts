@@ -169,6 +169,7 @@ export const translations = {
     assignClass: "تعيين مسؤولية الفصل",
     selectClass: "اختر الفصل...",
     noClassAssigned: "غير معين لفصل",
+    usernameExists: "اسم المستخدم هذا مسجل بالفعل",
     
     // Class Management
     classManagement: "إدارة الفصول",
@@ -423,6 +424,7 @@ export const translations = {
     assignClass: "Assign Class Responsibility",
     selectClass: "Select Class...",
     noClassAssigned: "No Class Assigned",
+    usernameExists: "Username already exists",
 
     // Class Management
     classManagement: "Class Management",

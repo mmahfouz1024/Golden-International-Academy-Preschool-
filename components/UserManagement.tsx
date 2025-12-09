@@ -1,7 +1,7 @@
 
 
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Edit2, Trash2, Shield, X, Save, School, Briefcase } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, Shield, X, Save, School, Briefcase, AlertCircle } from 'lucide-react';
 import { getUsers, saveUsers, getStudents, getClasses, saveClasses } from '../services/storageService';
 import { User, UserRole, Student, ClassGroup } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -14,6 +14,7 @@ const UserManagement: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [error, setError] = useState('');
 
   // Load users, students, and classes from storage on mount
   useEffect(() => {
@@ -32,6 +33,7 @@ const UserManagement: React.FC = () => {
   });
 
   const handleOpenModal = (user?: User) => {
+    setError('');
     if (user) {
       setEditingUser(user);
       // Find class where this user is the teacher
@@ -61,7 +63,20 @@ const UserManagement: React.FC = () => {
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
+
     if (!formData.username || !formData.name || !formData.password) return;
+
+    // Check for duplicate username
+    const isDuplicate = users.some(u => 
+      u.username.toLowerCase() === formData.username!.toLowerCase() && 
+      (!editingUser || u.id !== editingUser.id)
+    );
+
+    if (isDuplicate) {
+      setError(t('usernameExists' as any));
+      return;
+    }
 
     let updatedUsers: User[];
     let userId = editingUser ? editingUser.id : `u-${Date.now()}`;
@@ -256,6 +271,14 @@ const UserManagement: React.FC = () => {
             </div>
             
             <form onSubmit={handleSave} className="p-6 space-y-4">
+              
+              {error && (
+                <div className="bg-red-50 text-red-600 px-4 py-3 rounded-xl border border-red-100 flex items-center gap-2 text-sm animate-fade-in">
+                  <AlertCircle size={18} />
+                  {error}
+                </div>
+              )}
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">{t('studentName')}</label>
                 <input 
