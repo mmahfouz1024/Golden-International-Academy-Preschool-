@@ -7,10 +7,20 @@ declare var process: {
   };
 };
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+let aiClient: GoogleGenAI | null = null;
+
+const getAiClient = () => {
+  if (!aiClient) {
+    // Use the API key or fallback to empty string to prevent crash, though calls will fail gracefully later
+    const apiKey = process.env.API_KEY || ''; 
+    aiClient = new GoogleGenAI({ apiKey });
+  }
+  return aiClient;
+};
 
 export const generateActivityPlan = async (ageGroup: string, topic: string) => {
   try {
+    const ai = getAiClient();
     const model = 'gemini-2.5-flash';
     const prompt = `
       بصفتك خبير تربوي في رياض الأطفال، قم بإنشاء نشاط تعليمي ممتع وتفاعلي.
@@ -53,6 +63,7 @@ export const generateActivityPlan = async (ageGroup: string, topic: string) => {
 
 export const draftParentMessage = async (studentName: string, type: 'praise' | 'issue' | 'announcement', details: string) => {
   try {
+    const ai = getAiClient();
     const model = 'gemini-2.5-flash';
     const prompt = `
       اكتب رسالة قصيرة ومهذبة لولي أمر الطالب: ${studentName}.
