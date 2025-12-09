@@ -1,13 +1,13 @@
 
 import React, { useState, useEffect } from 'react';
-import { Database, Save, RefreshCw, UploadCloud, DownloadCloud, CheckCircle, AlertTriangle, Copy, Code } from 'lucide-react';
+import { Database, Save, UploadCloud, DownloadCloud, CheckCircle, AlertTriangle, Copy, Code } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { getDatabaseConfig, saveDatabaseConfig, forceSyncToCloud, forceSyncFromCloud } from '../services/storageService';
 import { checkConnection, generateSQLSchema } from '../services/supabaseClient';
 import { DatabaseConfig } from '../types';
 
 const DatabaseControl: React.FC = () => {
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
   const [config, setConfig] = useState<DatabaseConfig>({
     isEnabled: false,
     url: '',
