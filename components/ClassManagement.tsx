@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from 'react';
 import { Plus, Search, Edit2, Trash2, X, Save, School, Users } from 'lucide-react';
 import { getUsers, getClasses, saveClasses, getStudents, saveStudents } from '../services/storageService';
@@ -26,7 +27,7 @@ const ClassManagement: React.FC = () => {
     capacity: 20
   });
 
-  const teachers = users.filter(u => u.role === 'teacher' || u.role === 'admin');
+  const teachers = users.filter(u => u.role === 'teacher' || u.role === 'admin' || u.role === 'manager');
 
   const handleOpenModal = (classGroup?: ClassGroup) => {
     if (classGroup) {

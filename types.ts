@@ -68,7 +68,7 @@ export interface DailyReport {
   notes: string;
 }
 
-export type UserRole = 'admin' | 'teacher' | 'parent';
+export type UserRole = 'admin' | 'manager' | 'teacher' | 'parent';
 
 export interface User {
   id: string;

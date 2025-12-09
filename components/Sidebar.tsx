@@ -1,4 +1,5 @@
 
+
 import React, { useState } from 'react';
 import { LayoutDashboard, Users, CalendarCheck, Sparkles, LogOut, Home, Download, Languages, UserCog, School, ChevronRight, ChevronLeft, Contact, FileClock, Palette, Database } from 'lucide-react';
 import { User, Theme } from '../types';
@@ -31,15 +32,15 @@ const Sidebar: React.FC<SidebarProps> = ({
   const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
 
   const allMenuItems = [
-    { id: 'dashboard', label: t('dashboard'), icon: LayoutDashboard, roles: ['admin', 'teacher'] },
-    { id: 'students', label: t('students'), icon: Users, roles: ['admin', 'teacher'] },
-    { id: 'attendance', label: t('attendance'), icon: CalendarCheck, roles: ['admin', 'teacher'] },
-    { id: 'reports-archive', label: t('reportsArchive'), icon: FileClock, roles: ['admin', 'teacher'] },
-    { id: 'directory', label: t('directoryTitle'), icon: Contact, roles: ['admin', 'teacher'] },
-    { id: 'ai-planner', label: t('aiPlanner'), icon: Sparkles, roles: ['admin', 'teacher'] },
-    { id: 'classes', label: t('classes'), icon: School, roles: ['admin'] },
+    { id: 'dashboard', label: t('dashboard'), icon: LayoutDashboard, roles: ['admin', 'manager', 'teacher'] },
+    { id: 'students', label: t('students'), icon: Users, roles: ['admin', 'manager', 'teacher'] },
+    { id: 'attendance', label: t('attendance'), icon: CalendarCheck, roles: ['admin', 'manager', 'teacher'] },
+    { id: 'reports-archive', label: t('reportsArchive'), icon: FileClock, roles: ['admin', 'manager', 'teacher'] },
+    { id: 'directory', label: t('directoryTitle'), icon: Contact, roles: ['admin', 'manager', 'teacher'] },
+    { id: 'ai-planner', label: t('aiPlanner'), icon: Sparkles, roles: ['admin', 'manager', 'teacher'] },
+    { id: 'classes', label: t('classes'), icon: School, roles: ['admin', 'manager'] },
     { id: 'users', label: t('users'), icon: UserCog, roles: ['admin'] },
-    { id: 'database', label: t('database'), icon: Database, roles: ['admin'] },
+    { id: 'database', label: t('database'), icon: Database, roles: ['admin', 'manager'] },
     { id: 'parent-view', label: t('myChild'), icon: Home, roles: ['parent'] },
   ];
 
@@ -47,6 +48,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   const getRoleLabel = (role?: string) => {
     if (role === 'admin') return t('roleAdmin');
+    if (role === 'manager') return t('roleManager');
     if (role === 'teacher') return t('roleTeacher');
     return t('roleParent');
   };

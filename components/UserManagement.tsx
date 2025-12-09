@@ -1,7 +1,7 @@
 
 
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Edit2, Trash2, Shield, X, Save, School } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, Shield, X, Save, School, Briefcase } from 'lucide-react';
 import { getUsers, saveUsers, getStudents, getClasses, saveClasses } from '../services/storageService';
 import { User, UserRole, Student, ClassGroup } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -84,8 +84,8 @@ const UserManagement: React.FC = () => {
     setUsers(updatedUsers);
     saveUsers(updatedUsers);
 
-    // 2. Assign Class Logic (if teacher)
-    if (formData.role === 'teacher') {
+    // 2. Assign Class Logic (if teacher or manager)
+    if (formData.role === 'teacher' || formData.role === 'manager') {
        const updatedClasses = classes.map(cls => {
          // If this is the class selected, assign teacher
          if (cls.id === formData.assignedClassId) {
@@ -120,6 +120,7 @@ const UserManagement: React.FC = () => {
   const getRoleBadge = (role: UserRole) => {
     switch (role) {
       case 'admin': return 'bg-purple-100 text-purple-700';
+      case 'manager': return 'bg-orange-100 text-orange-700';
       case 'teacher': return 'bg-blue-100 text-blue-700';
       case 'parent': return 'bg-green-100 text-green-700';
       default: return 'bg-gray-100 text-gray-700';
@@ -189,6 +190,7 @@ const UserManagement: React.FC = () => {
                     <td className="px-6 py-4">
                       <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${getRoleBadge(user.role)}`}>
                         {user.role === 'admin' && <Shield size={12} />}
+                        {user.role === 'manager' && <Briefcase size={12} />}
                         {t(`role${user.role.charAt(0).toUpperCase() + user.role.slice(1)}` as any)}
                       </span>
                     </td>
@@ -203,7 +205,7 @@ const UserManagement: React.FC = () => {
                         ) : (
                           <span className="text-sm text-red-500 italic">{t('noLinkedStudent')}</span>
                         )
-                      ) : user.role === 'teacher' ? (
+                      ) : (user.role === 'teacher' || user.role === 'manager') ? (
                          assignedClass ? (
                           <div className="flex items-center gap-2 text-sm text-indigo-700">
                              <School size={14} />
@@ -291,16 +293,16 @@ const UserManagement: React.FC = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">{t('role')}</label>
-                <div className="grid grid-cols-3 gap-2">
-                  {(['admin', 'teacher', 'parent'] as UserRole[]).map(role => (
+                <div className="grid grid-cols-4 gap-2">
+                  {(['admin', 'manager', 'teacher', 'parent'] as UserRole[]).map(role => (
                     <button
                       key={role}
                       type="button"
                       onClick={() => setFormData({...formData, role})}
-                      className={`py-2 rounded-lg text-sm border font-medium transition-all ${
+                      className={`py-2 rounded-lg text-xs font-medium transition-all ${
                         formData.role === role
                           ? 'bg-indigo-600 text-white border-indigo-600'
-                          : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
+                          : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
                       }`}
                     >
                       {t(`role${role.charAt(0).toUpperCase() + role.slice(1)}` as any)}
@@ -309,7 +311,7 @@ const UserManagement: React.FC = () => {
                 </div>
               </div>
 
-              {formData.role === 'teacher' && (
+              {(formData.role === 'teacher' || formData.role === 'manager') && (
                 <div className="animate-fade-in p-4 bg-blue-50 rounded-xl border border-blue-100">
                   <label className="block text-sm font-medium text-gray-700 mb-2">{t('assignClass')}</label>
                   <select
