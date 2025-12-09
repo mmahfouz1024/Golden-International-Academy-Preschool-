@@ -140,22 +140,31 @@ const UserManagement: React.FC = () => {
     setUsers(updatedUsers);
     saveUsers(updatedUsers);
 
-    // 2. Assign Class Logic (if teacher or manager)
-    if (formData.role === 'teacher' || formData.role === 'manager') {
-       const updatedClasses = classes.map(cls => {
-         // If this is the class selected, assign teacher
-         if (cls.id === formData.assignedClassId) {
-           return { ...cls, teacherId: userId };
-         }
-         // If this user was previously assigned to this class but now changed, remove them
-         if (cls.teacherId === userId && cls.id !== formData.assignedClassId) {
+    // 2. Assign/Unassign Class Logic
+    // If the new role supports class assignment
+    const canHaveClass = formData.role === 'teacher' || formData.role === 'manager';
+    const targetClassId = formData.assignedClassId;
+
+    const updatedClasses = classes.map(cls => {
+      // If this is the new target class and the user is allowed to have one, assign them
+      if (canHaveClass && cls.id === targetClassId) {
+        return { ...cls, teacherId: userId };
+      }
+      
+      // If this user was previously assigned to this class
+      if (cls.teacherId === userId) {
+         // But they either can't have a class anymore (role changed)
+         // OR they are now assigned to a different class
+         // OR they are unassigned (targetClassId is empty)
+         if (!canHaveClass || cls.id !== targetClassId) {
            return { ...cls, teacherId: undefined };
          }
-         return cls;
-       });
-       setClasses(updatedClasses);
-       saveClasses(updatedClasses);
-    }
+      }
+      return cls;
+    });
+
+    setClasses(updatedClasses);
+    saveClasses(updatedClasses);
 
     setIsModalOpen(false);
   };

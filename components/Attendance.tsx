@@ -1,25 +1,32 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Check, X, Clock, UserCheck, Filter, PieChart, Save } from 'lucide-react';
-import { MOCK_STUDENTS } from '../constants';
-import { AttendanceStatus } from '../types';
+import { AttendanceStatus, Student } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
+import { getStudents, saveStudents } from '../services/storageService';
 
 const Attendance: React.FC = () => {
   const { t, language } = useLanguage();
+  const [students, setStudents] = useState<Student[]>([]);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [filterClass, setFilterClass] = useState('All');
   const [isSaved, setIsSaved] = useState(false);
-  
-  // Local state to track attendance for the session
-  const [attendanceMap, setAttendanceMap] = useState<Record<string, AttendanceStatus>>(
-    MOCK_STUDENTS.reduce((acc, student) => ({
-      ...acc,
-      [student.id]: student.attendanceToday ? 'present' : 'absent'
-    }), {})
-  );
+  const [attendanceMap, setAttendanceMap] = useState<Record<string, AttendanceStatus>>({});
 
-  const filteredStudents = MOCK_STUDENTS.filter(student => 
+  // Load students on mount
+  useEffect(() => {
+    const loadedStudents = getStudents();
+    setStudents(loadedStudents);
+    
+    // Initialize attendance map from student data
+    const initialMap: Record<string, AttendanceStatus> = {};
+    loadedStudents.forEach(s => {
+      initialMap[s.id] = s.attendanceToday ? 'present' : 'absent';
+    });
+    setAttendanceMap(initialMap);
+  }, []);
+
+  const filteredStudents = students.filter(student => 
     filterClass === 'All' || student.classGroup === filterClass
   );
 
@@ -39,6 +46,15 @@ const Attendance: React.FC = () => {
   };
 
   const handleSave = () => {
+    // Update student records with new attendance status
+    const updatedStudents = students.map(student => ({
+      ...student,
+      attendanceToday: attendanceMap[student.id] === 'present'
+    }));
+
+    setStudents(updatedStudents);
+    saveStudents(updatedStudents);
+
     setIsSaved(true);
     setTimeout(() => setIsSaved(false), 2000);
   };
@@ -50,7 +66,7 @@ const Attendance: React.FC = () => {
     excused: Object.values(attendanceMap).filter(s => s === 'excused').length,
   };
 
-  const total = Object.keys(attendanceMap).length;
+  const total = Object.keys(attendanceMap).length || 1; // Avoid division by zero
 
   return (
     <div className="space-y-6 pb-20">
@@ -76,7 +92,7 @@ const Attendance: React.FC = () => {
           </div>
           <div>
             <p className="text-sm text-gray-500 font-medium">{t('present')}</p>
-            <p className="text-xl font-bold text-gray-800">{stats.present} <span className="text-xs text-gray-400">/ {total}</span></p>
+            <p className="text-xl font-bold text-gray-800">{stats.present} <span className="text-xs text-gray-400">/ {students.length}</span></p>
           </div>
         </div>
         <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center gap-3">
