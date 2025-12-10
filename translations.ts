@@ -1,4 +1,5 @@
 
+
 export const translations = {
   en: {
     // General
@@ -266,7 +267,7 @@ export const translations = {
     dbSaved: "Settings saved successfully",
     syncSuccess: "Sync completed successfully",
     syncError: "Sync failed, check configuration",
-    dbConnectionError: "Connection to database failed. Check settings.",
+    dbConnectionError: "Connection to database failed. Please check internet.",
     dbConnectionSuccess: "Connected to database successfully",
   }
 };

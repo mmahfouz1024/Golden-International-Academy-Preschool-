@@ -16,7 +16,7 @@ import DatabaseControl from './components/DatabaseControl';
 import Login from './components/Login';
 import NotificationDropdown from './components/NotificationDropdown';
 import BackgroundPattern from './components/BackgroundPattern';
-import { Menu, Bell, ChevronRight, ChevronLeft } from 'lucide-react';
+import { Menu, Bell, ChevronRight, ChevronLeft, WifiOff, RefreshCw } from 'lucide-react';
 import { Student, User } from './types';
 import { MOCK_STUDENTS } from './constants';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
@@ -32,24 +32,33 @@ const AppContent: React.FC = () => {
   const [selectedReportDate, setSelectedReportDate] = useState<string | undefined>(undefined);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showNotifications, setShowNotifications] = useState(false);
+  
+  // Initialization States
   const [isInitialized, setIsInitialized] = useState(false);
+  const [initError, setInitError] = useState<string | null>(null);
+  
   const { t, dir, language } = useLanguage();
   const { unreadCount, addNotification } = useNotification();
   const notificationRef = useRef<HTMLDivElement>(null);
 
-  // Initialize DB
+  // Initialize DB Strict Check
   useEffect(() => {
-    initStorage().then((result) => {
-      setIsInitialized(true);
-      if (!result.success) {
-        // Show error if connection failed
-        console.error("DB Init Failed:", result.message);
-        addNotification(t('systemMsg'), `${t('dbConnectionError')}: ${result.message}`, 'alert');
-      } else if (result.message === 'Connected') {
-         // Optional: notify success silently or log
-         console.log("DB Connected Successfully");
+    const startApp = async () => {
+      try {
+        const result = await initStorage();
+        if (!result.success) {
+          // BLOCKING ERROR: Do not proceed if DB connection fails
+          setInitError(result.message || 'Unknown Database Error');
+        } else {
+           console.log("DB Connected Successfully");
+        }
+      } catch (err) {
+        setInitError('Critical System Error');
+      } finally {
+        setIsInitialized(true);
       }
-    });
+    };
+    startApp();
   }, []);
 
   useEffect(() => {
@@ -61,7 +70,6 @@ const AppContent: React.FC = () => {
     return () => window.removeEventListener('beforeinstallprompt', handler);
   }, []);
 
-  // Close notifications when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (notificationRef.current && !notificationRef.current.contains(event.target as Node)) {
@@ -91,7 +99,6 @@ const AppContent: React.FC = () => {
         setCurrentView('parent-view');
       }
     } else {
-      // Logic to determine first view based on permissions
       if (loggedInUser.role === 'admin') {
          setCurrentView('dashboard');
       } else if (loggedInUser.permissions && loggedInUser.permissions.length > 0) {
@@ -124,13 +131,11 @@ const AppContent: React.FC = () => {
   const handleViewHistoricalReport = (student: Student, date: string) => {
     setSelectedStudent(student);
     setSelectedReportDate(date);
-    // StudentDetail renders when selectedStudent is present
   };
 
   const handleBack = () => {
     if (selectedStudent) {
       if (user?.role === 'parent') {
-        // Parents stick to their child view
       } else {
         setSelectedStudent(null);
         setSelectedReportDate(undefined);
@@ -138,12 +143,10 @@ const AppContent: React.FC = () => {
       return;
     }
     
-    // If not in dashboard, go to dashboard (except for parents who default to parent-view)
     if (currentView !== 'dashboard') {
       if (user?.role === 'parent') {
         setCurrentView('parent-view');
       } else {
-        // Fallback to dashboard if allowed, else first allowed permission
         if (user?.permissions?.includes('dashboard') || user?.role === 'admin') {
            setCurrentView('dashboard');
         } else if (user?.permissions && user.permissions.length > 0) {
@@ -161,13 +164,11 @@ const AppContent: React.FC = () => {
         <StudentDetail 
           student={selectedStudent} 
           initialDate={selectedReportDate}
-          readOnly={user?.role === 'parent' || !!selectedReportDate} // Read only if viewing archive, unless we want to allow editing history
+          readOnly={user?.role === 'parent' || !!selectedReportDate} 
         />
       );
     }
 
-    // Safety check for permissions (simple enforcement)
-    // Admin always allowed. Parent always allowed 'parent-view'. Others need specific permission or role default.
     const isAllowed = (view: string) => {
        if (!user) return false;
        if (view === 'profile') return true;
@@ -177,7 +178,6 @@ const AppContent: React.FC = () => {
        if (user.permissions && user.permissions.length > 0) {
          return user.permissions.includes(view);
        }
-       // Fallback for old users without permissions array
        return true; 
     };
 
@@ -186,26 +186,16 @@ const AppContent: React.FC = () => {
     }
 
     switch (currentView) {
-      case 'dashboard':
-        return <Dashboard />;
-      case 'students':
-        return <StudentList onStudentSelect={(student) => setSelectedStudent(student)} />;
-      case 'ai-planner':
-        return <AIPlanner />;
-      case 'attendance':
-        return <Attendance />;
-      case 'directory':
-        return <Directory />;
-      case 'reports-archive':
-        return <ReportsArchive onViewReport={handleViewHistoricalReport} />;
-      case 'users':
-        return <UserManagement />;
-      case 'classes':
-        return <ClassManagement />;
-      case 'database':
-        return <DatabaseControl />;
-      case 'profile':
-        return user ? <Profile user={user} onUpdateUser={handleUpdateUser} /> : null;
+      case 'dashboard': return <Dashboard />;
+      case 'students': return <StudentList onStudentSelect={(student) => setSelectedStudent(student)} />;
+      case 'ai-planner': return <AIPlanner />;
+      case 'attendance': return <Attendance />;
+      case 'directory': return <Directory />;
+      case 'reports-archive': return <ReportsArchive onViewReport={handleViewHistoricalReport} />;
+      case 'users': return <UserManagement />;
+      case 'classes': return <ClassManagement />;
+      case 'database': return <DatabaseControl />;
+      case 'profile': return user ? <Profile user={user} onUpdateUser={handleUpdateUser} /> : null;
       case 'parent-view':
          return (
           <div className="flex flex-col items-center justify-center h-[50vh] text-gray-400">
@@ -213,17 +203,44 @@ const AppContent: React.FC = () => {
             <p className="text-sm mt-2">{t('contactAdmin')}</p>
           </div>
         );
-      default:
-        return <Dashboard />;
+      default: return <Dashboard />;
     }
   };
 
+  // LOADING STATE
   if (!isInitialized) {
     return (
       <div className="h-screen w-screen flex items-center justify-center bg-slate-50">
         <div className="flex flex-col items-center gap-4">
            <div className="w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
-           <p className="text-gray-500 font-medium">Starting System...</p>
+           <p className="text-gray-500 font-medium">{t('loading')}</p>
+        </div>
+      </div>
+    );
+  }
+
+  // BLOCKING ERROR STATE (DB CONNECTION FAILED)
+  if (initError) {
+    return (
+      <div className="h-screen w-screen flex items-center justify-center bg-slate-50 p-4">
+        <div className="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full text-center border-2 border-red-50">
+           <div className="w-20 h-20 bg-red-100 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
+             <WifiOff size={40} />
+           </div>
+           <h2 className="text-2xl font-bold text-gray-800 mb-2">{t('dbConnectionError')}</h2>
+           <p className="text-gray-500 mb-6">{initError}</p>
+           
+           <div className="bg-gray-50 p-4 rounded-xl text-xs text-gray-400 font-mono mb-6 text-left overflow-auto max-h-32 border border-gray-100">
+             Technical Details: Ensure Supabase URL and Key are correct and you have an internet connection.
+           </div>
+
+           <button 
+             onClick={() => window.location.reload()}
+             className="w-full py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2"
+           >
+             <RefreshCw size={20} />
+             Try Again
+           </button>
         </div>
       </div>
     );
@@ -262,7 +279,6 @@ const AppContent: React.FC = () => {
               <Menu size={24} />
             </button>
 
-            {/* Global Back Button */}
             {showBackButton && (
                <button 
                  onClick={handleBack}
@@ -323,7 +339,6 @@ const AppContent: React.FC = () => {
 
         <main className="flex-1 overflow-auto p-4 sm:p-8">
           <div className="max-w-6xl mx-auto animate-fade-in">
-             {/* Mobile Back Button */}
              {showBackButton && (
                <div className="md:hidden mb-4">
                  <button 
