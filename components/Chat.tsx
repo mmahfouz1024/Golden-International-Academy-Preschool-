@@ -27,8 +27,8 @@ const Chat: React.FC = () => {
     let filteredUsers = allUsers.filter(u => u.id !== currentUser.id);
 
     if (currentUser.role === 'parent') {
-      // Parents can ONLY see admins
-      filteredUsers = filteredUsers.filter(u => u.role === 'admin');
+      // Parents can see admins AND managers
+      filteredUsers = filteredUsers.filter(u => u.role === 'admin' || u.role === 'manager');
     }
     
     setUsers(filteredUsers);
