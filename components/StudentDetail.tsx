@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { 
   Smile, Frown, Meh, Sun, Cloud, Moon, 
   Utensils, GlassWater, Droplets, Clock, Plus, Trash2, 
-  Gamepad2, Pencil, Check, Lock, Image, Save, Calendar
+  Gamepad2, Pencil, Check, Lock, Image, Save, Calendar, Cake
 } from 'lucide-react';
 import { Student, DailyReport, Mood, MealStatus, BathroomType } from '../types';
 import { getReports, saveReports } from '../services/storageService';
@@ -163,6 +163,11 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
         <div className="flex-1">
           <h2 className="text-2xl font-bold text-gray-800">{student.name}</h2>
           <p className="text-gray-500">{student.classGroup}</p>
+          {student.birthday && (
+            <p className="text-xs text-gray-400 flex items-center gap-1 mt-1">
+              <Cake size={12} /> {student.birthday}
+            </p>
+          )}
         </div>
         <div className="flex items-center gap-3">
            <div className={`text-${language === 'ar' ? 'left' : 'right'}`}>

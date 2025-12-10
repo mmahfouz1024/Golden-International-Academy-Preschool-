@@ -78,6 +78,7 @@ export const translations = {
     addStudentTitle: "Register New Student",
     studentName: "Student Name (Full)",
     studentAge: "Age",
+    birthday: "Date of Birth",
     studentClass: "Class",
     parentName: "Parent Name",
     phone: "Phone Number",

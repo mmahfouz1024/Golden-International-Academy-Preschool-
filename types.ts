@@ -17,6 +17,7 @@ export interface Student {
   status: StudentStatus;
   attendanceToday: boolean;
   avatar: string;
+  birthday?: string;
 }
 
 export interface ActivityPlan {

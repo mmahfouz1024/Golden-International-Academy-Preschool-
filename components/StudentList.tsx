@@ -30,6 +30,7 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
   const [studentData, setStudentData] = useState({
     name: '',
     age: '',
+    birthday: '',
     classGroup: '',
     parentName: '',
     phone: '',
@@ -73,6 +74,7 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
       setStudentData({
         name: student.name,
         age: student.age.toString(),
+        birthday: student.birthday || '',
         classGroup: student.classGroup,
         parentName: student.parentName,
         phone: student.phone,
@@ -87,6 +89,7 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
       setStudentData({ 
         name: '', 
         age: '', 
+        birthday: '',
         classGroup: defaultClass, 
         parentName: '', 
         phone: '', 
@@ -146,6 +149,7 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
         ...editingStudent,
         name: studentData.name,
         age: parseInt(studentData.age) || 4,
+        birthday: studentData.birthday,
         classGroup: studentData.classGroup,
         parentName: studentData.parentName,
         phone: studentData.phone,
@@ -160,6 +164,7 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
         id: currentStudentId,
         name: studentData.name,
         age: parseInt(studentData.age) || 4,
+        birthday: studentData.birthday,
         classGroup: studentData.classGroup,
         parentName: studentData.parentName,
         phone: studentData.phone,
@@ -359,11 +364,12 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
                   <td className="px-6 py-4 text-left">
                     <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                        <button 
+                         type="button"
                          onClick={(e) => { e.stopPropagation(); handleOpenModal(student); }}
-                         className="text-gray-400 hover:text-indigo-600 p-2 hover:bg-indigo-50 rounded-lg transition-colors"
+                         className="text-gray-400 hover:text-indigo-600 p-2 hover:bg-indigo-50 rounded-lg transition-colors pointer-events-auto"
                          title={t('edit')}
                        >
-                         <Edit2 size={18} />
+                         <Edit2 size={18} className="pointer-events-none" />
                        </button>
                        <button 
                          type="button"
@@ -467,6 +473,16 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
                 </div>
 
                 <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('birthday')}</label>
+                  <input
+                    type="date"
+                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                    value={studentData.birthday}
+                    onChange={e => setStudentData({...studentData, birthday: e.target.value})}
+                  />
+                </div>
+
+                <div className="col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-1">{t('studentClass')}</label>
                   <select 
                     className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-white"
