@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, Plus, Phone, Star, ChevronLeft, ChevronRight, X, Save, Filter, Camera, ShieldCheck, Edit2, Trash2, AlertCircle } from 'lucide-react';
+import { Search, Plus, Phone, Star, ChevronLeft, ChevronRight, X, Save, Filter, Camera, ShieldCheck, Edit2, Trash2, AlertCircle, Mail } from 'lucide-react';
 import { Student, StudentStatus, User, ClassGroup } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
 import { getStudents, saveStudents, getUsers, saveUsers, getClasses } from '../services/storageService';
@@ -35,7 +35,8 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
     parentName: '',
     phone: '',
     parentUsername: '',
-    parentPassword: ''
+    parentPassword: '',
+    parentEmail: ''
   });
 
   // Load students and classes from storage on mount
@@ -79,7 +80,8 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
         parentName: student.parentName,
         phone: student.phone,
         parentUsername: parentUser ? parentUser.username : '',
-        parentPassword: '' // Don't show password for security, only allow reset
+        parentPassword: '', // Don't show password for security, only allow reset
+        parentEmail: parentUser?.email || ''
       });
     } else {
       // Add Mode
@@ -94,7 +96,8 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
         parentName: '', 
         phone: '', 
         parentUsername: '', 
-        parentPassword: '' 
+        parentPassword: '',
+        parentEmail: ''
       });
     }
     setIsModalOpen(true);
@@ -170,7 +173,8 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
         phone: studentData.phone,
         status: StudentStatus.Active,
         attendanceToday: false,
-        avatar: newStudentAvatar || `https://picsum.photos/seed/${currentStudentId}/200/200`
+        // Use uploaded avatar OR generate initials avatar
+        avatar: newStudentAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(studentData.name)}&background=random&color=fff`
       };
       updatedStudentsList = [newStudent, ...students];
     }
@@ -191,7 +195,8 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
         username: studentData.parentUsername.trim() || updatedUsers[existingParentIndex].username,
         // Only update password if provided
         password: studentData.parentPassword || updatedUsers[existingParentIndex].password,
-        phone: studentData.phone
+        phone: studentData.phone,
+        email: studentData.parentEmail
       };
       saveUsers(updatedUsers);
     } else if (studentData.parentUsername && studentData.parentPassword) {
@@ -204,6 +209,7 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
         role: 'parent',
         linkedStudentId: currentStudentId,
         phone: studentData.phone,
+        email: studentData.parentEmail,
         avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(studentData.parentName)}&background=random`,
         interests: []
       };
@@ -239,6 +245,7 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
           <p className="text-gray-500 mt-1">{t('manageStudents')}</p>
         </div>
         <button 
+          type="button"
           onClick={() => handleOpenModal()}
           className="flex items-center gap-2 bg-indigo-600 text-white px-5 py-2.5 rounded-xl hover:bg-indigo-700 transition-colors shadow-sm font-medium"
         >
@@ -368,7 +375,6 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
                          onClick={(e) => { e.stopPropagation(); handleOpenModal(student); }}
                          className="text-gray-400 hover:text-indigo-600 p-2 hover:bg-indigo-50 rounded-lg transition-colors pointer-events-auto"
                          title={t('edit')}
-                         style={{ pointerEvents: 'auto' }}
                        >
                          <Edit2 size={18} className="pointer-events-none" />
                        </button>
@@ -377,12 +383,12 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
                          onClick={(e) => handleDeleteStudent(e, student.id)}
                          className="text-gray-400 hover:text-red-600 p-2 hover:bg-red-50 rounded-lg transition-colors pointer-events-auto"
                          title={t('delete')}
-                         style={{ pointerEvents: 'auto' }}
                        >
                          <Trash2 size={18} className="pointer-events-none" />
                        </button>
                        <div className="text-gray-300 px-1">|</div>
                        <button 
+                         type="button"
                          className="text-gray-300 hover:text-indigo-600 p-2 hover:bg-indigo-50 rounded-lg transition-colors"
                          onClick={() => onStudentSelect(student)}
                        >
@@ -429,18 +435,24 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
                   className="relative cursor-pointer group"
                   onClick={() => fileInputRef.current?.click()}
                 >
-                  <img 
-                    src={newStudentAvatar || "https://picsum.photos/seed/new/200/200"} 
-                    alt="Preview" 
-                    className="w-24 h-24 rounded-full object-cover border-4 border-indigo-50"
-                  />
-                  <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Camera className="text-white" size={24} />
-                  </div>
+                  {newStudentAvatar ? (
+                    <>
+                      <img 
+                        src={newStudentAvatar} 
+                        alt="Preview" 
+                        className="w-24 h-24 rounded-full object-cover border-4 border-indigo-50"
+                      />
+                      <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Camera className="text-white" size={24} />
+                      </div>
+                    </>
+                  ) : (
+                    <div className="w-24 h-24 rounded-full bg-slate-50 border-2 border-dashed border-gray-300 flex flex-col items-center justify-center text-gray-400 hover:bg-slate-100 hover:border-indigo-400 hover:text-indigo-500 transition-all">
+                       <Camera size={28} className="mb-1" />
+                       <span className="text-[10px] font-bold">{t('addPhoto')}</span>
+                    </div>
+                  )}
                 </div>
-                <span className="text-xs text-gray-500 mt-2 hover:text-indigo-600 cursor-pointer" onClick={() => fileInputRef.current?.click()}>
-                  {t('changePhoto')}
-                </span>
               </div>
 
               {error && (
@@ -543,6 +555,19 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
                         value={studentData.parentUsername}
                         onChange={e => setStudentData({...studentData, parentUsername: e.target.value})}
                       />
+                    </div>
+                    <div className="col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('email')}</label>
+                      <div className="relative">
+                        <input 
+                          type="email" 
+                          className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-gray-50 pl-10"
+                          value={studentData.parentEmail}
+                          onChange={e => setStudentData({...studentData, parentEmail: e.target.value})}
+                          placeholder="parent@example.com"
+                        />
+                         <Mail size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                      </div>
                     </div>
                     <div className="col-span-2">
                       <label className="block text-sm font-medium text-gray-700 mb-1">{t('parentPassword')}</label>
