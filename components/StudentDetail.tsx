@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   Smile, Frown, Meh, Sun, Cloud, Moon, 
-  Utensils, GlassWater, Droplets, Clock, Plus, Trash2, 
+  Utensils, Droplets, Clock, Plus, Trash2, 
   Gamepad2, Pencil, Check, Lock, Image, Save, Calendar, Cake, FileText, ChevronDown
 } from 'lucide-react';
 import { Student, DailyReport, Mood, MealStatus, BathroomType } from '../types';
@@ -306,30 +306,6 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
                   </div>
                 ))}
                 
-                <div className="flex items-center justify-between pt-2 border-t border-gray-50">
-                  <div className="flex items-center gap-2 text-blue-500">
-                    <GlassWater size={16} />
-                    <span className="text-sm font-medium">{t('water')}</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <button 
-                      disabled={readOnly}
-                      onClick={() => setReport(prev => ({ ...prev, meals: { ...prev.meals, waterCups: Math.max(0, prev.meals.waterCups - 1) } }))}
-                      className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-100"
-                    >
-                      -
-                    </button>
-                    <span className="font-bold text-gray-700">{report.meals.waterCups}</span>
-                    <button 
-                      disabled={readOnly}
-                      onClick={() => setReport(prev => ({ ...prev, meals: { ...prev.meals, waterCups: prev.meals.waterCups + 1 } }))}
-                      className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-100"
-                    >
-                      +
-                    </button>
-                  </div>
-                </div>
-
                 <div>
                   <label className="text-xs font-bold text-gray-400 mb-1 block">{t('mealNotes')}</label>
                   <textarea 
@@ -344,27 +320,28 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
               </div>
             </div>
 
+            {/* Bathroom Card (Separated) */}
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
               <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
                 <Droplets className="text-indigo-500" />
-                {t('bathroomNap')}
+                {t('bathroomLog')}
               </h3>
               
-              <div className="mb-6">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-bold text-gray-700">{t('bathroomLog')}</span>
+              <div className="mb-2">
+                <div className="flex justify-between items-center mb-3">
+                  <span className="text-sm font-medium text-gray-500">{t('details')}</span>
                   {!readOnly && (
-                    <button onClick={addBathroomEntry} className="text-indigo-600 hover:bg-indigo-50 p-1 rounded">
-                      <Plus size={16} />
+                    <button onClick={addBathroomEntry} className="text-indigo-600 hover:bg-indigo-50 p-1 rounded transition-colors" title={t('add')}>
+                      <Plus size={20} />
                     </button>
                   )}
                 </div>
-                {report.bathroom.length === 0 && <p className="text-xs text-gray-400 italic mb-2">--</p>}
+                {report.bathroom.length === 0 && <p className="text-xs text-gray-400 italic mb-2 py-4 text-center bg-gray-50 rounded-lg">--</p>}
                 <div className="space-y-2">
                   {report.bathroom.map((entry, idx) => (
-                    <div key={idx} className="flex items-center gap-2 bg-gray-50 p-2 rounded-lg">
+                    <div key={idx} className="flex items-center gap-2 bg-gray-50 p-2 rounded-lg border border-gray-100">
                       <Clock size={14} className="text-gray-400" />
-                      <span className="text-xs font-bold text-gray-600">{entry.time}</span>
+                      <span className="text-xs font-bold text-gray-600 min-w-[50px]">{entry.time}</span>
                       <div className="flex-1 flex gap-1">
                         {(['urine', 'stool'] as BathroomType[]).map(type => (
                           <button
@@ -375,8 +352,8 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
                               newBathroom[idx].type = type;
                               setReport({ ...report, bathroom: newBathroom });
                             }}
-                            className={`text-[10px] px-2 py-0.5 rounded-full ${
-                              entry.type === type ? 'bg-indigo-100 text-indigo-700 font-bold' : 'text-gray-400 bg-white border border-gray-100'
+                            className={`text-[10px] px-3 py-1 rounded-full transition-all ${
+                              entry.type === type ? 'bg-indigo-100 text-indigo-700 font-bold shadow-sm' : 'text-gray-400 bg-white border border-gray-200 hover:bg-gray-100'
                             }`}
                           >
                             {t(type as any)}
@@ -384,21 +361,23 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
                         ))}
                       </div>
                       {!readOnly && (
-                        <button onClick={() => removeBathroomEntry(idx)} className="text-red-400 hover:text-red-600">
-                          <Trash2 size={14} />
+                        <button onClick={() => removeBathroomEntry(idx)} className="text-gray-400 hover:text-red-500 p-1 rounded-md hover:bg-red-50 transition-colors">
+                          <Trash2 size={16} />
                         </button>
                       )}
                     </div>
                   ))}
                 </div>
               </div>
+            </div>
 
-              <div className="pt-4 border-t border-gray-50">
-                <div className="flex justify-between items-start mb-2">
-                    <div className="flex items-center gap-2">
-                      <Moon className="text-purple-500" size={18} />
-                      <span className="text-sm font-bold text-gray-700">{t('nap')}</span>
-                    </div>
+            {/* Nap Card (Separated) */}
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                <div className="flex justify-between items-center mb-4">
+                    <h3 className="font-bold text-gray-800 flex items-center gap-2">
+                      <Moon className="text-purple-500" size={20} />
+                      {t('nap')}
+                    </h3>
                     <label className="relative inline-flex items-center cursor-pointer">
                       <input 
                         type="checkbox" 
@@ -407,30 +386,41 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
                         disabled={readOnly}
                         onChange={(e) => setReport({...report, nap: { ...report.nap, slept: e.target.checked }})}
                       />
-                      <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-purple-500"></div>
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-500"></div>
                     </label>
                 </div>
-                {report.nap.slept && (
-                  <div className="mt-2 animate-fade-in space-y-2">
-                    <input 
-                      type="text" 
-                      disabled={readOnly}
-                      placeholder={t('napDuration')}
-                      className="w-full p-2 text-xs border border-gray-200 rounded-lg"
-                      value={report.nap.duration || ''}
-                      onChange={e => setReport({...report, nap: { ...report.nap, duration: e.target.value }})}
-                    />
-                    <textarea 
-                      disabled={readOnly}
-                      className="w-full p-2 text-xs bg-gray-50 border border-gray-200 rounded-lg resize-none"
-                      rows={2}
-                      placeholder={t('napNotes')}
-                      value={report.nap.notes || ''}
-                      onChange={e => setReport({...report, nap: { ...report.nap, notes: e.target.value }})}
-                    />
+                
+                {report.nap.slept ? (
+                  <div className="mt-4 animate-fade-in space-y-4">
+                    <div>
+                        <label className="text-xs text-gray-500 font-bold mb-1 block uppercase tracking-wider">{t('napDuration')}</label>
+                        <input 
+                        type="text" 
+                        disabled={readOnly}
+                        placeholder="e.g. 1h 30m"
+                        className="w-full p-3 text-sm bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
+                        value={report.nap.duration || ''}
+                        onChange={e => setReport({...report, nap: { ...report.nap, duration: e.target.value }})}
+                        />
+                    </div>
+                    <div>
+                        <label className="text-xs text-gray-500 font-bold mb-1 block uppercase tracking-wider">{t('napNotes')}</label>
+                        <textarea 
+                        disabled={readOnly}
+                        className="w-full p-3 text-sm bg-gray-50 border border-gray-200 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
+                        rows={2}
+                        placeholder="..."
+                        value={report.nap.notes || ''}
+                        onChange={e => setReport({...report, nap: { ...report.nap, notes: e.target.value }})}
+                        />
+                    </div>
                   </div>
+                ) : (
+                    <div className="flex flex-col items-center justify-center py-6 text-gray-300 bg-gray-50/50 rounded-xl border border-dashed border-gray-200">
+                        <Moon size={32} className="mb-2 opacity-50" />
+                        <p className="text-sm italic">{t('no')} {t('nap')}</p>
+                    </div>
                 )}
-              </div>
             </div>
 
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
