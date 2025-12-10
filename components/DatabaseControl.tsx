@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Database, Save, UploadCloud, DownloadCloud, CheckCircle, AlertTriangle, Copy, Code } from 'lucide-react';
+import { Database, Save, UploadCloud, DownloadCloud, CheckCircle, AlertTriangle, Copy, Code, Lock, ArrowRight, Unlock } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { getDatabaseConfig, saveDatabaseConfig, forceSyncToCloud, forceSyncFromCloud } from '../services/storageService';
 import { checkConnection, generateSQLSchema } from '../services/supabaseClient';
@@ -9,6 +9,11 @@ import { DatabaseConfig } from '../types';
 const DatabaseControl: React.FC = () => {
   const { t } = useLanguage();
   
+  // Security State
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [passwordInput, setPasswordInput] = useState('');
+  const [authError, setAuthError] = useState(false);
+
   const [config, setConfig] = useState<DatabaseConfig>({
     isEnabled: false,
     url: '',
@@ -23,8 +28,23 @@ const DatabaseControl: React.FC = () => {
   useEffect(() => {
     const saved = getDatabaseConfig();
     setConfig(saved);
-    checkStatus(saved);
+    if (saved.isEnabled) {
+      checkStatus(saved);
+    } else {
+      setStatus('disconnected');
+    }
   }, []);
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (passwordInput === "H@mzafarida123") {
+      setIsAuthenticated(true);
+      setAuthError(false);
+    } else {
+      setAuthError(true);
+      setPasswordInput('');
+    }
+  };
 
   const checkStatus = async (conf: DatabaseConfig) => {
     if (!conf.isEnabled || !conf.url || !conf.key) {
@@ -73,8 +93,43 @@ const DatabaseControl: React.FC = () => {
     setTimeout(() => setMsg(null), 2000);
   };
 
+  if (!isAuthenticated) {
+    return (
+      <div className="h-[60vh] flex flex-col items-center justify-center p-4">
+        <div className="bg-white p-8 rounded-3xl shadow-xl border-4 border-white max-w-sm w-full text-center animate-fade-in">
+          <div className="w-20 h-20 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+            <Lock size={40} />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">{t('security')}</h2>
+          <p className="text-gray-500 mb-6 text-sm">Protected Area. Enter password to access database settings.</p>
+          
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div className="relative">
+              <input 
+                type="password" 
+                className={`w-full px-4 py-3 rounded-xl border-2 ${authError ? 'border-red-300 bg-red-50 focus:border-red-500' : 'border-gray-200 bg-gray-50 focus:border-indigo-500'} focus:outline-none transition-all text-center font-bold text-lg tracking-widest`}
+                placeholder="••••••"
+                value={passwordInput}
+                onChange={(e) => setPasswordInput(e.target.value)}
+                autoFocus
+              />
+            </div>
+            {authError && <p className="text-red-500 text-xs font-bold animate-pulse">Incorrect Password</p>}
+            <button 
+              type="submit"
+              className="w-full bg-indigo-600 text-white py-3 rounded-xl font-bold shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-all flex items-center justify-center gap-2"
+            >
+              <Unlock size={18} />
+              Access
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-6 max-w-4xl mx-auto pb-12">
+    <div className="space-y-6 max-w-4xl mx-auto pb-12 animate-fade-in">
       <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
         <div className="flex items-center gap-4 mb-6">
           <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
