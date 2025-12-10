@@ -1,5 +1,4 @@
 
-
 import React, { useState, useEffect, useRef } from 'react';
 import Sidebar from './components/Sidebar';
 import Dashboard from './components/Dashboard';
@@ -165,7 +164,8 @@ const AppContent: React.FC = () => {
 
   const handleSetView = (view: string) => {
     setCurrentView(view);
-    if (user?.role !== 'parent') {
+    // Only clear selection if NOT switching to profile
+    if (view !== 'profile' && user?.role !== 'parent') {
       setSelectedStudent(null); 
       setSelectedReportDate(undefined);
     }
@@ -177,31 +177,67 @@ const AppContent: React.FC = () => {
   };
 
   const handleBack = () => {
+    // 1. Exit Profile View
+    if (currentView === 'profile') {
+       if (user?.role === 'parent') {
+         setCurrentView('parent-view');
+       } else {
+         // Return to first allowed view
+         if (user?.role === 'admin') {
+            setCurrentView('dashboard');
+         } else if (user?.permissions && user.permissions.length > 0) {
+            setCurrentView(user.permissions[0]);
+         } else {
+            setCurrentView('dashboard');
+         }
+       }
+       return;
+    }
+
+    // 2. Clear Historical Report Date (go back to today's report)
+    if (selectedReportDate) {
+      setSelectedReportDate(undefined);
+      return;
+    }
+
+    // 3. Deselect Student (Admin/Teacher only)
     if (selectedStudent) {
       if (user?.role === 'parent') {
+        // Parent cannot deselect their child
       } else {
         setSelectedStudent(null);
-        setSelectedReportDate(undefined);
       }
       return;
     }
     
-    if (currentView !== 'dashboard') {
+    // 4. Navigate to Dashboard/Home
+    if (currentView !== 'dashboard' && currentView !== 'parent-view') {
       if (user?.role === 'parent') {
         setCurrentView('parent-view');
       } else {
-        if (user?.permissions?.includes('dashboard') || user?.role === 'admin') {
-           setCurrentView('dashboard');
-        } else if (user?.permissions && user.permissions.length > 0) {
-           setCurrentView(user.permissions[0]);
-        }
+         if (user?.permissions && user.permissions.includes('dashboard')) {
+             setCurrentView('dashboard');
+         } else if (user?.permissions && user.permissions.length > 0) {
+             setCurrentView(user.permissions[0]);
+         }
       }
     }
   };
 
-  const showBackButton = selectedStudent || (currentView !== 'dashboard' && currentView !== 'parent-view');
+  // Logic to show/hide Back Button
+  const showBackButton = 
+    currentView === 'profile' || 
+    !!selectedReportDate || 
+    (!!selectedStudent && user?.role !== 'parent') || 
+    (currentView !== 'dashboard' && currentView !== 'parent-view' && user?.role !== 'parent');
 
   const renderContent = () => {
+    // 1. Profile View (High Priority)
+    if (currentView === 'profile') {
+       return user ? <Profile user={user} onUpdateUser={handleUpdateUser} /> : null;
+    }
+
+    // 2. Student Detail (If selected)
     if (selectedStudent) {
       return (
         <StudentDetail 
@@ -215,7 +251,6 @@ const AppContent: React.FC = () => {
     const isAllowed = (view: string) => {
        if (!user) return false;
        if (view === 'profile') return true;
-       // Chat is allowed for everyone logic handled by component
        
        if (user.role === 'admin') return true;
        if (user.role === 'parent' && view === 'parent-view') return true;
@@ -240,7 +275,7 @@ const AppContent: React.FC = () => {
       case 'users': return <UserManagement />;
       case 'classes': return <ClassManagement />;
       case 'database': return <DatabaseControl />;
-      case 'profile': return user ? <Profile user={user} onUpdateUser={handleUpdateUser} /> : null;
+      // Profile handled above
       case 'parent-view':
          return (
           <div className="flex flex-col items-center justify-center h-[50vh] text-gray-400">
