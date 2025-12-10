@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, Search, MessageCircle, User as UserIcon } from 'lucide-react';
+import { Send, Search, MessageCircle } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { getUsers, getMessages, saveMessages } from '../services/storageService';
 import { User, ChatMessage } from '../types';
