@@ -183,7 +183,7 @@ export const translations = {
     usernameExists: "Username already exists",
     permissions: "Access Permissions",
     selectPermissions: "Select Allowed Pages",
-    userNameLabel: "User Name",
+    userNameLabel: "Full Name",
 
     // Class Management
     classManagement: "Class Management",
@@ -229,7 +229,7 @@ export const translations = {
     profileSettings: "Profile Settings",
     personalInfo: "Personal Information",
     security: "Security & Password",
-    fullName: "Full Name",
+    fullName: "Account Name",
     email: "Email Address",
     mobile: "Mobile Number",
     interests: "Interests (comma separated)",
