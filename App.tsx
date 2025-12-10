@@ -38,7 +38,7 @@ const AppContent: React.FC = () => {
   const [initError, setInitError] = useState<string | null>(null);
   
   const { t, dir, language } = useLanguage();
-  const { unreadCount, addNotification } = useNotification();
+  const { unreadCount } = useNotification();
   const notificationRef = useRef<HTMLDivElement>(null);
 
   // Initialize DB Strict Check
