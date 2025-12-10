@@ -41,7 +41,6 @@ export const initStorage = async (): Promise<{ success: boolean; message?: strin
     localStorage.removeItem(KEYS.STUDENTS);
     localStorage.removeItem(KEYS.CLASSES);
     localStorage.removeItem(KEYS.REPORTS);
-    // We keep notification cache? No, let's clear that too for consistency.
     localStorage.removeItem(KEYS.NOTIFICATIONS);
 
     const connected = initSupabase(config);
@@ -74,6 +73,17 @@ export const initStorage = async (): Promise<{ success: boolean; message?: strin
         localStorage.setItem(KEYS.STUDENTS, JSON.stringify(MOCK_STUDENTS));
         localStorage.setItem(KEYS.CLASSES, JSON.stringify(MOCK_CLASSES));
         localStorage.setItem(KEYS.REPORTS, JSON.stringify(MOCK_REPORTS));
+        
+        // Seed default notification so it exists in DB
+        const defaultNotifications: AppNotification[] = [{
+          id: '1',
+          title: 'Welcome',
+          message: 'Welcome to Golden International Academy System',
+          time: new Date().toISOString(),
+          isRead: false,
+          type: 'info'
+        }];
+        localStorage.setItem(KEYS.NOTIFICATIONS, JSON.stringify(defaultNotifications));
         
         const seeded = await forceSyncToCloud();
         if (!seeded) {
