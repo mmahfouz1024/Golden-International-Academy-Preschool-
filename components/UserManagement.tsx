@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from 'react';
 import { Plus, Search, Edit2, Trash2, Shield, X, School, Briefcase, AlertCircle, CheckCircle, Save as SaveIcon } from 'lucide-react';
 import { getUsers, saveUsers, getStudents, getClasses, saveClasses } from '../services/storageService';
@@ -345,7 +346,7 @@ const UserManagement: React.FC = () => {
               )}
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">{t('studentName')}</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('userNameLabel')}</label>
                 <input 
                   required
                   type="text" 

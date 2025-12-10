@@ -183,6 +183,7 @@ export const translations = {
     usernameExists: "Username already exists",
     permissions: "Access Permissions",
     selectPermissions: "Select Allowed Pages",
+    userNameLabel: "User Name",
 
     // Class Management
     classManagement: "Class Management",
