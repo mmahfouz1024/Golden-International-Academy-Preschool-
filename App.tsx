@@ -18,11 +18,10 @@ import NotificationDropdown from './components/NotificationDropdown';
 import BackgroundPattern from './components/BackgroundPattern';
 import { Menu, Bell, ChevronRight, ChevronLeft, WifiOff, RefreshCw } from 'lucide-react';
 import { Student, User } from './types';
-import { MOCK_STUDENTS } from './constants';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import { NotificationProvider, useNotification } from './contexts/NotificationContext';
 import { ThemeProvider } from './contexts/ThemeContext';
-import { initStorage } from './services/storageService';
+import { initStorage, getStudents } from './services/storageService';
 
 const AppContent: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -93,9 +92,14 @@ const AppContent: React.FC = () => {
     setUser(loggedInUser);
     
     if (loggedInUser.role === 'parent') {
-      const child = MOCK_STUDENTS.find(s => s.id === loggedInUser.linkedStudentId);
+      // Use getStudents() from storageService instead of MOCK_STUDENTS
+      const allStudents = getStudents();
+      const child = allStudents.find(s => s.id === loggedInUser.linkedStudentId);
       if (child) {
         setSelectedStudent(child);
+        setCurrentView('parent-view');
+      } else {
+        // Fallback if linked student is deleted or ID mismatch
         setCurrentView('parent-view');
       }
     } else {
