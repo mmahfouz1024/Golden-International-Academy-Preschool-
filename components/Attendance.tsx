@@ -134,9 +134,9 @@ const Attendance: React.FC = () => {
                 onChange={(e) => setFilterClass(e.target.value)}
              >
                 <option value="All">{t('filterClass')}</option>
-                <option value="البراعم">البراعم</option>
-                <option value="العصافير">العصافير</option>
-                <option value="النجوم">النجوم</option>
+                <option value="Birds">Birds</option>
+                <option value="Buds">Buds</option>
+                <option value="Stars">Stars</option>
              </select>
            </div>
            

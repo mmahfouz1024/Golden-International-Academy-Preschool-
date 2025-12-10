@@ -1,12 +1,13 @@
+
 import { Student, StudentStatus, DailyReport, User, ClassGroup } from './types';
 
 export const MOCK_STUDENTS: Student[] = [
   {
     id: '1',
-    name: 'أحمد محمد',
+    name: 'Ahmed Mohamed',
     age: 4,
-    classGroup: 'العصافير',
-    parentName: 'محمد علي',
+    classGroup: 'Buds',
+    parentName: 'Mohamed Ali',
     phone: '0501234567',
     status: StudentStatus.Active,
     attendanceToday: true,
@@ -14,10 +15,10 @@ export const MOCK_STUDENTS: Student[] = [
   },
   {
     id: '2',
-    name: 'سارة خالد',
+    name: 'Sarah Khaled',
     age: 5,
-    classGroup: 'النجوم',
-    parentName: 'خالد حسن',
+    classGroup: 'Stars',
+    parentName: 'Khaled Hassan',
     phone: '0509876543',
     status: StudentStatus.Active,
     attendanceToday: true,
@@ -25,10 +26,10 @@ export const MOCK_STUDENTS: Student[] = [
   },
   {
     id: '3',
-    name: 'يوسف عمر',
+    name: 'Youssef Omar',
     age: 3,
-    classGroup: 'البراعم',
-    parentName: 'عمر فاروق',
+    classGroup: 'Birds',
+    parentName: 'Omar Farouk',
     phone: '0501112223',
     status: StudentStatus.Pending,
     attendanceToday: false,
@@ -36,10 +37,10 @@ export const MOCK_STUDENTS: Student[] = [
   },
   {
     id: '4',
-    name: 'ليلى أحمد',
+    name: 'Laila Ahmed',
     age: 4,
-    classGroup: 'العصافير',
-    parentName: 'أحمد محمود',
+    classGroup: 'Buds',
+    parentName: 'Ahmed Mahmoud',
     phone: '0503334445',
     status: StudentStatus.Active,
     attendanceToday: false,
@@ -47,10 +48,10 @@ export const MOCK_STUDENTS: Student[] = [
   },
   {
     id: '5',
-    name: 'كريم سامي',
+    name: 'Karim Samy',
     age: 5,
-    classGroup: 'النجوم',
-    parentName: 'سامي يوسف',
+    classGroup: 'Stars',
+    parentName: 'Samy Youssef',
     phone: '0505556667',
     status: StudentStatus.Inactive,
     attendanceToday: false,
@@ -59,17 +60,17 @@ export const MOCK_STUDENTS: Student[] = [
 ];
 
 export const ATTENDANCE_DATA = [
-  { name: 'الأحد', present: 20, absent: 2 },
-  { name: 'الاثنين', present: 18, absent: 4 },
-  { name: 'الثلاثاء', present: 22, absent: 0 },
-  { name: 'الأربعاء', present: 19, absent: 3 },
-  { name: 'الخميس', present: 21, absent: 1 },
+  { name: 'Sun', present: 20, absent: 2 },
+  { name: 'Mon', present: 18, absent: 4 },
+  { name: 'Tue', present: 22, absent: 0 },
+  { name: 'Wed', present: 19, absent: 3 },
+  { name: 'Thu', present: 21, absent: 1 },
 ];
 
 export const AGE_GROUPS = [
-  "3-4 سنوات (البراعم)",
-  "4-5 سنوات (العصافير)",
-  "5-6 سنوات (النجوم)"
+  "3-4 Years (Birds)",
+  "4-5 Years (Buds)",
+  "5-6 Years (Stars)"
 ];
 
 const today = new Date().toISOString().split('T')[0];
@@ -92,16 +93,16 @@ export const MOCK_REPORTS: Record<string, DailyReport> = {
     },
     bathroom: [
       { time: '09:30', type: 'urine' },
-      { time: '11:15', type: 'stool', notes: 'طبيعي' }
+      { time: '11:15', type: 'stool', notes: 'Normal' }
     ],
     nap: {
       slept: true,
-      duration: '45 دقيقة',
+      duration: '45 mins',
       notes: ''
     },
-    activities: ['الرسم والتلوين', 'اللعب في الحديقة', 'حلقة القرآن'],
+    activities: ['Drawing', 'Playground', 'Story Time'],
     photos: ['https://picsum.photos/seed/act1/400/300', 'https://picsum.photos/seed/act2/400/300'],
-    notes: 'كان أحمد متعاوناً جداً اليوم مع أصدقائه.'
+    notes: 'Ahmed was very cooperative today.'
   },
   [`2_${today}`]: {
     id: `r2_${today}`,
@@ -123,7 +124,7 @@ export const MOCK_REPORTS: Record<string, DailyReport> = {
       slept: false,
       notes: ''
     },
-    activities: ['تركيب المكعبات', 'الأناشيد'],
+    activities: ['Building Blocks', 'Singing'],
     photos: [],
     notes: ''
   },
@@ -133,13 +134,13 @@ export const MOCK_REPORTS: Record<string, DailyReport> = {
     studentId: '1',
     date: yesterday,
     mood: 'tired',
-    moodNotes: 'لم ينم جيداً في المنزل',
+    moodNotes: 'Did not sleep well at home',
     meals: {
       breakfast: 'none',
       lunch: 'some',
       snack: 'some',
       waterCups: 2,
-      notes: 'لم تكن لديه شهية'
+      notes: 'No appetite'
     },
     bathroom: [
       { time: '10:30', type: 'urine' }
@@ -147,11 +148,11 @@ export const MOCK_REPORTS: Record<string, DailyReport> = {
     nap: {
       slept: true,
       duration: '1h 30m',
-      notes: 'نام بعمق'
+      notes: 'Slept deeply'
     },
-    activities: ['اللعب بالرمل'],
+    activities: ['Sand Play'],
     photos: [],
-    notes: 'كان هادئاً اليوم.'
+    notes: 'He was quiet today.'
   }
 };
 
@@ -160,30 +161,30 @@ export const MOCK_USERS: User[] = [
     id: 'u1',
     username: 'admin',
     password: '123',
-    name: 'أ. فاطمة',
+    name: 'Ms. Fatima',
     role: 'admin',
     avatar: 'https://picsum.photos/seed/admin/100/100',
     email: 'fatima@goldenacademy.com',
     phone: '0501111111',
-    interests: ['التربية الحديثة', 'الإدارة', 'القراءة']
+    interests: ['Education', 'Management', 'Reading']
   },
   {
     id: 'u2',
     username: 'parent1', // Parent for Ahmed
     password: '123',
-    name: 'أبو أحمد',
+    name: 'Ahmed\'s Dad',
     role: 'parent',
     linkedStudentId: '1',
     avatar: 'https://picsum.photos/seed/parent1/100/100',
     email: 'ahmed.dad@gmail.com',
     phone: '0502222222',
-    interests: ['كرة القدم', 'التقنية']
+    interests: ['Football', 'Tech']
   },
   {
     id: 'u3',
     username: 'parent2', // Parent for Sarah
     password: '123',
-    name: 'أبو سارة',
+    name: 'Sarah\'s Dad',
     role: 'parent',
     linkedStudentId: '2',
     avatar: 'https://picsum.photos/seed/parent2/100/100',
@@ -196,20 +197,20 @@ export const MOCK_USERS: User[] = [
 export const MOCK_CLASSES: ClassGroup[] = [
   {
     id: 'c1',
-    name: 'البراعم',
+    name: 'Birds',
     ageRange: '3-4',
     teacherId: 'u1', // Assign admin as teacher for demo
     capacity: 15
   },
   {
     id: 'c2',
-    name: 'العصافير',
+    name: 'Buds',
     ageRange: '4-5',
     capacity: 20
   },
   {
     id: 'c3',
-    name: 'النجوم',
+    name: 'Stars',
     ageRange: '5-6',
     capacity: 20
   }

@@ -1,8 +1,8 @@
 
 export enum StudentStatus {
-  Active = 'نشط',
-  Inactive = 'غير نشط',
-  Pending = 'قيد الانتظار'
+  Active = 'Active',
+  Inactive = 'Inactive',
+  Pending = 'Pending'
 }
 
 export type AttendanceStatus = 'present' | 'absent' | 'late' | 'excused';

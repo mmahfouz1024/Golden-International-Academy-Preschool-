@@ -85,7 +85,7 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
       // Add Mode
       setEditingStudent(null);
       setNewStudentAvatar('');
-      const defaultClass = classes.length > 0 ? classes[0].name : 'البراعم';
+      const defaultClass = classes.length > 0 ? classes[0].name : 'Birds';
       setStudentData({ 
         name: '', 
         age: '', 
@@ -214,7 +214,7 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
   };
 
   const filteredStudents = students.filter(student => {
-    const matchesSearch = student.name.includes(searchTerm) || student.parentName.includes(searchTerm);
+    const matchesSearch = student.name.toLowerCase().includes(searchTerm.toLowerCase()) || student.parentName.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesClass = filterClass === 'All' || student.classGroup === filterClass;
     const matchesAge = filterAge === 'All' || student.age.toString() === filterAge;
     const matchesStatus = filterStatus === 'All' || student.status === filterStatus;
@@ -273,9 +273,9 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
               ))}
               {classes.length === 0 && (
                 <>
-                  <option value="البراعم">البراعم</option>
-                  <option value="العصافير">العصافير</option>
-                  <option value="النجوم">النجوم</option>
+                  <option value="Birds">Birds</option>
+                  <option value="Buds">Buds</option>
+                  <option value="Stars">Stars</option>
                 </>
               )}
             </select>
@@ -494,9 +494,9 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
                     ))}
                     {classes.length === 0 && (
                       <>
-                        <option value="البراعم">البراعم</option>
-                        <option value="العصافير">العصافير</option>
-                        <option value="النجوم">النجوم</option>
+                        <option value="Birds">Birds</option>
+                        <option value="Buds">Buds</option>
+                        <option value="Stars">Stars</option>
                       </>
                     )}
                   </select>

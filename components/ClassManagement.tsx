@@ -206,7 +206,7 @@ const ClassManagement: React.FC = () => {
                   className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                   value={formData.name}
                   onChange={e => setFormData({...formData, name: e.target.value})}
-                  placeholder="مثال: الفراشات"
+                  placeholder="Ex: Birds"
                 />
               </div>
 
@@ -219,7 +219,7 @@ const ClassManagement: React.FC = () => {
                     className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                     value={formData.ageRange}
                     onChange={e => setFormData({...formData, ageRange: e.target.value})}
-                    placeholder="مثال: 3-4"
+                    placeholder="Ex: 3-4"
                   />
                 </div>
                 <div>
