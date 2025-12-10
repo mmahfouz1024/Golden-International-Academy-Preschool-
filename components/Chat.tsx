@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, Search, MessageCircle } from 'lucide-react';
+import { Send, Search, MessageCircle, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { getUsers, getMessages, saveMessages } from '../services/storageService';
 import { User, ChatMessage } from '../types';
@@ -9,6 +9,7 @@ const Chat: React.FC = () => {
   const { t, language } = useLanguage();
   const currentUser = JSON.parse(localStorage.getItem('golden_academy_users') || '[]').find((u: User) => u.id === localStorage.getItem('golden_session_uid'));
   
+  const [isOpen, setIsOpen] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -19,30 +20,29 @@ const Chat: React.FC = () => {
   useEffect(() => {
     if (!currentUser) return;
 
-    // Load Data
     const allUsers = getUsers();
     const allMessages = getMessages();
     setMessages(allMessages);
 
-    // Filter Users based on Role
     let filteredUsers = allUsers.filter(u => u.id !== currentUser.id);
 
     if (currentUser.role === 'parent') {
       // Parents can ONLY see admins
       filteredUsers = filteredUsers.filter(u => u.role === 'admin');
     }
-    // Admin, Manager, Teacher can see everyone (already handled by default)
     
     setUsers(filteredUsers);
-  }, [currentUser]);
+  }, [currentUser, isOpen]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages, selectedUser]);
+    if (isOpen && selectedUser) {
+      scrollToBottom();
+    }
+  }, [messages, selectedUser, isOpen]);
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
@@ -78,151 +78,135 @@ const Chat: React.FC = () => {
   if (!currentUser) return null;
 
   return (
-    <div className="flex h-[calc(100vh-8rem)] gap-4 md:gap-6">
-      {/* Users List Sidebar */}
-      <div className={`
-        ${selectedUser ? 'hidden md:flex' : 'flex'} 
-        flex-col w-full md:w-80 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden
-      `}>
-        <div className="p-4 border-b border-gray-100">
-          <h2 className="text-xl font-bold text-gray-800 mb-4">{t('chatTitle')}</h2>
-          <div className="relative">
-            <Search className={`absolute ${language === 'ar' ? 'right-3' : 'left-3'} top-1/2 -translate-y-1/2 text-gray-400`} size={18} />
-            <input 
-              type="text" 
-              placeholder={t('search')}
-              className={`w-full ${language === 'ar' ? 'pl-4 pr-10' : 'pr-4 pl-10'} py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 bg-gray-50`}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-        </div>
+    <>
+      {/* Floating Action Button */}
+      <button 
+        onClick={() => setIsOpen(!isOpen)}
+        className={`fixed bottom-6 ${language === 'ar' ? 'left-6' : 'right-6'} z-50 p-4 rounded-full shadow-2xl transition-all transform hover:scale-110 active:scale-95 flex items-center justify-center ${
+          isOpen ? 'bg-red-500 rotate-90' : 'bg-gradient-to-r from-indigo-600 to-purple-600'
+        } text-white border-4 border-white`}
+      >
+        {isOpen ? <X size={28} /> : <MessageCircle size={28} />}
+      </button>
 
-        <div className="flex-1 overflow-y-auto p-2 space-y-1">
-          {getFilteredUsers().map(user => (
-            <button
-              key={user.id}
-              onClick={() => setSelectedUser(user)}
-              className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all ${
-                selectedUser?.id === user.id 
-                  ? 'bg-indigo-50 border-indigo-100 shadow-sm' 
-                  : 'hover:bg-gray-50 border-transparent'
-              } border`}
-            >
-              <div className="relative">
-                <img 
-                  src={user.avatar} 
-                  alt={user.name} 
-                  className="w-12 h-12 rounded-full border-2 border-white shadow-sm object-cover" 
-                />
-                <span className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white ${
-                  user.role === 'admin' ? 'bg-purple-500' : 'bg-green-500'
-                }`}></span>
-              </div>
-              <div className="flex-1 text-start">
-                <h4 className={`font-bold text-sm ${selectedUser?.id === user.id ? 'text-indigo-700' : 'text-gray-800'}`}>
-                  {user.name}
-                </h4>
-                <p className="text-xs text-gray-400 font-medium capitalize">
-                  {t(`role${user.role.charAt(0).toUpperCase() + user.role.slice(1)}` as any)}
-                </p>
-              </div>
-            </button>
-          ))}
-          {getFilteredUsers().length === 0 && (
-            <div className="text-center py-8 text-gray-400 text-sm">
-              {t('noResults')}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Chat Window */}
-      <div className={`
-        ${!selectedUser ? 'hidden md:flex' : 'flex'} 
-        flex-1 flex-col bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden relative
-      `}>
-        {selectedUser ? (
-          <>
-            {/* Chat Header */}
-            <div className="p-4 border-b border-gray-100 flex items-center gap-3 bg-white z-10">
-              <button 
-                onClick={() => setSelectedUser(null)}
-                className="md:hidden p-2 hover:bg-gray-50 rounded-lg text-gray-500"
-              >
-                <div className="rotate-180 transform">➜</div>
-              </button>
-              <img src={selectedUser.avatar} alt={selectedUser.name} className="w-10 h-10 rounded-full border border-gray-200" />
-              <div>
-                <h3 className="font-bold text-gray-800">{selectedUser.name}</h3>
-                <span className="text-xs text-gray-500 flex items-center gap-1">
-                  <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                  Active Now
-                </span>
-              </div>
-            </div>
-
-            {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50">
-              {currentChatMessages.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full text-gray-400 opacity-60">
-                   <MessageCircle size={48} className="mb-2" />
-                   <p>{t('noMessages')}</p>
+      {/* Chat Widget Popup */}
+      {isOpen && (
+        <div className={`fixed bottom-24 ${language === 'ar' ? 'left-6' : 'right-6'} w-[90vw] md:w-96 h-[600px] max-h-[80vh] bg-white rounded-2xl shadow-2xl border border-gray-100 flex flex-col overflow-hidden z-40 animate-fade-in`}>
+          
+          {/* Header */}
+          <div className="bg-indigo-600 p-4 text-white flex items-center justify-between shrink-0">
+             <div className="flex items-center gap-3">
+               {selectedUser && (
+                 <button onClick={() => setSelectedUser(null)} className="hover:bg-white/20 p-1 rounded-lg transition-colors">
+                   {language === 'ar' ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+                 </button>
+               )}
+               <h3 className="font-bold text-lg">
+                 {selectedUser ? selectedUser.name : t('chatTitle')}
+               </h3>
+             </div>
+             {selectedUser && (
+                <div className="flex items-center gap-2">
+                   <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                   <span className="text-xs opacity-80">{t(`role${selectedUser.role.charAt(0).toUpperCase() + selectedUser.role.slice(1)}` as any)}</span>
                 </div>
-              ) : (
-                currentChatMessages.map(msg => {
-                  const isMe = msg.senderId === currentUser.id;
-                  return (
-                    <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-                      <div className={`
-                        max-w-[75%] p-3 rounded-2xl shadow-sm text-sm relative
-                        ${isMe 
-                          ? 'bg-indigo-600 text-white rounded-tr-none' 
-                          : 'bg-white text-gray-700 border border-gray-100 rounded-tl-none'}
-                      `}>
-                        <p>{msg.content}</p>
-                        <span className={`text-[10px] block mt-1 text-right ${isMe ? 'text-indigo-200' : 'text-gray-400'}`}>
-                          {new Date(msg.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                        </span>
-                      </div>
+             )}
+          </div>
+
+          {/* Content */}
+          <div className="flex-1 overflow-hidden relative">
+            
+            {/* User List View */}
+            <div className={`absolute inset-0 flex flex-col bg-white transition-transform duration-300 ${selectedUser ? (language === 'ar' ? 'translate-x-full' : '-translate-x-full') : 'translate-x-0'}`}>
+                <div className="p-3 border-b border-gray-100 bg-gray-50">
+                    <div className="relative">
+                        <Search className={`absolute ${language === 'ar' ? 'right-3' : 'left-3'} top-1/2 -translate-y-1/2 text-gray-400`} size={16} />
+                        <input 
+                        type="text" 
+                        placeholder={t('search')}
+                        className={`w-full ${language === 'ar' ? 'pl-4 pr-10' : 'pr-4 pl-10'} py-2 rounded-lg border border-gray-200 focus:outline-none focus:border-indigo-500 text-sm`}
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        />
                     </div>
-                  );
-                })
-              )}
-              <div ref={messagesEndRef} />
+                </div>
+                <div className="flex-1 overflow-y-auto p-2">
+                    {getFilteredUsers().map(user => (
+                        <button
+                        key={user.id}
+                        onClick={() => setSelectedUser(user)}
+                        className="w-full flex items-center gap-3 p-3 hover:bg-gray-50 rounded-xl transition-colors border-b border-gray-50 last:border-0"
+                        >
+                        <div className="relative">
+                            <img src={user.avatar} alt={user.name} className="w-10 h-10 rounded-full object-cover border border-gray-200" />
+                            <span className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-white ${user.role === 'admin' ? 'bg-purple-500' : 'bg-green-500'}`}></span>
+                        </div>
+                        <div className="flex-1 text-start">
+                            <h4 className="font-bold text-gray-800 text-sm">{user.name}</h4>
+                            <p className="text-xs text-gray-500">{t(`role${user.role.charAt(0).toUpperCase() + user.role.slice(1)}` as any)}</p>
+                        </div>
+                        {language === 'ar' ? <ChevronLeft size={16} className="text-gray-300" /> : <ChevronRight size={16} className="text-gray-300" />}
+                        </button>
+                    ))}
+                    {getFilteredUsers().length === 0 && (
+                        <div className="text-center py-8 text-gray-400 text-sm">
+                         {t('noResults')}
+                        </div>
+                    )}
+                </div>
             </div>
 
-            {/* Input Area */}
-            <form onSubmit={handleSendMessage} className="p-4 border-t border-gray-100 bg-white">
-              <div className="flex items-center gap-2">
-                <input 
-                  type="text" 
-                  value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
-                  placeholder={t('typeMessage')}
-                  className="flex-1 px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 bg-gray-50"
-                />
-                <button 
-                  type="submit" 
-                  disabled={!newMessage.trim()}
-                  className="p-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-indigo-200 transition-all"
-                >
-                  <Send size={20} />
-                </button>
-              </div>
-            </form>
-          </>
-        ) : (
-          <div className="flex flex-col items-center justify-center h-full text-gray-400">
-            <div className="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center mb-4">
-              <MessageCircle size={40} className="text-indigo-300" />
+            {/* Chat Conversation View */}
+            <div className={`absolute inset-0 flex flex-col bg-slate-50 transition-transform duration-300 ${selectedUser ? 'translate-x-0' : (language === 'ar' ? '-translate-x-full' : 'translate-x-full')}`}>
+                <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
+                    {currentChatMessages.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center h-full text-gray-400 opacity-50">
+                            <MessageCircle size={40} className="mb-2" />
+                            <p className="text-sm">{t('noMessages')}</p>
+                        </div>
+                    ) : (
+                        currentChatMessages.map(msg => {
+                            const isMe = msg.senderId === currentUser.id;
+                            return (
+                                <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
+                                    <div className={`
+                                        max-w-[80%] p-3 rounded-2xl text-sm shadow-sm relative
+                                        ${isMe ? 'bg-indigo-600 text-white rounded-tr-none' : 'bg-white text-gray-700 rounded-tl-none'}
+                                    `}>
+                                        <p>{msg.content}</p>
+                                        <span className={`text-[10px] block mt-1 text-right ${isMe ? 'text-indigo-200' : 'text-gray-400'}`}>
+                                            {new Date(msg.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                        </span>
+                                    </div>
+                                </div>
+                            );
+                        })
+                    )}
+                    <div ref={messagesEndRef} />
+                </div>
+                
+                <form onSubmit={handleSendMessage} className="p-3 bg-white border-t border-gray-100 flex gap-2">
+                    <input 
+                        type="text" 
+                        value={newMessage}
+                        onChange={(e) => setNewMessage(e.target.value)}
+                        placeholder={t('typeMessage')}
+                        className="flex-1 px-4 py-2 rounded-full border border-gray-200 focus:outline-none focus:border-indigo-500 bg-gray-50 text-sm"
+                    />
+                    <button 
+                        type="submit" 
+                        disabled={!newMessage.trim()}
+                        className="p-2 bg-indigo-600 text-white rounded-full hover:bg-indigo-700 disabled:opacity-50 transition-colors shadow-md"
+                    >
+                        <Send size={18} />
+                    </button>
+                </form>
             </div>
-            <h3 className="text-xl font-bold text-gray-700 mb-2">{t('chatTitle')}</h3>
-            <p className="text-sm text-gray-500">{t('selectUserToChat')}</p>
+
           </div>
-        )}
-      </div>
-    </div>
+        </div>
+      )}
+    </>
   );
 };
 

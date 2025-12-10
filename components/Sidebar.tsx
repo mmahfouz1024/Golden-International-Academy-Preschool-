@@ -1,7 +1,6 @@
 
-
 import React, { useState } from 'react';
-import { LayoutDashboard, Users, CalendarCheck, Sparkles, LogOut, Home, Download, UserCog, School, ChevronRight, Contact, FileClock, Palette, Database, MessageCircle } from 'lucide-react';
+import { LayoutDashboard, Users, CalendarCheck, Sparkles, LogOut, Home, Download, UserCog, School, ChevronRight, Contact, FileClock, Palette, Database } from 'lucide-react';
 import { User, Theme } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -33,7 +32,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   const allMenuItems = [
     { id: 'dashboard', label: t('dashboard'), icon: LayoutDashboard, defaultRoles: ['admin', 'manager', 'teacher'] },
-    { id: 'chat', label: t('chat'), icon: MessageCircle, defaultRoles: ['admin', 'manager', 'teacher', 'parent'] },
+    // Chat removed from sidebar
     { id: 'students', label: t('students'), icon: Users, defaultRoles: ['admin', 'manager', 'teacher'] },
     { id: 'attendance', label: t('attendance'), icon: CalendarCheck, defaultRoles: ['admin', 'manager', 'teacher'] },
     { id: 'reports-archive', label: t('reportsArchive'), icon: FileClock, defaultRoles: ['admin', 'manager', 'teacher'] },
@@ -48,9 +47,6 @@ const Sidebar: React.FC<SidebarProps> = ({
   const hasPermission = (item: any) => {
     if (!user) return false;
     
-    // Chat is available for everyone
-    if (item.id === 'chat') return true;
-
     // Admin always sees everything (except parent view usually)
     if (user.role === 'admin' && item.id !== 'parent-view') return true;
 

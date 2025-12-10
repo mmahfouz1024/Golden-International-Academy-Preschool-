@@ -215,8 +215,7 @@ const AppContent: React.FC = () => {
     const isAllowed = (view: string) => {
        if (!user) return false;
        if (view === 'profile') return true;
-       // Chat is allowed for everyone
-       if (view === 'chat') return true;
+       // Chat is allowed for everyone logic handled by component
        
        if (user.role === 'admin') return true;
        if (user.role === 'parent' && view === 'parent-view') return true;
@@ -233,7 +232,6 @@ const AppContent: React.FC = () => {
 
     switch (currentView) {
       case 'dashboard': return <Dashboard />;
-      case 'chat': return <Chat />;
       case 'students': return <StudentList onStudentSelect={(student) => setSelectedStudent(student)} />;
       case 'ai-planner': return <AIPlanner />;
       case 'attendance': return <Attendance />;
@@ -402,6 +400,9 @@ const AppContent: React.FC = () => {
           </div>
         </main>
       </div>
+      
+      {/* Global Floating Chat Widget */}
+      <Chat />
     </div>
   );
 };
