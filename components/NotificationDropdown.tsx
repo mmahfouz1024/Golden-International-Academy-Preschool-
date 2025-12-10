@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import ReactDOM from 'react-dom';
 import { Info, AlertTriangle, CheckCircle, Bell, X } from 'lucide-react';
 import { useNotification } from '../contexts/NotificationContext';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -94,11 +95,12 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ onClose }) 
         </div>
       </div>
 
-      {/* Detail Modal */}
-      {selectedNotification && (
+      {/* Detail Modal - Using Portal to break out of z-index stacking context */}
+      {selectedNotification && ReactDOM.createPortal(
         <div 
-          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in"
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in"
           onClick={() => setSelectedNotification(null)}
+          style={{ direction: language === 'ar' ? 'rtl' : 'ltr' }}
         >
           <div 
             className="bg-white rounded-[2rem] shadow-2xl w-full max-w-sm overflow-hidden relative border-4 border-white transform transition-all scale-100"
@@ -155,7 +157,8 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ onClose }) 
                 </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
