@@ -33,7 +33,6 @@ export interface DashboardStats {
   totalStudents: number;
   presentToday: number;
   totalTeachers: number;
-  revenueMonthly: number;
 }
 
 export type Mood = 'happy' | 'sad' | 'neutral' | 'excited' | 'tired' | 'sick';

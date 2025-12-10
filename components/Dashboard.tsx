@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Users, UserCheck, DollarSign, GraduationCap } from 'lucide-react';
+import { Users, UserCheck, GraduationCap } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { ATTENDANCE_DATA } from '../constants';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -11,8 +11,7 @@ const Dashboard: React.FC = () => {
   const [statsData, setStatsData] = useState({
     totalStudents: 0,
     presentToday: 0,
-    totalTeachers: 0,
-    revenue: 0
+    totalTeachers: 0
   });
 
   useEffect(() => {
@@ -26,15 +25,11 @@ const Dashboard: React.FC = () => {
     
     // Count only users with strict "teacher" role
     const totalTeachers = users.filter(u => u.role === 'teacher').length;
-    
-    // Mock revenue calculation (e.g., 500 per student)
-    const revenue = totalStudents * 500;
 
     setStatsData({
       totalStudents,
       presentToday,
-      totalTeachers,
-      revenue
+      totalTeachers
     });
   }, []);
   
@@ -42,7 +37,6 @@ const Dashboard: React.FC = () => {
     { label: t('statsTotalStudents'), value: statsData.totalStudents.toString(), icon: Users, color: 'bg-blue-100 text-blue-600' },
     { label: t('statsPresentToday'), value: statsData.presentToday.toString(), icon: UserCheck, color: 'bg-green-100 text-green-600' },
     { label: t('statsTeachers'), value: statsData.totalTeachers.toString(), icon: GraduationCap, color: 'bg-purple-100 text-purple-600' },
-    { label: t('statsRevenue'), value: statsData.revenue.toLocaleString(), icon: DollarSign, color: 'bg-yellow-100 text-yellow-600', suffix: t('currency') },
   ];
 
   return (
@@ -57,7 +51,7 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {stats.map((stat, index) => {
           const Icon = stat.icon;
           return (
@@ -69,7 +63,6 @@ const Dashboard: React.FC = () => {
                 <p className="text-sm text-gray-500 font-medium">{stat.label}</p>
                 <div className="flex items-baseline gap-1">
                   <h3 className="text-2xl font-bold text-gray-800">{stat.value}</h3>
-                  {stat.suffix && <span className="text-xs text-gray-400">{stat.suffix}</span>}
                 </div>
               </div>
             </div>
@@ -81,7 +74,7 @@ const Dashboard: React.FC = () => {
         <div className="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
           <h3 className="text-lg font-bold text-gray-800 mb-6">{t('attendanceChart')}</h3>
           <div className="h-64 w-full">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
               <BarChart data={ATTENDANCE_DATA}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#6b7280' }} dy={10} />
