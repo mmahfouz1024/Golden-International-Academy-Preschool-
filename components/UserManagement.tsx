@@ -4,6 +4,7 @@ import { Plus, Search, Edit2, Trash2, Shield, X, School, Briefcase, AlertCircle,
 import { getUsers, saveUsers, getStudents, getClasses, saveClasses } from '../services/storageService';
 import { User, UserRole, Student, ClassGroup } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
+import { Save as SaveIcon } from 'lucide-react';
 
 const UserManagement: React.FC = () => {
   const { t, language } = useLanguage();
@@ -107,7 +108,7 @@ const UserManagement: React.FC = () => {
     if (!formData.username || !formData.name || !formData.password) return;
 
     // Check for duplicate username
-    const usernameToCheck = formData.username.trim().toLowerCase();
+    const usernameToCheck = (formData.username || '').trim().toLowerCase();
     const isDuplicate = users.some(u => 
       u.username.toLowerCase() === usernameToCheck && 
       (!editingUser || u.id !== editingUser.id)
@@ -123,13 +124,13 @@ const UserManagement: React.FC = () => {
 
     // 1. Save User Logic
     if (editingUser) {
-      updatedUsers = users.map(u => u.id === editingUser.id ? { ...u, ...formData, username: formData.username.trim(), id: userId } as User : u);
+      updatedUsers = users.map(u => u.id === editingUser.id ? { ...u, ...formData, username: (formData.username || '').trim(), id: userId } as User : u);
     } else {
       const newUser: User = {
         id: userId,
         avatar: `https://picsum.photos/seed/${Date.now()}/100/100`,
         name: formData.name!,
-        username: formData.username.trim(),
+        username: (formData.username || '').trim(),
         password: formData.password!,
         role: formData.role || 'teacher',
         permissions: formData.permissions,
@@ -469,7 +470,7 @@ const UserManagement: React.FC = () => {
                   type="submit"
                   className="flex-1 py-2.5 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 shadow-lg shadow-indigo-200 transition-colors flex justify-center items-center gap-2"
                 >
-                  <Save size={18} />
+                  <SaveIcon size={18} />
                   {t('save')}
                 </button>
               </div>

@@ -45,7 +45,8 @@ export const initStorage = async (): Promise<{ success: boolean; message?: strin
         if (error) {
           // If we get an error (like connection refused, 404, or invalid key), we report it
           console.error("⚠️ Error reading from Supabase:", error);
-          return { success: false, message: error.message || 'Connection Error' };
+          const errorMessage = typeof error === 'string' ? error : error.message;
+          return { success: false, message: errorMessage || 'Connection Error' };
         }
         
         if (!data) {
