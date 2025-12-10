@@ -82,17 +82,19 @@ const Sidebar: React.FC<SidebarProps> = ({
     <>
       {isMobileOpen && (
         <div 
-          className="fixed inset-0 bg-black/50 z-20 md:hidden"
+          className="fixed inset-0 bg-black/50 z-20 md:hidden backdrop-blur-sm"
           onClick={() => setIsMobileOpen(false)}
         />
       )}
 
       <aside className={`
-        fixed md:static inset-y-0 left-0 z-30 w-64 bg-white border-l border-r border-gray-100 shadow-lg md:shadow-none transform transition-transform duration-300 ease-in-out
+        fixed md:static inset-y-0 left-0 z-30 w-64 
+        bg-white/70 backdrop-blur-xl border-r border-white/50 shadow-xl md:shadow-none
+        transform transition-transform duration-300 ease-in-out
         ${isMobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
       `}>
         <div className="flex flex-col h-full">
-          <div className="p-4 flex items-center justify-center border-b border-gray-50 bg-indigo-50/20">
+          <div className="p-4 flex items-center justify-center border-b border-gray-100/50 bg-gradient-to-b from-indigo-50/50 to-transparent">
             <div className="w-40 h-40">
               <svg viewBox="0 0 500 500" className="w-full h-full drop-shadow-sm">
                   {/* Background Circle */}
@@ -139,14 +141,14 @@ const Sidebar: React.FC<SidebarProps> = ({
                     setIsMobileOpen(false);
                   }}
                   className={`
-                    w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200
+                    w-full flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-300
                     ${isActive 
-                      ? 'bg-indigo-50 text-indigo-700 font-bold shadow-sm' 
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}
+                      ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-md shadow-indigo-200 transform scale-105' 
+                      : 'text-gray-600 hover:bg-white/50 hover:text-indigo-600'}
                   `}
                 >
-                  <Icon size={20} className={isActive ? 'text-indigo-600' : 'text-gray-400'} />
-                  <span>{item.label}</span>
+                  <Icon size={20} className={isActive ? 'text-white' : 'text-gray-400'} />
+                  <span className="font-medium">{item.label}</span>
                 </button>
               );
             })}
@@ -154,17 +156,17 @@ const Sidebar: React.FC<SidebarProps> = ({
             {showInstallButton && (
               <button
                 onClick={onInstall}
-                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 mt-4"
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-200 text-indigo-600 bg-white/50 border border-indigo-100 hover:bg-indigo-50 mt-4"
               >
                 <Download size={20} />
                 <span>{t('installApp')}</span>
               </button>
             )}
 
-            <div className="pt-2 mt-2 border-t border-gray-100 space-y-2">
+            <div className="pt-2 mt-2 border-t border-gray-100/50 space-y-2">
               <button
                 onClick={() => setIsThemeMenuOpen(!isThemeMenuOpen)}
-                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-gray-600 hover:bg-gray-50 justify-between group"
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-200 text-gray-600 hover:bg-white/50 justify-between group"
               >
                 <div className="flex items-center gap-3">
                   <Palette size={20} className="text-gray-400 group-hover:text-indigo-500" />
@@ -178,16 +180,16 @@ const Sidebar: React.FC<SidebarProps> = ({
               </button>
 
               {isThemeMenuOpen && (
-                <div className="px-4 py-2 space-y-1 bg-gray-50/50 rounded-xl mx-2 animate-fade-in">
+                <div className="px-4 py-2 space-y-1 bg-white/40 rounded-2xl mx-2 animate-fade-in backdrop-blur-sm border border-white/50">
                   {themes.map((t) => (
                     <button
                       key={t.id}
                       onClick={() => setTheme(t.id)}
-                      className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all ${
-                        theme === t.id ? 'bg-white shadow-sm text-gray-800 font-medium' : 'text-gray-500 hover:text-gray-800'
+                      className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm transition-all ${
+                        theme === t.id ? 'bg-white shadow-sm text-gray-800 font-bold' : 'text-gray-500 hover:text-gray-800 hover:bg-white/30'
                       }`}
                     >
-                      <span className="w-3 h-3 rounded-full" style={{ backgroundColor: t.color }}></span>
+                      <span className="w-3 h-3 rounded-full shadow-sm" style={{ backgroundColor: t.color }}></span>
                       <span>{t.label}</span>
                     </button>
                   ))}
@@ -196,24 +198,24 @@ const Sidebar: React.FC<SidebarProps> = ({
             </div>
           </nav>
 
-          <div className="p-4 border-t border-gray-50">
+          <div className="p-4 border-t border-gray-100/50 bg-white/30 backdrop-blur-sm">
             <div className="flex items-center gap-1">
               <button 
                 onClick={() => setCurrentView('profile')}
-                className={`flex-1 flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors ${currentView === 'profile' ? 'bg-indigo-50' : ''}`}
+                className={`flex-1 flex items-center gap-3 p-3 rounded-2xl hover:bg-white/60 transition-colors ${currentView === 'profile' ? 'bg-white shadow-sm' : ''}`}
               >
-                <img src={user?.avatar || "https://picsum.photos/seed/user/40/40"} alt="User" className="w-10 h-10 rounded-full border-2 border-white shadow-sm" />
+                <img src={user?.avatar || "https://picsum.photos/seed/user/40/40"} alt="User" className="w-10 h-10 rounded-full border-2 border-white shadow-md" />
                 <div className="flex-1 min-w-0 text-start">
-                  <p className="text-sm font-semibold text-gray-800 truncate">{user?.name}</p>
+                  <p className="text-sm font-bold text-gray-800 truncate">{user?.name}</p>
                   <p className="text-xs text-gray-500 truncate">{getRoleLabel(user?.role)}</p>
                 </div>
-                <div className="text-gray-300">
+                <div className="text-gray-400">
                   <ChevronRight size={16} />
                 </div>
               </button>
               <button 
                 onClick={onLogout}
-                className="p-3 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors"
+                className="p-3 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-2xl transition-colors"
                 title={t('logout')}
               >
                 <LogOut size={20} />

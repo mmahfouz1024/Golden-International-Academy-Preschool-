@@ -222,8 +222,8 @@ const AppContent: React.FC = () => {
   // BLOCKING ERROR STATE (DB CONNECTION FAILED)
   if (initError) {
     return (
-      <div className="h-screen w-screen flex items-center justify-center bg-slate-50 p-4">
-        <div className="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full text-center border-2 border-red-50">
+      <div className="h-screen w-screen flex items-center justify-center bg-sky-50 p-4">
+        <div className="bg-white/80 backdrop-blur-lg p-8 rounded-[2.5rem] shadow-xl max-w-md w-full text-center border-4 border-white">
            <div className="w-20 h-20 bg-red-100 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
              <WifiOff size={40} />
            </div>
@@ -236,7 +236,7 @@ const AppContent: React.FC = () => {
 
            <button 
              onClick={() => window.location.reload()}
-             className="w-full py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2"
+             className="w-full py-4 bg-gradient-to-r from-orange-400 to-pink-500 text-white rounded-full font-bold hover:scale-105 transition-transform shadow-lg flex items-center justify-center gap-2"
            >
              <RefreshCw size={20} />
              Try Again
@@ -270,11 +270,11 @@ const AppContent: React.FC = () => {
       />
 
       <div className="flex-1 flex flex-col h-full overflow-hidden relative z-10">
-        <header className="h-16 bg-white/80 backdrop-blur-sm border-b border-gray-100 flex items-center justify-between px-4 sm:px-8 z-10 shrink-0">
+        <header className="h-20 bg-white/60 backdrop-blur-xl border-b border-white/50 flex items-center justify-between px-4 sm:px-8 z-10 shrink-0 shadow-sm">
           <div className="flex items-center gap-4">
             <button 
               onClick={() => setIsMobileOpen(true)}
-              className="md:hidden p-2 text-gray-500 hover:bg-gray-100 rounded-lg"
+              className="md:hidden p-2 text-gray-500 hover:bg-white/50 rounded-lg"
             >
               <Menu size={24} />
             </button>
@@ -282,14 +282,14 @@ const AppContent: React.FC = () => {
             {showBackButton && (
                <button 
                  onClick={handleBack}
-                 className="p-2 text-gray-500 hover:bg-gray-100 hover:text-indigo-600 rounded-lg transition-colors hidden md:block"
+                 className="p-2 text-gray-500 hover:bg-white/50 hover:text-indigo-600 rounded-xl transition-colors hidden md:block"
                  title={t('back')}
                >
                  {language === 'ar' ? <ChevronRight size={24} /> : <ChevronLeft size={24} />}
                </button>
             )}
 
-            <h2 className="text-lg font-bold text-gray-700 hidden sm:block">
+            <h2 className="text-xl font-bold text-gray-800 hidden sm:block">
               {user.role === 'parent' 
                 ? t('myChild')
                 : (selectedStudent 
@@ -313,11 +313,11 @@ const AppContent: React.FC = () => {
             <div className="relative" ref={notificationRef}>
               <button 
                 onClick={() => setShowNotifications(!showNotifications)}
-                className="relative p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
+                className="relative p-3 text-gray-400 hover:text-indigo-600 hover:bg-white/50 rounded-xl transition-all"
               >
-                <Bell size={20} />
+                <Bell size={22} />
                 {unreadCount > 0 && (
-                  <span className="absolute top-2 left-2 w-2 h-2 bg-red-500 rounded-full border border-white animate-pulse"></span>
+                  <span className="absolute top-2 left-2 w-2.5 h-2.5 bg-red-500 rounded-full border border-white animate-pulse"></span>
                 )}
               </button>
               {showNotifications && (
@@ -325,20 +325,20 @@ const AppContent: React.FC = () => {
               )}
             </div>
             
-            <div className="w-px h-8 bg-gray-100 mx-1"></div>
+            <div className="w-px h-8 bg-gray-200/50 mx-1"></div>
             <button 
               onClick={() => handleSetView('profile')}
-              className="flex items-center gap-2 hover:bg-gray-50 p-2 rounded-lg transition-colors"
+              className="flex items-center gap-3 hover:bg-white/50 p-2 rounded-xl transition-colors border border-transparent hover:border-white/50"
               title={t('profile')}
             >
-               <span className="text-sm font-medium text-gray-600 hidden sm:block">{user.name}</span>
-               <img src={user.avatar} alt="Profile" className="w-8 h-8 rounded-full border border-gray-200" />
+               <span className="text-sm font-bold text-gray-700 hidden sm:block">{user.name}</span>
+               <img src={user.avatar} alt="Profile" className="w-9 h-9 rounded-full border-2 border-white shadow-sm" />
             </button>
           </div>
         </header>
 
         <main className="flex-1 overflow-auto p-4 sm:p-8">
-          <div className="max-w-6xl mx-auto animate-fade-in">
+          <div className="max-w-6xl mx-auto animate-fade-in pb-12">
              {showBackButton && (
                <div className="md:hidden mb-4">
                  <button 

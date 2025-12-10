@@ -41,6 +41,7 @@
             animation: {
               'fade-in': 'fadeIn 0.5s ease-out',
               'blob': 'blob 7s infinite',
+              'spin-slow': 'spin 10s linear infinite',
             },
             keyframes: {
               fadeIn: {
@@ -69,7 +70,7 @@
         height: 8px;
       }
       ::-webkit-scrollbar-track {
-        background: #f1f1f1; 
+        background: transparent; 
       }
       ::-webkit-scrollbar-thumb {
         background: #cbd5e1; 
@@ -111,7 +112,7 @@
 }
 </script>
 </head>
-  <body class="bg-slate-50 text-slate-900 antialiased">
+  <body class="bg-sky-50 text-slate-900 antialiased">
     <div id="root"></div>
     <script type="module" src="./index.tsx"></script>
   </body>
