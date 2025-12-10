@@ -149,7 +149,7 @@ const UserManagement: React.FC = () => {
     saveUsers(updatedUsers);
 
     // 2. Assign/Unassign Class Logic
-    const canHaveClass = formData.role === 'teacher' || formData.role === 'manager';
+    const canHaveClass = formData.role === 'teacher'; // Manager removed from here
     const targetClassId = formData.assignedClassId;
 
     const updatedClasses = classes.map(cls => {
@@ -282,7 +282,7 @@ const UserManagement: React.FC = () => {
                         ) : (
                           <span className="text-sm text-red-500 italic">{t('noLinkedStudent')}</span>
                         )
-                      ) : (user.role === 'teacher' || user.role === 'manager') ? (
+                      ) : (user.role === 'teacher') ? (
                          assignedClass ? (
                           <div className="flex items-center gap-2 text-sm text-indigo-700">
                              <School size={14} />
@@ -426,7 +426,7 @@ const UserManagement: React.FC = () => {
                 </div>
               )}
 
-              {(formData.role === 'teacher' || formData.role === 'manager') && (
+              {formData.role === 'teacher' && (
                 <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-100">
                    <label className="block text-sm font-medium text-indigo-800 mb-2 flex items-center gap-2">
                      <School size={16} />
