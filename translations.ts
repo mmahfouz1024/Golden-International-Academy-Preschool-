@@ -26,6 +26,15 @@ export const translations = {
     loginButton: "Login",
     loginError: "Invalid username or password",
     demoData: "Demo Data",
+    forgotPassword: "Forgot Password?",
+    recoverAccount: "Recover Account",
+    enterUsernameRecover: "Enter your username to search",
+    sendRecoverySMS: "Send Recovery SMS",
+    backToLogin: "Back to Login",
+    userNotFound: "User not found",
+    noPhoneLinked: "No phone number linked to this account",
+    recoverySuccess: "Recovery message sent successfully to",
+    sending: "Sending...",
 
     // Sidebar
     dashboard: "Dashboard",

@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { LogIn } from 'lucide-react';
+import { LogIn, Sun, Cloud, Star, Sparkles, UserCircle, KeyRound, ArrowLeft, Smartphone, Send } from 'lucide-react';
 import { getUsers } from '../services/storageService';
 import { User } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -10,14 +10,22 @@ interface LoginProps {
 }
 
 const Login: React.FC<LoginProps> = ({ onLogin }) => {
+  const [view, setView] = useState<'login' | 'forgot'>('login');
+  
+  // Login State
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+
+  // Recovery State
+  const [recoveryUsername, setRecoveryUsername] = useState('');
+  const [recoveryStatus, setRecoveryStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [recoveryMsg, setRecoveryMsg] = useState('');
+
   const { t, dir } = useLanguage();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleLoginSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Get latest users from storage
     const users = getUsers();
     const user = users.find(u => u.username === username && u.password === password);
     
@@ -28,86 +36,220 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     }
   };
 
+  const handleRecoverySubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setRecoveryStatus('loading');
+    setRecoveryMsg('');
+
+    // Simulate API delay
+    setTimeout(() => {
+      const users = getUsers();
+      const user = users.find(u => u.username.toLowerCase() === recoveryUsername.trim().toLowerCase());
+
+      if (!user) {
+        setRecoveryStatus('error');
+        setRecoveryMsg(t('userNotFound'));
+        return;
+      }
+
+      if (!user.phone) {
+        setRecoveryStatus('error');
+        setRecoveryMsg(t('noPhoneLinked'));
+        return;
+      }
+
+      // Simulate sending SMS
+      setRecoveryStatus('success');
+      // Mask the phone number for privacy display
+      const maskedPhone = user.phone.slice(0, 3) + '****' + user.phone.slice(-3);
+      setRecoveryMsg(`${t('recoverySuccess')} ${maskedPhone}`);
+    }, 1500);
+  };
+
   return (
-    <div className={`min-h-screen flex items-center justify-center p-4 relative z-10 ${dir === 'rtl' ? 'text-right' : 'text-left'}`} dir={dir}>
+    <div className={`min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-sky-100 ${dir === 'rtl' ? 'text-right' : 'text-left'}`} dir={dir}>
       
-      <div className="bg-white/90 backdrop-blur-md w-full max-w-md rounded-2xl shadow-xl overflow-hidden relative border border-white/50">
-        <div className="p-8 bg-indigo-600/90 text-center">
-          <div className="flex justify-center mb-6">
-            <div className="w-48 h-48 rounded-full border-4 border-white/20 shadow-2xl bg-white flex items-center justify-center p-1 overflow-hidden">
+      {/* Playful Background Elements */}
+      <div className="absolute top-10 left-10 text-yellow-400 animate-bounce delay-1000">
+        <Sun size={64} fill="currentColor" className="opacity-80" />
+      </div>
+      <div className="absolute top-20 right-20 text-white animate-pulse">
+        <Cloud size={80} fill="currentColor" className="opacity-60" />
+      </div>
+      <div className="absolute bottom-10 left-20 text-pink-400 animate-bounce">
+        <Star size={48} fill="currentColor" className="opacity-70" />
+      </div>
+      <div className="absolute bottom-32 right-10 text-indigo-400 animate-pulse delay-700">
+        <Cloud size={60} fill="currentColor" className="opacity-60" />
+      </div>
+
+      {/* Main Card */}
+      <div className="bg-white/80 backdrop-blur-lg w-full max-w-md rounded-[2.5rem] shadow-2xl border-4 border-white relative z-10 overflow-hidden transform transition-all hover:scale-[1.01]">
+        
+        {/* Header Section */}
+        <div className="bg-gradient-to-b from-indigo-500 to-purple-600 p-8 text-center relative overflow-hidden">
+          {/* Decorative Circles in Header */}
+          <div className="absolute top-[-50%] left-[-20%] w-48 h-48 bg-white/10 rounded-full blur-2xl"></div>
+          <div className="absolute bottom-[-20%] right-[-20%] w-40 h-40 bg-yellow-300/20 rounded-full blur-xl"></div>
+
+          <div className="flex justify-center mb-4 relative z-10">
+            <div className="w-40 h-40 rounded-full border-4 border-white shadow-lg bg-white flex items-center justify-center p-1">
+               {/* Logo SVG */}
                <svg viewBox="0 0 500 500" className="w-full h-full">
-                  {/* Background Circle */}
                   <circle cx="250" cy="250" r="240" fill="#ffffff" stroke="#fcd34d" strokeWidth="15" />
-                  
-                  {/* Paw Print Graphic */}
                   <g transform="translate(120, 100) rotate(-15) scale(0.9)">
                      <ellipse cx="40" cy="30" rx="20" ry="26" fill="#9333ea" opacity="0.9" />
                      <ellipse cx="95" cy="10" rx="20" ry="26" fill="#7c3aed" opacity="0.9" />
                      <ellipse cx="150" cy="30" rx="20" ry="26" fill="#db2777" opacity="0.9" />
                      <path d="M 30 75 Q 95 150 160 75 Q 160 140 95 170 Q 30 140 30 75 Z" fill="#4f46e5" opacity="0.9" />
                   </g>
-
-                  {/* Text: GOLDEN - Colorful Letters */}
                   <g transform="translate(45, 290)">
-                     <text x="0" y="0" fontFamily="Arial, sans-serif" fontWeight="900" fontSize="120" fill="#7e22ce" stroke="#ffffff" strokeWidth="4" style={{ filter: 'drop-shadow(2px 2px 0px rgba(0,0,0,0.1))' }}>G</text>
-                     <text x="85" y="0" fontFamily="Arial, sans-serif" fontWeight="900" fontSize="120" fill="#f59e0b" stroke="#ffffff" strokeWidth="4" style={{ filter: 'drop-shadow(2px 2px 0px rgba(0,0,0,0.1))' }}>O</text>
-                     <text x="175" y="0" fontFamily="Arial, sans-serif" fontWeight="900" fontSize="120" fill="#ef4444" stroke="#ffffff" strokeWidth="4" style={{ filter: 'drop-shadow(2px 2px 0px rgba(0,0,0,0.1))' }}>L</text>
-                     <text x="240" y="0" fontFamily="Arial, sans-serif" fontWeight="900" fontSize="120" fill="#10b981" stroke="#ffffff" strokeWidth="4" style={{ filter: 'drop-shadow(2px 2px 0px rgba(0,0,0,0.1))' }}>D</text>
-                     <text x="325" y="0" fontFamily="Arial, sans-serif" fontWeight="900" fontSize="120" fill="#3b82f6" stroke="#ffffff" strokeWidth="4" style={{ filter: 'drop-shadow(2px 2px 0px rgba(0,0,0,0.1))' }}>E</text>
-                     <text x="395" y="0" fontFamily="Arial, sans-serif" fontWeight="900" fontSize="120" fill="#ec4899" stroke="#ffffff" strokeWidth="4" style={{ filter: 'drop-shadow(2px 2px 0px rgba(0,0,0,0.1))' }}>N</text>
+                     <text x="0" y="0" fontFamily="Arial, sans-serif" fontWeight="900" fontSize="120" fill="#7e22ce" stroke="#ffffff" strokeWidth="4">G</text>
+                     <text x="85" y="0" fontFamily="Arial, sans-serif" fontWeight="900" fontSize="120" fill="#f59e0b" stroke="#ffffff" strokeWidth="4">O</text>
+                     <text x="175" y="0" fontFamily="Arial, sans-serif" fontWeight="900" fontSize="120" fill="#ef4444" stroke="#ffffff" strokeWidth="4">L</text>
+                     <text x="240" y="0" fontFamily="Arial, sans-serif" fontWeight="900" fontSize="120" fill="#10b981" stroke="#ffffff" strokeWidth="4">D</text>
+                     <text x="325" y="0" fontFamily="Arial, sans-serif" fontWeight="900" fontSize="120" fill="#3b82f6" stroke="#ffffff" strokeWidth="4">E</text>
+                     <text x="395" y="0" fontFamily="Arial, sans-serif" fontWeight="900" fontSize="120" fill="#ec4899" stroke="#ffffff" strokeWidth="4">N</text>
                   </g>
-
-                  {/* Subtitle */}
-                  <text x="250" y="380" textAnchor="middle" fontFamily="Arial, sans-serif" fontWeight="bold" fontSize="26" fill="#4b5563">
-                    International Academy
-                  </text>
-                  <text x="250" y="415" textAnchor="middle" fontFamily="Arial, sans-serif" fontWeight="bold" fontSize="24" fill="#6b7280">
-                    & Preschool
-                  </text>
                </svg>
             </div>
           </div>
-          <p className="text-indigo-100 text-lg font-medium">{t('loginTitle')}</p>
+          <h2 className="text-2xl font-bold text-white mb-1 flex items-center justify-center gap-2">
+            {view === 'login' ? t('welcome') : t('recoverAccount')} 
+            <Sparkles size={20} className="text-yellow-300 animate-spin-slow" />
+          </h2>
+          <p className="text-indigo-100 text-sm opacity-90">{t('appSubtitle')}</p>
         </div>
 
-        <div className="p-8">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">{t('username')}</label>
-              <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
-                placeholder=""
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">{t('password')}</label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
-                placeholder="********"
-              />
-            </div>
-
-            {error && (
-              <div className="text-red-500 text-sm text-center bg-red-50 p-2 rounded-lg border border-red-100">
-                {error}
+        {/* Content Section */}
+        <div className="p-8 bg-white min-h-[350px]">
+          
+          {view === 'login' ? (
+            /* LOGIN FORM */
+            <form onSubmit={handleLoginSubmit} className="space-y-5 animate-fade-in">
+              <div className="space-y-2 group">
+                <label className="text-sm font-bold text-gray-500 ml-4">{t('username')}</label>
+                <div className="relative">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-indigo-400 group-focus-within:text-indigo-600 transition-colors">
+                    <UserCircle size={24} />
+                  </div>
+                  <input
+                    type="text"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    className="w-full pl-12 pr-4 py-4 rounded-full border-2 border-indigo-100 bg-indigo-50/50 focus:bg-white focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100 outline-none transition-all font-medium text-gray-700 placeholder-gray-400"
+                    placeholder="Enter your username"
+                  />
+                </div>
               </div>
-            )}
+              
+              <div className="space-y-2 group">
+                <label className="text-sm font-bold text-gray-500 ml-4">{t('password')}</label>
+                <div className="relative">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-pink-400 group-focus-within:text-pink-600 transition-colors">
+                    <KeyRound size={24} />
+                  </div>
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full pl-12 pr-4 py-4 rounded-full border-2 border-pink-100 bg-pink-50/50 focus:bg-white focus:border-pink-400 focus:ring-4 focus:ring-pink-100 outline-none transition-all font-medium text-gray-700 placeholder-••••••••"
+                  />
+                </div>
+              </div>
 
-            <button
-              type="submit"
-              className="w-full bg-indigo-600 text-white font-bold py-3 rounded-xl hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200 flex items-center justify-center gap-2"
-            >
-              <LogIn size={20} />
-              {t('loginButton')}
-            </button>
-          </form>
+              {error && (
+                <div className="animate-fade-in text-center bg-red-50 text-red-500 text-sm font-bold py-3 px-4 rounded-2xl border-2 border-red-100 flex items-center justify-center gap-2">
+                  <div className="w-2 h-2 bg-red-500 rounded-full animate-ping" />
+                  {error}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                className="w-full bg-gradient-to-r from-orange-400 to-pink-500 hover:from-orange-500 hover:to-pink-600 text-white text-lg font-bold py-4 rounded-full shadow-lg shadow-orange-200 transform transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2 mt-4"
+              >
+                <span>{t('loginButton')}</span>
+                <div className="bg-white/20 rounded-full p-1">
+                  <LogIn size={20} />
+                </div>
+              </button>
+
+              <div className="text-center pt-2">
+                <button 
+                  type="button"
+                  onClick={() => { setView('forgot'); setError(''); }}
+                  className="text-sm text-indigo-400 hover:text-indigo-600 font-bold transition-colors"
+                >
+                  {t('forgotPassword')}
+                </button>
+              </div>
+            </form>
+          ) : (
+            /* RECOVERY FORM */
+            <form onSubmit={handleRecoverySubmit} className="space-y-5 animate-fade-in">
+               <div className="space-y-2 group">
+                <label className="text-sm font-bold text-gray-500 ml-4">{t('enterUsernameRecover')}</label>
+                <div className="relative">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-indigo-400 group-focus-within:text-indigo-600 transition-colors">
+                    <UserCircle size={24} />
+                  </div>
+                  <input
+                    type="text"
+                    value={recoveryUsername}
+                    onChange={(e) => setRecoveryUsername(e.target.value)}
+                    className="w-full pl-12 pr-4 py-4 rounded-full border-2 border-indigo-100 bg-indigo-50/50 focus:bg-white focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100 outline-none transition-all font-medium text-gray-700 placeholder-gray-400"
+                    disabled={recoveryStatus === 'success'}
+                  />
+                </div>
+              </div>
+
+              {recoveryStatus === 'error' && (
+                <div className="animate-fade-in text-center bg-red-50 text-red-500 text-sm font-bold py-3 px-4 rounded-2xl border-2 border-red-100">
+                  {recoveryMsg}
+                </div>
+              )}
+
+              {recoveryStatus === 'success' && (
+                <div className="animate-fade-in text-center bg-green-50 text-green-600 text-sm font-bold py-4 px-4 rounded-2xl border-2 border-green-100 flex flex-col items-center gap-2">
+                  <Smartphone size={32} className="text-green-500 mb-1" />
+                  {recoveryMsg}
+                </div>
+              )}
+
+              {recoveryStatus !== 'success' && (
+                <button
+                  type="submit"
+                  disabled={recoveryStatus === 'loading' || !recoveryUsername}
+                  className="w-full bg-indigo-500 hover:bg-indigo-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white text-lg font-bold py-4 rounded-full shadow-lg shadow-indigo-200 transform transition-all flex items-center justify-center gap-2 mt-4"
+                >
+                  {recoveryStatus === 'loading' ? (
+                     <span>{t('sending')}</span>
+                  ) : (
+                    <>
+                      <span>{t('sendRecoverySMS')}</span>
+                      <Send size={18} />
+                    </>
+                  )}
+                </button>
+              )}
+
+              <div className="text-center pt-2">
+                <button 
+                  type="button"
+                  onClick={() => { setView('login'); setRecoveryStatus('idle'); setRecoveryUsername(''); }}
+                  className="flex items-center justify-center gap-2 text-sm text-gray-400 hover:text-gray-600 font-bold transition-colors w-full"
+                >
+                  <ArrowLeft size={16} />
+                  {t('backToLogin')}
+                </button>
+              </div>
+            </form>
+          )}
+
+          <div className="text-center pt-6">
+             <p className="text-xs text-gray-400 font-medium">Golden International Academy</p>
+          </div>
         </div>
       </div>
     </div>
