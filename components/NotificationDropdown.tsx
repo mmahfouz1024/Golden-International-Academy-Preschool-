@@ -35,8 +35,8 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ onClose }) 
 
   return (
     <>
-      {/* Dropdown List - Aligned Left/Start relative to parent */}
-      <div className={`absolute top-12 ${language === 'ar' ? 'right-0' : 'left-auto right-0 md:left-auto md:right-0'} w-80 bg-white rounded-xl shadow-xl border border-gray-100 z-50 animate-fade-in`}>
+      {/* Dropdown List - Aligned Right relative to screen */}
+      <div className={`fixed top-24 right-4 w-80 bg-white rounded-xl shadow-xl border border-gray-100 z-50 animate-fade-in`}>
         <div className="flex items-center justify-between p-4 border-b border-gray-50">
           <h3 className="font-bold text-gray-800">{t('notifications')}</h3>
           <div className="flex items-center gap-2">
