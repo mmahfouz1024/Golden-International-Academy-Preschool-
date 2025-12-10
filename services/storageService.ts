@@ -1,7 +1,7 @@
 
 
 import { MOCK_USERS, MOCK_STUDENTS, MOCK_CLASSES, MOCK_REPORTS } from '../constants';
-import { User, Student, ClassGroup, DailyReport, DatabaseConfig } from '../types';
+import { User, Student, ClassGroup, DailyReport, DatabaseConfig, AppNotification } from '../types';
 import { initSupabase, syncDataToCloud, fetchDataFromCloud } from './supabaseClient';
 
 const KEYS = {
@@ -9,7 +9,8 @@ const KEYS = {
   STUDENTS: 'golden_academy_students',
   CLASSES: 'golden_academy_classes',
   REPORTS: 'golden_academy_reports',
-  DB_CONFIG: 'golden_academy_db_config'
+  DB_CONFIG: 'golden_academy_db_config',
+  NOTIFICATIONS: 'golden_academy_notifications'
 };
 
 // Initialize DB
@@ -100,7 +101,7 @@ const saveAndSync = async (key: string, data: any) => {
 
 const syncAllFromCloud = async () => {
   try {
-    const keys = [KEYS.USERS, KEYS.STUDENTS, KEYS.CLASSES, KEYS.REPORTS];
+    const keys = [KEYS.USERS, KEYS.STUDENTS, KEYS.CLASSES, KEYS.REPORTS, KEYS.NOTIFICATIONS];
     let syncedCount = 0;
     for (const key of keys) {
       const { data } = await fetchDataFromCloud(key);
@@ -132,6 +133,7 @@ export const forceSyncToCloud = async () => {
      await syncDataToCloud(KEYS.STUDENTS, getStudents());
      await syncDataToCloud(KEYS.CLASSES, getClasses());
      await syncDataToCloud(KEYS.REPORTS, getReports());
+     await syncDataToCloud(KEYS.NOTIFICATIONS, getNotifications());
      
      const config = getDatabaseConfig();
      config.lastSync = new Date().toISOString();
@@ -204,4 +206,17 @@ export const getReports = (): Record<string, DailyReport> => {
 
 export const saveReports = (reports: Record<string, DailyReport>) => {
   saveAndSync(KEYS.REPORTS, reports);
+};
+
+// Notifications
+export const getNotifications = (): AppNotification[] => {
+  const stored = localStorage.getItem(KEYS.NOTIFICATIONS);
+  if (!stored) {
+    return [];
+  }
+  return JSON.parse(stored);
+};
+
+export const saveNotifications = (notifications: AppNotification[]) => {
+  saveAndSync(KEYS.NOTIFICATIONS, notifications);
 };

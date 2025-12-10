@@ -1,6 +1,8 @@
 
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { AppNotification } from '../types';
+import { getNotifications, saveNotifications } from '../services/storageService';
 
 interface NotificationContextType {
   notifications: AppNotification[];
@@ -14,16 +16,21 @@ interface NotificationContextType {
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
 
 export const NotificationProvider: React.FC<{children: React.ReactNode}> = ({ children }) => {
-  const [notifications, setNotifications] = useState<AppNotification[]>([
-    {
+  const [notifications, setNotifications] = useState<AppNotification[]>(() => {
+    // Initialize from storage
+    const stored = getNotifications();
+    if (stored.length > 0) return stored;
+    
+    // Default welcome message if completely empty (first run)
+    return [{
       id: '1',
       title: 'Welcome',
       message: 'Welcome to Golden International Academy System',
       time: new Date().toISOString(),
       isRead: false,
       type: 'info'
-    }
-  ]);
+    }];
+  });
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
@@ -40,6 +47,11 @@ export const NotificationProvider: React.FC<{children: React.ReactNode}> = ({ ch
   useEffect(() => {
     requestPermission();
   }, []);
+
+  // Persist notifications to storage whenever they change
+  useEffect(() => {
+    saveNotifications(notifications);
+  }, [notifications]);
 
   const addNotification = (title: string, message: string, type: AppNotification['type'] = 'info') => {
     const newNotification: AppNotification = {
