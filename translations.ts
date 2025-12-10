@@ -124,6 +124,7 @@ export const translations = {
     dailyPhotos: "Photos from Today",
     addPhoto: "Add Photo",
     noPhotos: "No photos added today",
+    noReportForDate: "No daily report has been added for this date yet",
 
     // Moods & Options
     happy: "Happy",
