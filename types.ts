@@ -63,6 +63,12 @@ export interface DailyReport {
     duration?: string; // e.g. "1h 30m"
     notes?: string;
   };
+  academic?: {
+    religion?: string;
+    arabic?: string;
+    english?: string;
+    math?: string;
+  };
   activities: string[];
   photos?: string[]; // Array of base64 strings or URLs
   notes: string;
