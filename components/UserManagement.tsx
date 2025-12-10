@@ -1,10 +1,9 @@
 
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Edit2, Trash2, Shield, X, School, Briefcase, AlertCircle, Save } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, Shield, X, School, Briefcase, AlertCircle, CheckCircle, Save as SaveIcon } from 'lucide-react';
 import { getUsers, saveUsers, getStudents, getClasses, saveClasses } from '../services/storageService';
 import { User, UserRole, Student, ClassGroup } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
-import { Save as SaveIcon } from 'lucide-react';
 
 const UserManagement: React.FC = () => {
   const { t, language } = useLanguage();
@@ -15,6 +14,7 @@ const UserManagement: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [error, setError] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
 
   // Default permissions for each role
   const DEFAULT_PERMISSIONS = {
@@ -55,6 +55,7 @@ const UserManagement: React.FC = () => {
 
   const handleOpenModal = (user?: User) => {
     setError('');
+    setSuccessMsg('');
     if (user) {
       setEditingUser(user);
       // Find class where this user is the teacher
@@ -142,7 +143,6 @@ const UserManagement: React.FC = () => {
     saveUsers(updatedUsers);
 
     // 2. Assign/Unassign Class Logic
-    // If the new role supports class assignment
     const canHaveClass = formData.role === 'teacher' || formData.role === 'manager';
     const targetClassId = formData.assignedClassId;
 
@@ -167,7 +167,8 @@ const UserManagement: React.FC = () => {
     setClasses(updatedClasses);
     saveClasses(updatedClasses);
 
-    setIsModalOpen(false);
+    setSuccessMsg(t('savedSuccessfully'));
+    setTimeout(() => setIsModalOpen(false), 1000);
   };
 
   const handleDelete = (e: React.MouseEvent, id: string) => {
@@ -247,7 +248,7 @@ const UserManagement: React.FC = () => {
                 const assignedClass = classes.find(c => c.teacherId === user.id);
                 
                 return (
-                  <tr key={user.id} className="hover:bg-gray-50/50 transition-colors">
+                  <tr key={user.id} className="hover:bg-gray-50/50 transition-colors cursor-pointer" onClick={() => handleOpenModal(user)}>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <img src={user.avatar} alt={user.name} className="w-10 h-10 rounded-full object-cover border border-gray-200" />
@@ -289,18 +290,18 @@ const UserManagement: React.FC = () => {
                       )}
                     </td>
                     <td className="px-6 py-4">
-                      <div className="flex gap-2 justify-end" onClick={(e) => e.stopPropagation()}>
+                      <div className="flex gap-2 justify-end">
                         <button 
-                          onClick={(e) => { e.stopPropagation(); handleOpenModal(user); }}
+                          onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleOpenModal(user); }}
                           type="button"
-                          className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors pointer-events-auto"
+                          className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors z-10"
                         >
                           <Edit2 size={18} className="pointer-events-none" />
                         </button>
                         <button 
                           type="button"
                           onClick={(e) => handleDelete(e, user.id)}
-                          className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors pointer-events-auto"
+                          className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors z-10"
                         >
                           <Trash2 size={18} className="pointer-events-none" />
                         </button>
@@ -329,6 +330,13 @@ const UserManagement: React.FC = () => {
             
             <form onSubmit={handleSave} className="p-6 space-y-4">
               
+              {successMsg && (
+                 <div className="bg-green-50 text-green-600 px-4 py-3 rounded-xl border border-green-100 flex items-center gap-2 text-sm animate-fade-in">
+                   <CheckCircle size={18} />
+                   {successMsg}
+                 </div>
+              )}
+
               {error && (
                 <div className="bg-red-50 text-red-600 px-4 py-3 rounded-xl border border-red-100 flex items-center gap-2 text-sm animate-fade-in">
                   <AlertCircle size={18} />
@@ -448,8 +456,7 @@ const UserManagement: React.FC = () => {
                          <div className={`w-4 h-4 rounded border flex items-center justify-center ${
                            isChecked ? 'bg-indigo-600 border-indigo-600' : 'bg-white border-gray-300'
                          }`}>
-                           {isChecked && <X size={12} className="text-white rotate-45 transform" style={{ transform: 'none' }} >✓</X>} 
-                           {/* Using text checkmark or icon */}
+                           {isChecked && <div className="text-white text-[10px]">✓</div>} 
                          </div>
                          <span className={`text-xs font-medium ${isChecked ? 'text-indigo-700' : 'text-gray-600'}`}>{page.label}</span>
                       </div>
@@ -468,10 +475,11 @@ const UserManagement: React.FC = () => {
                 </button>
                 <button 
                   type="submit"
+                  disabled={!!successMsg}
                   className="flex-1 py-2.5 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 shadow-lg shadow-indigo-200 transition-colors flex justify-center items-center gap-2"
                 >
-                  <SaveIcon size={18} />
-                  {t('save')}
+                  {successMsg ? <CheckCircle size={18} /> : <SaveIcon size={18} />}
+                  {successMsg ? t('savedSuccessfully') : t('save')}
                 </button>
               </div>
             </form>

@@ -23,8 +23,9 @@ const Dashboard: React.FC = () => {
     const totalStudents = students.length;
     const presentToday = students.filter(s => s.attendanceToday).length;
     
-    // Count only users with strict "teacher" role
-    const totalTeachers = users.filter(u => u.role === 'teacher').length;
+    // Count all staff roles (Teacher, Admin, Manager) as "Teachers/Staff"
+    // This ensures the number isn't 0 when there is only an Admin
+    const totalTeachers = users.filter(u => ['teacher', 'admin', 'manager'].includes(u.role)).length;
 
     setStatsData({
       totalStudents,
