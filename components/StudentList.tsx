@@ -484,7 +484,8 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
                     required
                     type="number" 
                     min="2" max="7"
-                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                    dir="ltr"
+                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-left"
                     value={studentData.age}
                     onChange={e => setStudentData({...studentData, age: e.target.value})}
                   />
@@ -494,7 +495,8 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">{t('birthday')}</label>
                   <input
                     type="date"
-                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                    dir="ltr"
+                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-left"
                     value={studentData.birthday}
                     onChange={e => setStudentData({...studentData, birthday: e.target.value})}
                   />
