@@ -1,7 +1,5 @@
-
-
 import React, { useState } from 'react';
-import { LogIn, Sun, Cloud, Star, Sparkles, UserCircle, KeyRound, ArrowLeft, Mail, Send } from 'lucide-react';
+import { LogIn, Sun, Cloud, Star, Sparkles, UserCircle, KeyRound } from 'lucide-react';
 import { getUsers } from '../services/storageService';
 import { User } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -11,17 +9,10 @@ interface LoginProps {
 }
 
 const Login: React.FC<LoginProps> = ({ onLogin }) => {
-  const [view, setView] = useState<'login' | 'forgot'>('login');
-  
   // Login State
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-
-  // Recovery State
-  const [recoveryUsername, setRecoveryUsername] = useState('');
-  const [recoveryStatus, setRecoveryStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
-  const [recoveryMsg, setRecoveryMsg] = useState('');
 
   const { t, dir } = useLanguage();
 
@@ -35,40 +26,6 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     } else {
       setError(t('loginError'));
     }
-  };
-
-  const handleRecoverySubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setRecoveryStatus('loading');
-    setRecoveryMsg('');
-
-    // Simulate API delay
-    setTimeout(() => {
-      const users = getUsers();
-      const user = users.find(u => u.username.toLowerCase() === recoveryUsername.trim().toLowerCase());
-
-      if (!user) {
-        setRecoveryStatus('error');
-        setRecoveryMsg(t('userNotFound'));
-        return;
-      }
-
-      if (!user.email) {
-        setRecoveryStatus('error');
-        setRecoveryMsg(t('noEmailLinked'));
-        return;
-      }
-
-      // Simulate sending Email
-      setRecoveryStatus('success');
-      // Mask the email for privacy display
-      const [localPart, domain] = user.email.split('@');
-      const maskedEmail = localPart.length > 2 
-        ? `${localPart.substring(0, 2)}****@${domain}`
-        : `${localPart}****@${domain}`;
-
-      setRecoveryMsg(`${t('recoverySuccess')} ${maskedEmail}`);
-    }, 1500);
   };
 
   return (
@@ -120,7 +77,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
             </div>
           </div>
           <h2 className="text-2xl font-bold text-white mb-1 flex items-center justify-center gap-2">
-            {view === 'login' ? t('welcome') : t('recoverAccount')} 
+            {t('welcome')}
             <Sparkles size={20} className="text-yellow-300 animate-spin-slow" />
           </h2>
           <p className="text-indigo-100 text-sm opacity-90">{t('appSubtitle')}</p>
@@ -129,128 +86,55 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
         {/* Content Section */}
         <div className="p-8 bg-white min-h-[350px]">
           
-          {view === 'login' ? (
-            /* LOGIN FORM */
-            <form onSubmit={handleLoginSubmit} className="space-y-5 animate-fade-in">
-              <div className="space-y-2 group">
-                <label className="text-sm font-bold text-gray-500 ml-4">{t('username')}</label>
-                <div className="relative">
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-indigo-400 group-focus-within:text-indigo-600 transition-colors">
-                    <UserCircle size={24} />
-                  </div>
-                  <input
-                    type="text"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    className="w-full pl-12 pr-4 py-4 rounded-full border-2 border-indigo-100 bg-indigo-50/50 focus:bg-white focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100 outline-none transition-all font-medium text-gray-700 placeholder-gray-400"
-                    placeholder="Enter your username"
-                  />
+          <form onSubmit={handleLoginSubmit} className="space-y-5 animate-fade-in">
+            <div className="space-y-2 group">
+              <label className="text-sm font-bold text-gray-500 ml-4">{t('username')}</label>
+              <div className="relative">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-indigo-400 group-focus-within:text-indigo-600 transition-colors">
+                  <UserCircle size={24} />
                 </div>
+                <input
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="w-full pl-12 pr-4 py-4 rounded-full border-2 border-indigo-100 bg-indigo-50/50 focus:bg-white focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100 outline-none transition-all font-medium text-gray-700 placeholder-gray-400"
+                  placeholder="Enter your username"
+                />
               </div>
-              
-              <div className="space-y-2 group">
-                <label className="text-sm font-bold text-gray-500 ml-4">{t('password')}</label>
-                <div className="relative">
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-pink-400 group-focus-within:text-pink-600 transition-colors">
-                    <KeyRound size={24} />
-                  </div>
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full pl-12 pr-4 py-4 rounded-full border-2 border-pink-100 bg-pink-50/50 focus:bg-white focus:border-pink-400 focus:ring-4 focus:ring-pink-100 outline-none transition-all font-medium text-gray-700 placeholder-••••••••"
-                  />
+            </div>
+            
+            <div className="space-y-2 group">
+              <label className="text-sm font-bold text-gray-500 ml-4">{t('password')}</label>
+              <div className="relative">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-pink-400 group-focus-within:text-pink-600 transition-colors">
+                  <KeyRound size={24} />
                 </div>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full pl-12 pr-4 py-4 rounded-full border-2 border-pink-100 bg-pink-50/50 focus:bg-white focus:border-pink-400 focus:ring-4 focus:ring-pink-100 outline-none transition-all font-medium text-gray-700 placeholder-••••••••"
+                />
               </div>
+            </div>
 
-              {error && (
-                <div className="animate-fade-in text-center bg-red-50 text-red-500 text-sm font-bold py-3 px-4 rounded-2xl border-2 border-red-100 flex items-center justify-center gap-2">
-                  <div className="w-2 h-2 bg-red-500 rounded-full animate-ping" />
-                  {error}
-                </div>
-              )}
-
-              <button
-                type="submit"
-                className="w-full bg-gradient-to-r from-orange-400 to-pink-500 hover:from-orange-500 hover:to-pink-600 text-white text-lg font-bold py-4 rounded-full shadow-lg shadow-orange-200 transform transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2 mt-4"
-              >
-                <span>{t('loginButton')}</span>
-                <div className="bg-white/20 rounded-full p-1">
-                  <LogIn size={20} />
-                </div>
-              </button>
-
-              <div className="text-center pt-2">
-                <button 
-                  type="button"
-                  onClick={() => { setView('forgot'); setError(''); }}
-                  className="text-sm text-indigo-400 hover:text-indigo-600 font-bold transition-colors"
-                >
-                  {t('forgotPassword')}
-                </button>
+            {error && (
+              <div className="animate-fade-in text-center bg-red-50 text-red-500 text-sm font-bold py-3 px-4 rounded-2xl border-2 border-red-100 flex items-center justify-center gap-2">
+                <div className="w-2 h-2 bg-red-500 rounded-full animate-ping" />
+                {error}
               </div>
-            </form>
-          ) : (
-            /* RECOVERY FORM */
-            <form onSubmit={handleRecoverySubmit} className="space-y-5 animate-fade-in">
-               <div className="space-y-2 group">
-                <label className="text-sm font-bold text-gray-500 ml-4">{t('enterUsernameRecover')}</label>
-                <div className="relative">
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-indigo-400 group-focus-within:text-indigo-600 transition-colors">
-                    <UserCircle size={24} />
-                  </div>
-                  <input
-                    type="text"
-                    value={recoveryUsername}
-                    onChange={(e) => setRecoveryUsername(e.target.value)}
-                    className="w-full pl-12 pr-4 py-4 rounded-full border-2 border-indigo-100 bg-indigo-50/50 focus:bg-white focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100 outline-none transition-all font-medium text-gray-700 placeholder-gray-400"
-                    disabled={recoveryStatus === 'success'}
-                  />
-                </div>
+            )}
+
+            <button
+              type="submit"
+              className="w-full bg-gradient-to-r from-orange-400 to-pink-500 hover:from-orange-500 hover:to-pink-600 text-white text-lg font-bold py-4 rounded-full shadow-lg shadow-orange-200 transform transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2 mt-4"
+            >
+              <span>{t('loginButton')}</span>
+              <div className="bg-white/20 rounded-full p-1">
+                <LogIn size={20} />
               </div>
-
-              {recoveryStatus === 'error' && (
-                <div className="animate-fade-in text-center bg-red-50 text-red-500 text-sm font-bold py-3 px-4 rounded-2xl border-2 border-red-100">
-                  {recoveryMsg}
-                </div>
-              )}
-
-              {recoveryStatus === 'success' && (
-                <div className="animate-fade-in text-center bg-green-50 text-green-600 text-sm font-bold py-4 px-4 rounded-2xl border-2 border-green-100 flex flex-col items-center gap-2">
-                  <Mail size={32} className="text-green-500 mb-1" />
-                  {recoveryMsg}
-                </div>
-              )}
-
-              {recoveryStatus !== 'success' && (
-                <button
-                  type="submit"
-                  disabled={recoveryStatus === 'loading' || !recoveryUsername}
-                  className="w-full bg-indigo-500 hover:bg-indigo-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white text-lg font-bold py-4 rounded-full shadow-lg shadow-indigo-200 transform transition-all flex items-center justify-center gap-2 mt-4"
-                >
-                  {recoveryStatus === 'loading' ? (
-                     <span>{t('sending')}</span>
-                  ) : (
-                    <>
-                      <span>{t('sendRecoveryEmail')}</span>
-                      <Send size={18} />
-                    </>
-                  )}
-                </button>
-              )}
-
-              <div className="text-center pt-2">
-                <button 
-                  type="button"
-                  onClick={() => { setView('login'); setRecoveryStatus('idle'); setRecoveryUsername(''); }}
-                  className="flex items-center justify-center gap-2 text-sm text-gray-400 hover:text-gray-600 font-bold transition-colors w-full"
-                >
-                  <ArrowLeft size={16} />
-                  {t('backToLogin')}
-                </button>
-              </div>
-            </form>
-          )}
+            </button>
+          </form>
 
           <div className="text-center pt-6">
              <p className="text-xs text-gray-400 font-medium">Golden International Academy</p>
