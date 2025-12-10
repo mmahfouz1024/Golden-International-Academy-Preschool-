@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Database, Save, UploadCloud, DownloadCloud, CheckCircle, AlertTriangle, Copy, Code, Lock, ArrowRight, Unlock } from 'lucide-react';
+import { Database, Save, UploadCloud, DownloadCloud, CheckCircle, AlertTriangle, Copy, Code, Lock, Unlock } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { getDatabaseConfig, saveDatabaseConfig, forceSyncToCloud, forceSyncFromCloud } from '../services/storageService';
 import { checkConnection, generateSQLSchema } from '../services/supabaseClient';
