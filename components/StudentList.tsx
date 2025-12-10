@@ -238,39 +238,39 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-gray-800">{t('studentRegistry')}</h2>
-          <p className="text-gray-500 mt-1">{t('manageStudents')}</p>
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-800">{t('studentRegistry')}</h2>
+          <p className="text-sm sm:text-base text-gray-500 mt-1">{t('manageStudents')}</p>
         </div>
         <button 
           type="button"
           onClick={() => handleOpenModal()}
-          className="flex items-center gap-2 bg-indigo-600 text-white px-5 py-2.5 rounded-xl hover:bg-indigo-700 transition-colors shadow-sm font-medium"
+          className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl hover:bg-indigo-700 transition-colors shadow-sm font-medium text-sm sm:text-base"
         >
-          <Plus size={20} />
+          <Plus size={18} />
           <span>{t('newStudent')}</span>
         </button>
       </div>
 
-      <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+      <div className="bg-white p-4 sm:p-5 rounded-xl shadow-sm border border-gray-100">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-3 sm:gap-4">
           
           <div className="md:col-span-4 relative">
-            <Search className={`absolute ${language === 'ar' ? 'right-3' : 'left-3'} top-1/2 -translate-y-1/2 text-gray-400`} size={20} />
+            <Search className={`absolute ${language === 'ar' ? 'right-3' : 'left-3'} top-1/2 -translate-y-1/2 text-gray-400`} size={18} />
             <input 
               type="text" 
               placeholder={t('searchPlaceholder')}
-              className={`w-full ${language === 'ar' ? 'pl-4 pr-10' : 'pr-4 pl-10'} py-2.5 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all`}
+              className={`w-full ${language === 'ar' ? 'pl-9 pr-9' : 'pr-4 pl-9'} py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm`}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
 
-          <div className="md:col-span-2 relative">
+          <div className="hidden sm:block md:col-span-2 relative">
              <select 
-              className="w-full px-4 py-2.5 rounded-lg border border-gray-200 focus:outline-none focus:border-indigo-500 bg-white text-gray-600"
+              className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:border-indigo-500 bg-white text-gray-600 text-sm"
               value={filterClass}
               onChange={(e) => setFilterClass(e.target.value)}
             >
@@ -288,9 +288,9 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
             </select>
           </div>
 
-          <div className="md:col-span-2">
+          <div className="hidden sm:block md:col-span-2">
             <select 
-              className="w-full px-4 py-2.5 rounded-lg border border-gray-200 focus:outline-none focus:border-indigo-500 bg-white text-gray-600"
+              className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:border-indigo-500 bg-white text-gray-600 text-sm"
               value={filterAge}
               onChange={(e) => setFilterAge(e.target.value)}
             >
@@ -302,9 +302,9 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
             </select>
           </div>
 
-          <div className="md:col-span-2">
+          <div className="hidden sm:block md:col-span-2">
             <select 
-              className="w-full px-4 py-2.5 rounded-lg border border-gray-200 focus:outline-none focus:border-indigo-500 bg-white text-gray-600"
+              className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:border-indigo-500 bg-white text-gray-600 text-sm"
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
             >
@@ -316,8 +316,8 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
           </div>
           
           <div className="md:col-span-2 flex items-center justify-end text-gray-400 gap-2">
-            <Filter size={18} />
-            <span className="text-sm">{t('advancedFilter')}</span>
+            <Filter size={16} />
+            <span className="text-xs sm:text-sm">{t('advancedFilter')}</span>
           </div>
 
         </div>
@@ -327,13 +327,13 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
         <div className="overflow-x-auto">
           <table className={`w-full ${language === 'ar' ? 'text-right' : 'text-left'}`}>
             <thead>
-              <tr className="bg-gray-50 border-b border-gray-100">
-                <th className="px-6 py-4 text-sm font-semibold text-gray-600">{t('addStudentTitle').split(' ')[1]}</th> 
-                <th className="px-6 py-4 text-sm font-semibold text-gray-600">{t('studentAge')}</th>
-                <th className="px-6 py-4 text-sm font-semibold text-gray-600">{t('studentClass')}</th>
-                <th className="px-6 py-4 text-sm font-semibold text-gray-600">{t('parentName')}</th>
-                <th className="px-6 py-4 text-sm font-semibold text-gray-600">{t('filterStatus')}</th>
-                <th className="px-6 py-4 text-sm font-semibold text-gray-600"></th>
+              <tr className="bg-gray-50 border-b border-gray-100 text-xs sm:text-sm">
+                <th className="px-3 py-3 sm:px-6 sm:py-4 font-semibold text-gray-600">{t('studentName')}</th> 
+                <th className="hidden sm:table-cell px-3 py-3 sm:px-6 sm:py-4 font-semibold text-gray-600">{t('studentAge')}</th>
+                <th className="px-3 py-3 sm:px-6 sm:py-4 font-semibold text-gray-600">{t('studentClass')}</th>
+                <th className="hidden sm:table-cell px-3 py-3 sm:px-6 sm:py-4 font-semibold text-gray-600">{t('parentName')}</th>
+                <th className="hidden sm:table-cell px-3 py-3 sm:px-6 sm:py-4 font-semibold text-gray-600">{t('filterStatus')}</th>
+                <th className="px-3 py-3 sm:px-6 sm:py-4 font-semibold text-gray-600"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
@@ -343,19 +343,23 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
                   className="hover:bg-gray-50/50 transition-colors group cursor-pointer"
                   onClick={() => onStudentSelect(student)}
                 >
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <img src={student.avatar} alt={student.name} className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm" />
-                      <span className="font-medium text-gray-900 group-hover:text-indigo-600 transition-colors">{student.name}</span>
+                  <td className="px-3 py-3 sm:px-6 sm:py-4">
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <img src={student.avatar} alt={student.name} className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover border-2 border-white shadow-sm" />
+                      <div className="flex flex-col">
+                         <span className="font-medium text-gray-900 text-sm sm:text-base group-hover:text-indigo-600 transition-colors">{student.name}</span>
+                         {/* Show Parent Name on Mobile only */}
+                         <span className="sm:hidden text-[10px] text-gray-400">{student.parentName}</span>
+                      </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-gray-600">{student.age}</td>
-                  <td className="px-6 py-4">
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-medium border border-blue-100">
-                      <Star size={12} /> {student.classGroup}
+                  <td className="hidden sm:table-cell px-3 py-3 sm:px-6 sm:py-4 text-gray-600 text-sm">{student.age}</td>
+                  <td className="px-3 py-3 sm:px-6 sm:py-4">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full bg-blue-50 text-blue-700 text-[10px] sm:text-xs font-medium border border-blue-100 whitespace-nowrap">
+                      <Star size={10} /> {student.classGroup}
                     </span>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="hidden sm:table-cell px-3 py-3 sm:px-6 sm:py-4">
                     <div className="flex flex-col">
                       <span className="text-gray-900 text-sm font-medium">{student.parentName}</span>
                       <span className="text-gray-400 text-xs flex items-center gap-1 mt-0.5">
@@ -363,36 +367,36 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
                       </span>
                     </div>
                   </td>
-                  <td className="px-6 py-4">
-                    <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(student.status)}`}>
+                  <td className="hidden sm:table-cell px-3 py-3 sm:px-6 sm:py-4">
+                    <span className={`inline-block px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium ${getStatusColor(student.status)}`}>
                       {student.status}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-left">
-                    <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                  <td className="px-3 py-3 sm:px-6 sm:py-4 text-left">
+                    <div className="flex items-center gap-1 sm:gap-2" onClick={(e) => e.stopPropagation()}>
                        <button 
                          type="button"
                          onClick={(e) => { e.stopPropagation(); handleOpenModal(student); }}
-                         className="text-gray-400 hover:text-indigo-600 p-2 hover:bg-indigo-50 rounded-lg transition-colors pointer-events-auto"
+                         className="text-gray-400 hover:text-indigo-600 p-1.5 sm:p-2 hover:bg-indigo-50 rounded-lg transition-colors pointer-events-auto"
                          title={t('edit')}
                        >
-                         <Edit2 size={18} className="pointer-events-none" />
+                         <Edit2 size={16} className="pointer-events-none" />
                        </button>
                        <button 
                          type="button"
                          onClick={(e) => handleDeleteStudent(e, student.id)}
-                         className="text-gray-400 hover:text-red-600 p-2 hover:bg-red-50 rounded-lg transition-colors pointer-events-auto"
+                         className="text-gray-400 hover:text-red-600 p-1.5 sm:p-2 hover:bg-red-50 rounded-lg transition-colors pointer-events-auto"
                          title={t('delete')}
                        >
-                         <Trash2 size={18} className="pointer-events-none" />
+                         <Trash2 size={16} className="pointer-events-none" />
                        </button>
-                       <div className="text-gray-300 px-1">|</div>
+                       <div className="text-gray-300 px-0.5 hidden sm:block">|</div>
                        <button 
                          type="button"
-                         className="text-gray-300 hover:text-indigo-600 p-2 hover:bg-indigo-50 rounded-lg transition-colors"
+                         className="text-gray-300 hover:text-indigo-600 p-1.5 sm:p-2 hover:bg-indigo-50 rounded-lg transition-colors"
                          onClick={() => onStudentSelect(student)}
                        >
-                         {language === 'ar' ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
+                         {language === 'ar' ? <ChevronLeft size={18} /> : <ChevronRight size={18} />}
                        </button>
                     </div>
                   </td>
@@ -402,7 +406,7 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
           </table>
         </div>
         {filteredStudents.length === 0 && (
-          <div className="p-12 text-center text-gray-400">
+          <div className="p-8 sm:p-12 text-center text-gray-400">
             {t('noResults')}
           </div>
         )}
