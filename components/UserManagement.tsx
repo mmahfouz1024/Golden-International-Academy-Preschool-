@@ -1,9 +1,11 @@
 
+
 import React, { useState, useEffect } from 'react';
 import { Plus, Search, Edit2, Trash2, Shield, X, School, Briefcase, AlertCircle, CheckCircle, Save as SaveIcon } from 'lucide-react';
 import { getUsers, saveUsers, getStudents, getClasses, saveClasses } from '../services/storageService';
 import { User, UserRole, Student, ClassGroup } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
+import { Save } from 'lucide-react';
 
 const UserManagement: React.FC = () => {
   const { t, language } = useLanguage();
@@ -43,14 +45,14 @@ const UserManagement: React.FC = () => {
     setClasses(getClasses());
   }, []);
 
-  const [formData, setFormData] = useState<Partial<User> & { assignedClassId?: string }>({
+  const [formData, setFormData] = useState<Partial<User> & { assignedClassIds?: string[] }>({
     name: '',
     username: '',
     password: '',
     role: 'teacher',
     permissions: [],
     linkedStudentId: '',
-    assignedClassId: ''
+    assignedClassIds: []
   });
 
   const handleOpenModal = (user?: User) => {
@@ -58,8 +60,8 @@ const UserManagement: React.FC = () => {
     setSuccessMsg('');
     if (user) {
       setEditingUser(user);
-      // Find class where this user is the teacher
-      const assignedClass = classes.find(c => c.teacherId === user.id);
+      // Find classes where this user is the teacher
+      const assignedClasses = classes.filter(c => c.teacherId === user.id);
       
       setFormData({
         name: user.name,
@@ -68,7 +70,7 @@ const UserManagement: React.FC = () => {
         role: user.role,
         permissions: user.permissions || DEFAULT_PERMISSIONS[user.role as keyof typeof DEFAULT_PERMISSIONS] || [],
         linkedStudentId: user.linkedStudentId || '',
-        assignedClassId: assignedClass ? assignedClass.id : ''
+        assignedClassIds: assignedClasses.map(c => c.id)
       });
     } else {
       setEditingUser(null);
@@ -79,7 +81,7 @@ const UserManagement: React.FC = () => {
         role: 'teacher',
         permissions: DEFAULT_PERMISSIONS['teacher'],
         linkedStudentId: '',
-        assignedClassId: ''
+        assignedClassIds: []
       });
     }
     setIsModalOpen(true);
@@ -99,6 +101,15 @@ const UserManagement: React.FC = () => {
       setFormData({ ...formData, permissions: currentPerms.filter(id => id !== pageId) });
     } else {
       setFormData({ ...formData, permissions: [...currentPerms, pageId] });
+    }
+  };
+
+  const toggleClassAssignment = (classId: string) => {
+    const currentClasses = formData.assignedClassIds || [];
+    if (currentClasses.includes(classId)) {
+      setFormData({ ...formData, assignedClassIds: currentClasses.filter(id => id !== classId) });
+    } else {
+      setFormData({ ...formData, assignedClassIds: [...currentClasses, classId] });
     }
   };
 
@@ -148,25 +159,26 @@ const UserManagement: React.FC = () => {
     setUsers(updatedUsers);
     saveUsers(updatedUsers);
 
-    // 2. Assign/Unassign Class Logic
-    const canHaveClass = formData.role === 'teacher'; // Manager removed from here
-    const targetClassId = formData.assignedClassId;
+    // 2. Assign/Unassign Multiple Classes Logic
+    const canHaveClass = formData.role === 'teacher';
+    const targetClassIds = formData.assignedClassIds || [];
 
     const updatedClasses = classes.map(cls => {
-      // If this is the new target class and the user is allowed to have one, assign them
-      if (canHaveClass && cls.id === targetClassId) {
+      // If this class is selected in the modal, assign it to this user (overwrite previous teacher)
+      if (canHaveClass && targetClassIds.includes(cls.id)) {
         return { ...cls, teacherId: userId };
       }
       
-      // If this user was previously assigned to this class
-      if (cls.teacherId === userId) {
-         // But they either can't have a class anymore (role changed)
-         // OR they are now assigned to a different class
-         // OR they are unassigned (targetClassId is empty)
-         if (!canHaveClass || cls.id !== targetClassId) {
-           return { ...cls, teacherId: undefined };
-         }
+      // If this user was previously assigned to this class, but now it is unchecked (not in targetClassIds)
+      if (cls.teacherId === userId && !targetClassIds.includes(cls.id)) {
+        return { ...cls, teacherId: undefined };
       }
+
+      // If role changed from teacher to something else, clear assignment
+      if (!canHaveClass && cls.teacherId === userId) {
+        return { ...cls, teacherId: undefined };
+      }
+
       return cls;
     });
 
@@ -251,7 +263,7 @@ const UserManagement: React.FC = () => {
             <tbody className="divide-y divide-gray-50">
               {filteredUsers.map((user) => {
                 const linkedStudent = students.find(s => s.id === user.linkedStudentId);
-                const assignedClass = classes.find(c => c.teacherId === user.id);
+                const assignedClasses = classes.filter(c => c.teacherId === user.id);
                 
                 return (
                   <tr key={user.id} className="hover:bg-gray-50/50 transition-colors cursor-pointer" onClick={() => handleOpenModal(user)}>
@@ -283,10 +295,14 @@ const UserManagement: React.FC = () => {
                           <span className="text-sm text-red-500 italic">{t('noLinkedStudent')}</span>
                         )
                       ) : (user.role === 'teacher') ? (
-                         assignedClass ? (
-                          <div className="flex items-center gap-2 text-sm text-indigo-700">
-                             <School size={14} />
-                             {assignedClass.name}
+                         assignedClasses.length > 0 ? (
+                          <div className="flex flex-col gap-1 text-sm text-indigo-700">
+                             {assignedClasses.map(cls => (
+                               <div key={cls.id} className="flex items-center gap-2">
+                                  <School size={14} />
+                                  <span>{cls.name}</span>
+                               </div>
+                             ))}
                           </div>
                          ) : (
                            <span className="text-xs text-gray-400">{t('noClassAssigned')}</span>
@@ -432,18 +448,43 @@ const UserManagement: React.FC = () => {
                      <School size={16} />
                      {t('assignClass')}
                    </label>
-                   <select
-                      className="w-full px-4 py-2 border border-indigo-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-white"
-                      value={formData.assignedClassId || ''}
-                      onChange={e => setFormData({...formData, assignedClassId: e.target.value})}
-                    >
-                      <option value="">{t('selectClass')}</option>
-                      {classes.map(cls => (
-                        <option key={cls.id} value={cls.id}>
-                          {cls.name} {cls.teacherId && cls.teacherId !== (editingUser?.id) ? `(${t('assignedTeacher')})` : ''}
-                        </option>
-                      ))}
-                    </select>
+                   
+                   <div className="bg-white rounded-lg border border-indigo-200 max-h-40 overflow-y-auto">
+                      {classes.length === 0 && <p className="p-3 text-xs text-gray-500 text-center">No classes available</p>}
+                      {classes.map(cls => {
+                         const isSelected = (formData.assignedClassIds || []).includes(cls.id);
+                         const isAssignedToOther = cls.teacherId && cls.teacherId !== (editingUser?.id) && !isSelected;
+                         
+                         return (
+                           <label 
+                             key={cls.id} 
+                             className={`flex items-center gap-3 p-3 border-b border-gray-100 last:border-0 cursor-pointer hover:bg-indigo-50/50 transition-colors ${
+                               isSelected ? 'bg-indigo-50' : ''
+                             }`}
+                           >
+                              <div className={`w-5 h-5 rounded border flex items-center justify-center transition-all ${
+                                isSelected ? 'bg-indigo-600 border-indigo-600' : 'bg-white border-gray-300'
+                              }`}>
+                                <input 
+                                  type="checkbox" 
+                                  className="hidden"
+                                  checked={isSelected}
+                                  onChange={() => toggleClassAssignment(cls.id)}
+                                />
+                                {isSelected && <div className="text-white text-[10px]">✓</div>}
+                              </div>
+                              <div className="flex-1">
+                                <span className={`text-sm font-medium ${isSelected ? 'text-indigo-700' : 'text-gray-700'}`}>{cls.name}</span>
+                                {isAssignedToOther && (
+                                   <span className="text-xs text-amber-500 block ml-1">
+                                     (Currently: {users.find(u => u.id === cls.teacherId)?.name})
+                                   </span>
+                                )}
+                              </div>
+                           </label>
+                         );
+                      })}
+                   </div>
                 </div>
               )}
 
