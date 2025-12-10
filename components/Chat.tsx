@@ -38,11 +38,30 @@ const Chat: React.FC = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  // Mark messages as read when opening a chat
   useEffect(() => {
-    if (isOpen && selectedUser) {
+    if (isOpen && selectedUser && currentUser) {
       scrollToBottom();
+
+      // Find unread messages from this sender
+      const unreadMessages = messages.filter(m => 
+        m.senderId === selectedUser.id && 
+        m.receiverId === currentUser.id && 
+        !m.isRead
+      );
+
+      if (unreadMessages.length > 0) {
+        const updatedMessages = messages.map(m => {
+          if (m.senderId === selectedUser.id && m.receiverId === currentUser.id && !m.isRead) {
+            return { ...m, isRead: true };
+          }
+          return m;
+        });
+        setMessages(updatedMessages);
+        saveMessages(updatedMessages);
+      }
     }
-  }, [messages, selectedUser, isOpen]);
+  }, [selectedUser, isOpen, currentUser]); // Removed 'messages' from dependency to avoid loop, logic handled carefully
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,6 +80,7 @@ const Chat: React.FC = () => {
     setMessages(updatedMessages);
     saveMessages(updatedMessages);
     setNewMessage('');
+    setTimeout(scrollToBottom, 100);
   };
 
   const getFilteredUsers = () => {
@@ -75,6 +95,17 @@ const Chat: React.FC = () => {
     (m.senderId === selectedUser?.id && m.receiverId === currentUser?.id)
   ).sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
 
+  // Calculate total unread messages for the floating badge
+  const totalUnreadCount = currentUser 
+    ? messages.filter(m => m.receiverId === currentUser.id && !m.isRead).length 
+    : 0;
+
+  // Helper to get unread count per user
+  const getUnreadCountForUser = (senderId: string) => {
+    if (!currentUser) return 0;
+    return messages.filter(m => m.senderId === senderId && m.receiverId === currentUser.id && !m.isRead).length;
+  };
+
   if (!currentUser) return null;
 
   return (
@@ -87,6 +118,13 @@ const Chat: React.FC = () => {
         } text-white border-4 border-white`}
       >
         {isOpen ? <X size={28} /> : <MessageCircle size={28} />}
+        
+        {/* Total Unread Badge */}
+        {!isOpen && totalUnreadCount > 0 && (
+          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full border-2 border-white animate-bounce">
+            {totalUnreadCount > 9 ? '9+' : totalUnreadCount}
+          </span>
+        )}
       </button>
 
       {/* Chat Widget Popup */}
@@ -131,23 +169,33 @@ const Chat: React.FC = () => {
                     </div>
                 </div>
                 <div className="flex-1 overflow-y-auto p-2">
-                    {getFilteredUsers().map(user => (
-                        <button
-                        key={user.id}
-                        onClick={() => setSelectedUser(user)}
-                        className="w-full flex items-center gap-3 p-3 hover:bg-gray-50 rounded-xl transition-colors border-b border-gray-50 last:border-0"
-                        >
-                        <div className="relative">
-                            <img src={user.avatar} alt={user.name} className="w-10 h-10 rounded-full object-cover border border-gray-200" />
-                            <span className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-white ${user.role === 'admin' ? 'bg-purple-500' : 'bg-green-500'}`}></span>
-                        </div>
-                        <div className="flex-1 text-start">
-                            <h4 className="font-bold text-gray-800 text-sm">{user.name}</h4>
-                            <p className="text-xs text-gray-500">{t(`role${user.role.charAt(0).toUpperCase() + user.role.slice(1)}` as any)}</p>
-                        </div>
-                        {language === 'ar' ? <ChevronLeft size={16} className="text-gray-300" /> : <ChevronRight size={16} className="text-gray-300" />}
-                        </button>
-                    ))}
+                    {getFilteredUsers().map(user => {
+                        const unread = getUnreadCountForUser(user.id);
+                        return (
+                            <button
+                                key={user.id}
+                                onClick={() => setSelectedUser(user)}
+                                className="w-full flex items-center gap-3 p-3 hover:bg-gray-50 rounded-xl transition-colors border-b border-gray-50 last:border-0"
+                            >
+                                <div className="relative">
+                                    <img src={user.avatar} alt={user.name} className="w-10 h-10 rounded-full object-cover border border-gray-200" />
+                                    <span className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-white ${user.role === 'admin' ? 'bg-purple-500' : 'bg-green-500'}`}></span>
+                                </div>
+                                <div className="flex-1 text-start">
+                                    <div className="flex justify-between items-center">
+                                        <h4 className="font-bold text-gray-800 text-sm">{user.name}</h4>
+                                        {unread > 0 && (
+                                            <span className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
+                                                {unread}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <p className="text-xs text-gray-500">{t(`role${user.role.charAt(0).toUpperCase() + user.role.slice(1)}` as any)}</p>
+                                </div>
+                                {language === 'ar' ? <ChevronLeft size={16} className="text-gray-300" /> : <ChevronRight size={16} className="text-gray-300" />}
+                            </button>
+                        );
+                    })}
                     {getFilteredUsers().length === 0 && (
                         <div className="text-center py-8 text-gray-400 text-sm">
                          {t('noResults')}
@@ -174,9 +222,16 @@ const Chat: React.FC = () => {
                                         ${isMe ? 'bg-indigo-600 text-white rounded-tr-none' : 'bg-white text-gray-700 rounded-tl-none'}
                                     `}>
                                         <p>{msg.content}</p>
-                                        <span className={`text-[10px] block mt-1 text-right ${isMe ? 'text-indigo-200' : 'text-gray-400'}`}>
-                                            {new Date(msg.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                                        </span>
+                                        <div className={`flex items-center gap-1 justify-end mt-1`}>
+                                            <span className={`text-[10px] ${isMe ? 'text-indigo-200' : 'text-gray-400'}`}>
+                                                {new Date(msg.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                            </span>
+                                            {isMe && (
+                                                <span className="text-[10px] text-indigo-200">
+                                                    {msg.isRead ? '✓✓' : '✓'}
+                                                </span>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             );
