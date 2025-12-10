@@ -23,7 +23,25 @@
       tailwind.config = {
         theme: {
           extend: {
+            fontFamily: {
+              // 'Fredoka' for headings (playful), 'Quicksand' for body (clean/rounded), 'Tajawal' for Arabic
+              sans: ['Quicksand', 'Tajawal', 'sans-serif'],
+              display: ['Fredoka', 'Tajawal', 'sans-serif'],
+            },
             colors: {
+              // Softening the grays to be more "Slate/Blueish" for a friendlier look
+              gray: {
+                50: '#f8fafc',
+                100: '#f1f5f9',
+                200: '#e2e8f0',
+                300: '#cbd5e1',
+                400: '#94a3b8',
+                500: '#64748b',
+                600: '#475569',
+                700: '#334155', // Softer than standard gray-700
+                800: '#1e293b', // Deep blue-gray instead of black
+                900: '#0f172a',
+              },
               indigo: {
                 50: 'var(--color-primary-50)',
                 100: 'var(--color-primary-100)',
@@ -59,11 +77,19 @@
         }
       }
     </script>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+    <!-- Import Fredoka (Headings) and Quicksand (Body) for English, Tajawal for Arabic -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;500;600;700&family=Quicksand:wght@300;400;500;600;700&family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
     <style>
       body {
-        font-family: 'Tajawal', sans-serif;
+        font-family: 'Quicksand', 'Tajawal', sans-serif;
+        font-weight: 500; /* Slightly bolder for "Light/Distinctive" readability */
       }
+      
+      h1, h2, h3, h4, h5, h6, .font-display {
+        font-family: 'Fredoka', 'Tajawal', sans-serif;
+        letter-spacing: 0.02em; 
+      }
+
       /* Custom scrollbar for better aesthetics */
       ::-webkit-scrollbar {
         width: 8px;
@@ -112,7 +138,7 @@
 }
 </script>
 </head>
-  <body class="bg-sky-50 text-slate-900 antialiased">
+  <body class="bg-sky-50 text-slate-700 antialiased">
     <div id="root"></div>
     <script type="module" src="./index.tsx"></script>
   </body>

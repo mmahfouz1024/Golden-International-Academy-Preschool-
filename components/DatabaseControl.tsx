@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import { Database, Save, UploadCloud, DownloadCloud, CheckCircle, AlertTriangle, Copy, Code } from 'lucide-react';
+import { Database, Save, UploadCloud, DownloadCloud, CheckCircle, AlertTriangle, Copy, Code, Lock, Unlock } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { getDatabaseConfig, saveDatabaseConfig, forceSyncToCloud, forceSyncFromCloud } from '../services/storageService';
 import { checkConnection, generateSQLSchema } from '../services/supabaseClient';
@@ -8,6 +7,12 @@ import { DatabaseConfig } from '../types';
 
 const DatabaseControl: React.FC = () => {
   const { t } = useLanguage();
+  
+  // Auth State
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [passwordInput, setPasswordInput] = useState('');
+  const [authError, setAuthError] = useState('');
+
   const [config, setConfig] = useState<DatabaseConfig>({
     isEnabled: false,
     url: '',
@@ -20,10 +25,12 @@ const DatabaseControl: React.FC = () => {
   const [showSql, setShowSql] = useState(false);
 
   useEffect(() => {
-    const saved = getDatabaseConfig();
-    setConfig(saved);
-    checkStatus(saved);
-  }, []);
+    if (isAuthenticated) {
+      const saved = getDatabaseConfig();
+      setConfig(saved);
+      checkStatus(saved);
+    }
+  }, [isAuthenticated]);
 
   const checkStatus = async (conf: DatabaseConfig) => {
     if (!conf.isEnabled || !conf.url || !conf.key) {
@@ -32,6 +39,16 @@ const DatabaseControl: React.FC = () => {
     }
     const isConnected = await checkConnection();
     setStatus(isConnected ? 'connected' : 'disconnected');
+  };
+
+  const handleAuth = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (passwordInput === 'H@mzafarida123') {
+      setIsAuthenticated(true);
+      setAuthError('');
+    } else {
+      setAuthError('Incorrect Password');
+    }
   };
 
   const handleSave = async () => {
@@ -71,6 +88,37 @@ const DatabaseControl: React.FC = () => {
     setMsg({ type: 'success', text: t('savedSuccessfully') }); // reusing saved msg
     setTimeout(() => setMsg(null), 2000);
   };
+
+  if (!isAuthenticated) {
+    return (
+      <div className="max-w-md mx-auto mt-20 p-8 bg-white rounded-2xl shadow-lg border border-gray-100 text-center">
+        <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
+          <Lock size={32} />
+        </div>
+        <h2 className="text-2xl font-bold text-gray-800 mb-2">Restricted Access</h2>
+        <p className="text-gray-500 mb-6">This area is password protected for security reasons.</p>
+        
+        <form onSubmit={handleAuth} className="space-y-4">
+          <input 
+            type="password" 
+            autoFocus
+            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 text-center font-bold tracking-widest"
+            placeholder="Enter Password"
+            value={passwordInput}
+            onChange={(e) => setPasswordInput(e.target.value)}
+          />
+          {authError && <p className="text-red-500 text-sm font-bold">{authError}</p>}
+          <button 
+            type="submit"
+            className="w-full py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl font-bold shadow-lg shadow-red-200 transition-all flex items-center justify-center gap-2"
+          >
+            <Unlock size={20} />
+            Unlock
+          </button>
+        </form>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto pb-12">
