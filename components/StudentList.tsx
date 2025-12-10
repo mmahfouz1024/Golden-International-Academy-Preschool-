@@ -368,6 +368,7 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
                          onClick={(e) => { e.stopPropagation(); handleOpenModal(student); }}
                          className="text-gray-400 hover:text-indigo-600 p-2 hover:bg-indigo-50 rounded-lg transition-colors pointer-events-auto"
                          title={t('edit')}
+                         style={{ pointerEvents: 'auto' }}
                        >
                          <Edit2 size={18} className="pointer-events-none" />
                        </button>
@@ -376,6 +377,7 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
                          onClick={(e) => handleDeleteStudent(e, student.id)}
                          className="text-gray-400 hover:text-red-600 p-2 hover:bg-red-50 rounded-lg transition-colors pointer-events-auto"
                          title={t('delete')}
+                         style={{ pointerEvents: 'auto' }}
                        >
                          <Trash2 size={18} className="pointer-events-none" />
                        </button>
@@ -540,7 +542,6 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
                         className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-gray-50"
                         value={studentData.parentUsername}
                         onChange={e => setStudentData({...studentData, parentUsername: e.target.value})}
-                        placeholder="user123"
                       />
                     </div>
                     <div className="col-span-2">
