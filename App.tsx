@@ -21,7 +21,7 @@ import { Student, User } from './types';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import { NotificationProvider, useNotification } from './contexts/NotificationContext';
 import { ThemeProvider } from './contexts/ThemeContext';
-import { initStorage, getStudents } from './services/storageService';
+import { initStorage, getStudents, getUsers } from './services/storageService';
 
 const AppContent: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -60,6 +60,41 @@ const AppContent: React.FC = () => {
     startApp();
   }, []);
 
+  // Session Restoration Logic
+  useEffect(() => {
+    if (isInitialized && !user && !initError) {
+      const storedUserId = localStorage.getItem('golden_session_uid');
+      if (storedUserId) {
+        const users = getUsers();
+        const foundUser = users.find(u => u.id === storedUserId);
+        if (foundUser) {
+           console.log("Restoring session for:", foundUser.username);
+           setUser(foundUser);
+    
+           // Route based on role
+           if (foundUser.role === 'parent') {
+              const allStudents = getStudents();
+              const child = allStudents.find(s => s.id === foundUser.linkedStudentId);
+              if (child) {
+                setSelectedStudent(child);
+                setCurrentView('parent-view');
+              } else {
+                setCurrentView('parent-view');
+              }
+            } else {
+              if (foundUser.role === 'admin') {
+                 setCurrentView('dashboard');
+              } else if (foundUser.permissions && foundUser.permissions.length > 0) {
+                 setCurrentView(foundUser.permissions[0]);
+              } else {
+                 setCurrentView('dashboard');
+              }
+            }
+        }
+      }
+    }
+  }, [isInitialized, user, initError]);
+
   useEffect(() => {
     const handler = (e: any) => {
       e.preventDefault();
@@ -90,6 +125,8 @@ const AppContent: React.FC = () => {
 
   const handleLogin = (loggedInUser: User) => {
     setUser(loggedInUser);
+    // Persist session
+    localStorage.setItem('golden_session_uid', loggedInUser.id);
     
     if (loggedInUser.role === 'parent') {
       // Use getStudents() from storageService instead of MOCK_STUDENTS
@@ -115,6 +152,7 @@ const AppContent: React.FC = () => {
 
   const handleLogout = () => {
     setUser(null);
+    localStorage.removeItem('golden_session_uid'); // Clear session
     setSelectedStudent(null);
     setSelectedReportDate(undefined);
     setCurrentView('dashboard');
@@ -214,7 +252,7 @@ const AppContent: React.FC = () => {
   // LOADING STATE
   if (!isInitialized) {
     return (
-      <div className="h-screen w-screen flex items-center justify-center bg-slate-50">
+      <div className="h-screen w-screen flex items-center justify-center bg-sky-50">
         <div className="flex flex-col items-center gap-4">
            <div className="w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
            <p className="text-gray-500 font-medium">{t('loading')}</p>
