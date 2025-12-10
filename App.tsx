@@ -14,6 +14,7 @@ import ReportsArchive from './components/ReportsArchive';
 import Profile from './components/Profile';
 import DatabaseControl from './components/DatabaseControl';
 import Login from './components/Login';
+import Chat from './components/Chat';
 import NotificationDropdown from './components/NotificationDropdown';
 import BackgroundPattern from './components/BackgroundPattern';
 import { Menu, Bell, ChevronRight, ChevronLeft, WifiOff, RefreshCw } from 'lucide-react';
@@ -214,6 +215,9 @@ const AppContent: React.FC = () => {
     const isAllowed = (view: string) => {
        if (!user) return false;
        if (view === 'profile') return true;
+       // Chat is allowed for everyone
+       if (view === 'chat') return true;
+       
        if (user.role === 'admin') return true;
        if (user.role === 'parent' && view === 'parent-view') return true;
        
@@ -229,6 +233,7 @@ const AppContent: React.FC = () => {
 
     switch (currentView) {
       case 'dashboard': return <Dashboard />;
+      case 'chat': return <Chat />;
       case 'students': return <StudentList onStudentSelect={(student) => setSelectedStudent(student)} />;
       case 'ai-planner': return <AIPlanner />;
       case 'attendance': return <Attendance />;
@@ -337,6 +342,7 @@ const AppContent: React.FC = () => {
                 : (selectedStudent 
                     ? t('dailyReport')
                     : (currentView === 'dashboard' && t('dashboard')) ||
+                      (currentView === 'chat' && t('chat')) ||
                       (currentView === 'students' && t('students')) ||
                       (currentView === 'ai-planner' && t('aiPlanner')) ||
                       (currentView === 'attendance' && t('attendance')) ||

@@ -1,6 +1,7 @@
 
+
 import { MOCK_USERS, MOCK_STUDENTS, MOCK_CLASSES, MOCK_REPORTS } from '../constants';
-import { User, Student, ClassGroup, DailyReport, DatabaseConfig, AppNotification } from '../types';
+import { User, Student, ClassGroup, DailyReport, DatabaseConfig, AppNotification, ChatMessage } from '../types';
 import { initSupabase, syncDataToCloud, fetchDataFromCloud } from './supabaseClient';
 
 const KEYS = {
@@ -9,7 +10,8 @@ const KEYS = {
   CLASSES: 'golden_academy_classes',
   REPORTS: 'golden_academy_reports',
   DB_CONFIG: 'golden_academy_db_config',
-  NOTIFICATIONS: 'golden_academy_notifications'
+  NOTIFICATIONS: 'golden_academy_notifications',
+  MESSAGES: 'golden_academy_messages'
 };
 
 // Initialize DB
@@ -35,13 +37,12 @@ export const initStorage = async (): Promise<{ success: boolean; message?: strin
 
   if (config.isEnabled && config.url && config.key) {
     // STRICT MODE: Clear local cache to ensure we ONLY view data from DB
-    // This satisfies the requirement: "verify data is taken from DB... not from any other place or even storage or local"
-    // We wipe the slate clean, so if sync fails, the app is empty/errors out, proving we aren't using stale local data.
     localStorage.removeItem(KEYS.USERS);
     localStorage.removeItem(KEYS.STUDENTS);
     localStorage.removeItem(KEYS.CLASSES);
     localStorage.removeItem(KEYS.REPORTS);
     localStorage.removeItem(KEYS.NOTIFICATIONS);
+    localStorage.removeItem(KEYS.MESSAGES);
 
     const connected = initSupabase(config);
     isCloudEnabled = connected;
@@ -66,7 +67,6 @@ export const initStorage = async (): Promise<{ success: boolean; message?: strin
       // 2. Data Logic
       if (!data) {
         // DB is connected but empty. 
-        // We MUST seed it to have a functional app, as local storage is now empty.
         console.log("☁️ Database connected but empty. Seeding initial data...");
         // Temporarily populate local storage with Mocks to upload them
         localStorage.setItem(KEYS.USERS, JSON.stringify(MOCK_USERS));
@@ -84,6 +84,7 @@ export const initStorage = async (): Promise<{ success: boolean; message?: strin
           type: 'info'
         }];
         localStorage.setItem(KEYS.NOTIFICATIONS, JSON.stringify(defaultNotifications));
+        localStorage.setItem(KEYS.MESSAGES, '[]');
         
         const seeded = await forceSyncToCloud();
         if (!seeded) {
@@ -106,9 +107,6 @@ export const initStorage = async (): Promise<{ success: boolean; message?: strin
     }
   }
   
-  // If user explicitly disabled DB in settings (local mode), we allow it.
-  // But based on the prompt "Make sure all data is taken from DB", we assume strict mode is desired.
-  // We will return success but log warning.
   return { success: true, message: 'Local Mode (DB Disabled)' };
 };
 
@@ -140,7 +138,7 @@ const saveAndSync = async (key: string, data: any) => {
 
 const syncAllFromCloud = async () => {
   try {
-    const keys = [KEYS.USERS, KEYS.STUDENTS, KEYS.CLASSES, KEYS.REPORTS, KEYS.NOTIFICATIONS];
+    const keys = [KEYS.USERS, KEYS.STUDENTS, KEYS.CLASSES, KEYS.REPORTS, KEYS.NOTIFICATIONS, KEYS.MESSAGES];
     let syncedCount = 0;
     for (const key of keys) {
       const { data } = await fetchDataFromCloud(key);
@@ -156,7 +154,6 @@ const syncAllFromCloud = async () => {
       localStorage.setItem(KEYS.DB_CONFIG, JSON.stringify(config));
       return true;
     }
-    // If keys exist but data is null (empty table), technically it's a success (just empty data)
     return true; 
   } catch (e) {
     console.error("❌ Sync failed", e);
@@ -168,12 +165,12 @@ export const forceSyncToCloud = async () => {
    if (!isCloudEnabled) return false;
    try {
      console.log("📤 Uploading all local data to cloud...");
-     // We read from local storage directly to avoid circular dependency with getters
      await syncDataToCloud(KEYS.USERS, JSON.parse(localStorage.getItem(KEYS.USERS) || '[]'));
      await syncDataToCloud(KEYS.STUDENTS, JSON.parse(localStorage.getItem(KEYS.STUDENTS) || '[]'));
      await syncDataToCloud(KEYS.CLASSES, JSON.parse(localStorage.getItem(KEYS.CLASSES) || '[]'));
      await syncDataToCloud(KEYS.REPORTS, JSON.parse(localStorage.getItem(KEYS.REPORTS) || '{}'));
      await syncDataToCloud(KEYS.NOTIFICATIONS, JSON.parse(localStorage.getItem(KEYS.NOTIFICATIONS) || '[]'));
+     await syncDataToCloud(KEYS.MESSAGES, JSON.parse(localStorage.getItem(KEYS.MESSAGES) || '[]'));
      
      const config = getDatabaseConfig();
      config.lastSync = new Date().toISOString();
@@ -195,8 +192,6 @@ export const forceSyncFromCloud = async () => {
 // Users
 export const getUsers = (): User[] => {
   const stored = localStorage.getItem(KEYS.USERS);
-  // In strict mode, if storage is empty (and we are initialized), it means DB is empty.
-  // We do NOT fall back to MOCK_USERS here anymore, because MOCK_USERS are only for seeding.
   if (!stored) {
     return []; 
   }
@@ -257,4 +252,17 @@ export const getNotifications = (): AppNotification[] => {
 
 export const saveNotifications = (notifications: AppNotification[]) => {
   saveAndSync(KEYS.NOTIFICATIONS, notifications);
+};
+
+// Messages
+export const getMessages = (): ChatMessage[] => {
+  const stored = localStorage.getItem(KEYS.MESSAGES);
+  if (!stored) {
+    return [];
+  }
+  return JSON.parse(stored);
+};
+
+export const saveMessages = (messages: ChatMessage[]) => {
+  saveAndSync(KEYS.MESSAGES, messages);
 };

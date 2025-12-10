@@ -82,6 +82,7 @@ export interface User {
   email?: string;
   phone?: string;
   interests?: string[];
+  assignedClassIds?: string[];
 }
 
 export interface ClassGroup {
@@ -99,6 +100,15 @@ export interface AppNotification {
   time: string;
   isRead: boolean;
   type: 'info' | 'success' | 'warning' | 'alert';
+}
+
+export interface ChatMessage {
+  id: string;
+  senderId: string;
+  receiverId: string;
+  content: string;
+  timestamp: string;
+  isRead: boolean;
 }
 
 export type Theme = 'smart' | 'blossom' | 'garden' | 'sunshine';

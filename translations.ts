@@ -3,7 +3,7 @@
 export const translations = {
   en: {
     // General
-    appTitle: "Golden International academy & pre-school",
+    appTitle: "Golden International Academy & Pre-school",
     appSubtitle: "Smart Management System",
     welcome: "Welcome",
     loading: "Loading...",
@@ -48,6 +48,7 @@ export const translations = {
     directory: "Directory",
     reportsArchive: "Reports Archive",
     myChild: "My Child",
+    chat: "Chat",
     logout: "Logout",
     installApp: "Install App",
     roleAdmin: "Admin",
@@ -215,6 +216,14 @@ export const translations = {
     contactInfo: "Contact Info",
     callNow: "Call",
     sendEmail: "Email",
+
+    // Chat
+    chatTitle: "Messages",
+    chatSubtitle: "Communicate with school staff",
+    selectUserToChat: "Select a user to start chatting",
+    typeMessage: "Type a message...",
+    send: "Send",
+    noMessages: "No messages yet",
 
     // Attendance
     attendanceRegister: "Attendance Register",
