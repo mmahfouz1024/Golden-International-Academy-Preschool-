@@ -1,6 +1,7 @@
 
+
 import React, { useState } from 'react';
-import { LogIn, Sun, Cloud, Star, Sparkles, UserCircle, KeyRound, ArrowLeft, Smartphone, Send } from 'lucide-react';
+import { LogIn, Sun, Cloud, Star, Sparkles, UserCircle, KeyRound, ArrowLeft, Mail, Send } from 'lucide-react';
 import { getUsers } from '../services/storageService';
 import { User } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -52,17 +53,21 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
         return;
       }
 
-      if (!user.phone) {
+      if (!user.email) {
         setRecoveryStatus('error');
-        setRecoveryMsg(t('noPhoneLinked'));
+        setRecoveryMsg(t('noEmailLinked'));
         return;
       }
 
-      // Simulate sending SMS
+      // Simulate sending Email
       setRecoveryStatus('success');
-      // Mask the phone number for privacy display
-      const maskedPhone = user.phone.slice(0, 3) + '****' + user.phone.slice(-3);
-      setRecoveryMsg(`${t('recoverySuccess')} ${maskedPhone}`);
+      // Mask the email for privacy display
+      const [localPart, domain] = user.email.split('@');
+      const maskedEmail = localPart.length > 2 
+        ? `${localPart.substring(0, 2)}****@${domain}`
+        : `${localPart}****@${domain}`;
+
+      setRecoveryMsg(`${t('recoverySuccess')} ${maskedEmail}`);
     }, 1500);
   };
 
@@ -212,7 +217,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
               {recoveryStatus === 'success' && (
                 <div className="animate-fade-in text-center bg-green-50 text-green-600 text-sm font-bold py-4 px-4 rounded-2xl border-2 border-green-100 flex flex-col items-center gap-2">
-                  <Smartphone size={32} className="text-green-500 mb-1" />
+                  <Mail size={32} className="text-green-500 mb-1" />
                   {recoveryMsg}
                 </div>
               )}
@@ -227,7 +232,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                      <span>{t('sending')}</span>
                   ) : (
                     <>
-                      <span>{t('sendRecoverySMS')}</span>
+                      <span>{t('sendRecoveryEmail')}</span>
                       <Send size={18} />
                     </>
                   )}

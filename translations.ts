@@ -31,11 +31,11 @@ export const translations = {
     forgotPassword: "Forgot Password?",
     recoverAccount: "Recover Account",
     enterUsernameRecover: "Enter your username to search",
-    sendRecoverySMS: "Send Recovery SMS",
+    sendRecoveryEmail: "Send Recovery Email",
     backToLogin: "Back to Login",
     userNotFound: "User not found",
-    noPhoneLinked: "No phone number linked to this account",
-    recoverySuccess: "Recovery message sent successfully to",
+    noEmailLinked: "No email address linked to this account",
+    recoverySuccess: "Recovery link sent successfully to",
     sending: "Sending...",
 
     // Sidebar
