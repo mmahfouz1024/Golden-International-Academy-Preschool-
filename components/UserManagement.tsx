@@ -108,6 +108,12 @@ const UserManagement: React.FC = () => {
 
     if (!formData.username || !formData.name || !formData.password) return;
 
+    // Validation: Parent must have a linked student
+    if (formData.role === 'parent' && !formData.linkedStudentId) {
+      setError("Please select a student to link with this parent account.");
+      return;
+    }
+
     // Check for duplicate username
     const usernameToCheck = (formData.username || '').trim().toLowerCase();
     const isDuplicate = users.some(u => 
@@ -401,9 +407,12 @@ const UserManagement: React.FC = () => {
               {/* Conditional Fields based on Role */}
               {formData.role === 'parent' && (
                 <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('linkedStudent')}</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('linkedStudent')} <span className="text-red-500">*</span>
+                  </label>
                   <div className="flex items-center gap-3">
                     <select
+                      required
                       className="flex-1 px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-white"
                       value={formData.linkedStudentId || ''}
                       onChange={e => setFormData({...formData, linkedStudentId: e.target.value})}
