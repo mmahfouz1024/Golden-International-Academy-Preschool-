@@ -121,7 +121,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                   </g>
                </svg>
             </div>
-            <h1 className="text-white font-display font-bold text-lg text-center leading-tight">Golden Academy</h1>
+            <h1 className="text-white font-display font-bold text-base text-center leading-tight px-2">Golden International Academy & Preschool</h1>
             <p className="text-indigo-100 text-xs opacity-90 mt-1">Smart System</p>
           </div>
         </div>
