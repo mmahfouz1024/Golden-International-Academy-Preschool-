@@ -162,14 +162,14 @@ const UserManagement: React.FC = () => {
     e.preventDefault();
     setError('');
 
-    // Permission Check: Managers cannot edit/create Admins
+    // Permission Check: Managers (now labeled Admin) cannot edit/create Admins (now labeled Managers)
     if (currentUser?.role === 'manager') {
       if (formData.role === 'admin') {
-        setError(t('contactAdmin') + " - " + "Managers cannot assign Admin role.");
+        setError(t('contactAdmin') + " - " + t('adminRestrictedError'));
         return;
       }
       if (editingUser?.role === 'admin') {
-        setError(t('contactAdmin') + " - " + "Managers cannot edit Admin accounts.");
+        setError(t('contactAdmin') + " - " + t('adminRestrictedError'));
         return;
       }
     }
@@ -184,7 +184,7 @@ const UserManagement: React.FC = () => {
         cleanPermissions = cleanPermissions.filter(p => p !== 'users');
     }
 
-    // Rule 2: Manager cannot grant 'database' permission
+    // Rule 2: Manager (Labeled Admin) cannot grant 'database' permission
     if (currentUser?.role === 'manager') {
         cleanPermissions = cleanPermissions.filter(p => p !== 'database');
     }
@@ -287,10 +287,10 @@ const UserManagement: React.FC = () => {
     e.preventDefault();
     e.stopPropagation();
     
-    // Permission Check: Managers cannot delete Admins
+    // Permission Check: Managers (Labeled Admin) cannot delete Admins (Labeled Manager)
     const targetUser = users.find(u => u.id === id);
     if (currentUser?.role === 'manager' && targetUser?.role === 'admin') {
-      alert("Managers cannot delete Admin accounts.");
+      alert(t('adminRestrictedError'));
       return;
     }
 

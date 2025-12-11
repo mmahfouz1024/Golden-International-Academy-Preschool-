@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { translations } from '../translations';
 
@@ -18,7 +19,9 @@ export const LanguageProvider: React.FC<{children: React.ReactNode}> = ({ childr
   const [language, setLanguage] = useState<Language>('en');
 
   const t = (key: keyof typeof translations.en) => {
-    return translations['en'][key] || key;
+    // Correctly fetch translation based on current language
+    // Fallback to English if translation is missing in Arabic
+    return (translations[language] && (translations[language] as any)[key]) || translations['en'][key] || key;
   };
 
   const dir: Direction = language === 'ar' ? 'rtl' : 'ltr';
