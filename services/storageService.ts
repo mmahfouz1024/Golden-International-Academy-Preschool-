@@ -1,6 +1,6 @@
 
 import { MOCK_USERS, MOCK_STUDENTS, MOCK_CLASSES, MOCK_REPORTS } from '../constants';
-import { User, Student, ClassGroup, DailyReport, DatabaseConfig, AppNotification, ChatMessage, Post, ScheduleItem } from '../types';
+import { User, Student, ClassGroup, DailyReport, DatabaseConfig, AppNotification, ChatMessage, Post, ScheduleItem, AttendanceStatus } from '../types';
 import { initSupabase, syncDataToCloud, fetchDataFromCloud } from './supabaseClient';
 
 const KEYS = {
@@ -12,7 +12,8 @@ const KEYS = {
   NOTIFICATIONS: 'golden_academy_notifications',
   MESSAGES: 'golden_academy_messages',
   POSTS: 'golden_academy_posts',
-  SCHEDULE: 'golden_academy_schedule'
+  SCHEDULE: 'golden_academy_schedule',
+  ATTENDANCE: 'golden_academy_attendance_history'
 };
 
 // Initialize DB
@@ -53,6 +54,7 @@ export const initStorage = async (): Promise<{ success: boolean; message?: strin
     localStorage.removeItem(KEYS.MESSAGES);
     localStorage.removeItem(KEYS.POSTS);
     localStorage.removeItem(KEYS.SCHEDULE);
+    localStorage.removeItem(KEYS.ATTENDANCE);
 
     const connected = initSupabase(config);
     isCloudEnabled = connected;
@@ -84,6 +86,7 @@ export const initStorage = async (): Promise<{ success: boolean; message?: strin
         localStorage.setItem(KEYS.CLASSES, JSON.stringify(MOCK_CLASSES));
         localStorage.setItem(KEYS.REPORTS, JSON.stringify(MOCK_REPORTS));
         localStorage.setItem(KEYS.SCHEDULE, JSON.stringify(DEFAULT_SCHEDULE));
+        localStorage.setItem(KEYS.ATTENDANCE, JSON.stringify({}));
         
         // Seed default notification so it exists in DB
         const defaultNotifications: AppNotification[] = [{
@@ -150,7 +153,7 @@ const saveAndSync = async (key: string, data: any) => {
 
 const syncAllFromCloud = async () => {
   try {
-    const keys = [KEYS.USERS, KEYS.STUDENTS, KEYS.CLASSES, KEYS.REPORTS, KEYS.NOTIFICATIONS, KEYS.MESSAGES, KEYS.POSTS, KEYS.SCHEDULE];
+    const keys = [KEYS.USERS, KEYS.STUDENTS, KEYS.CLASSES, KEYS.REPORTS, KEYS.NOTIFICATIONS, KEYS.MESSAGES, KEYS.POSTS, KEYS.SCHEDULE, KEYS.ATTENDANCE];
     let syncedCount = 0;
     for (const key of keys) {
       const { data } = await fetchDataFromCloud(key);
@@ -185,6 +188,7 @@ export const forceSyncToCloud = async () => {
      await syncDataToCloud(KEYS.MESSAGES, JSON.parse(localStorage.getItem(KEYS.MESSAGES) || '[]'));
      await syncDataToCloud(KEYS.POSTS, JSON.parse(localStorage.getItem(KEYS.POSTS) || '[]'));
      await syncDataToCloud(KEYS.SCHEDULE, JSON.parse(localStorage.getItem(KEYS.SCHEDULE) || JSON.stringify(DEFAULT_SCHEDULE)));
+     await syncDataToCloud(KEYS.ATTENDANCE, JSON.parse(localStorage.getItem(KEYS.ATTENDANCE) || '{}'));
      
      const config = getDatabaseConfig();
      config.lastSync = new Date().toISOString();
@@ -237,6 +241,7 @@ export const createBackupData = () => {
     messages: getMessages(),
     posts: getPosts(),
     schedule: getSchedule(),
+    attendance: getAttendanceHistory(),
     // We do NOT include DB_CONFIG to allow restoring data across different environments without breaking auth
   };
   return backup;
@@ -256,6 +261,7 @@ export const restoreBackupData = (data: any) => {
     if (data.messages) localStorage.setItem(KEYS.MESSAGES, JSON.stringify(data.messages));
     if (data.posts) localStorage.setItem(KEYS.POSTS, JSON.stringify(data.posts));
     if (data.schedule) localStorage.setItem(KEYS.SCHEDULE, JSON.stringify(data.schedule));
+    if (data.attendance) localStorage.setItem(KEYS.ATTENDANCE, JSON.stringify(data.attendance));
 
     // If cloud is enabled, we should push this restored data to cloud immediately
     if (isCloudEnabled) {
@@ -371,4 +377,18 @@ export const getSchedule = (): ScheduleItem[] => {
 
 export const saveSchedule = (schedule: ScheduleItem[]) => {
   saveAndSync(KEYS.SCHEDULE, schedule);
+};
+
+// Attendance History
+// Data Structure: { "2023-10-01": { "studentId1": "present", "studentId2": "absent" }, ... }
+export const getAttendanceHistory = (): Record<string, Record<string, AttendanceStatus>> => {
+  const stored = localStorage.getItem(KEYS.ATTENDANCE);
+  if (!stored) {
+    return {};
+  }
+  return JSON.parse(stored);
+};
+
+export const saveAttendanceHistory = (history: Record<string, Record<string, AttendanceStatus>>) => {
+  saveAndSync(KEYS.ATTENDANCE, history);
 };

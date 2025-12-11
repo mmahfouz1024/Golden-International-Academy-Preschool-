@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Check, X, Clock, UserCheck, Filter, PieChart, Save } from 'lucide-react';
 import { AttendanceStatus, Student } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
-import { getStudents, saveStudents } from '../services/storageService';
+import { getStudents, saveStudents, getAttendanceHistory, saveAttendanceHistory } from '../services/storageService';
 
 const Attendance: React.FC = () => {
   const { t, language } = useLanguage();
@@ -13,18 +13,35 @@ const Attendance: React.FC = () => {
   const [isSaved, setIsSaved] = useState(false);
   const [attendanceMap, setAttendanceMap] = useState<Record<string, AttendanceStatus>>({});
 
-  // Load students on mount
+  // Load students and attendance data when date changes
   useEffect(() => {
     const loadedStudents = getStudents();
     setStudents(loadedStudents);
     
-    // Initialize attendance map from student data
-    const initialMap: Record<string, AttendanceStatus> = {};
-    loadedStudents.forEach(s => {
-      initialMap[s.id] = s.attendanceToday ? 'present' : 'absent';
-    });
-    setAttendanceMap(initialMap);
-  }, []);
+    const history = getAttendanceHistory();
+    const dateRecord = history[selectedDate];
+
+    if (dateRecord) {
+      // If we have saved history for this date, use it
+      setAttendanceMap(dateRecord);
+    } else {
+      // If no record exists for this date, check if it's "Today" to use legacy flag, 
+      // otherwise default to 'present' (assuming new day starts clean)
+      const isToday = selectedDate === new Date().toISOString().split('T')[0];
+      const initialMap: Record<string, AttendanceStatus> = {};
+      
+      loadedStudents.forEach(s => {
+        if (isToday) {
+           // For backward compatibility / initial load of "Today"
+           initialMap[s.id] = s.attendanceToday ? 'present' : 'absent';
+        } else {
+           // For a new past/future date with no record, default to present (or could be empty)
+           initialMap[s.id] = 'present';
+        }
+      });
+      setAttendanceMap(initialMap);
+    }
+  }, [selectedDate]);
 
   const filteredStudents = students.filter(student => 
     filterClass === 'All' || student.classGroup === filterClass
@@ -46,14 +63,21 @@ const Attendance: React.FC = () => {
   };
 
   const handleSave = () => {
-    // Update student records with new attendance status
-    const updatedStudents = students.map(student => ({
-      ...student,
-      attendanceToday: attendanceMap[student.id] === 'present'
-    }));
+    // 1. Save to History (Source of Truth for Dates)
+    const history = getAttendanceHistory();
+    history[selectedDate] = attendanceMap;
+    saveAttendanceHistory(history);
 
-    setStudents(updatedStudents);
-    saveStudents(updatedStudents);
+    // 2. If Today, update legacy student record for easy access elsewhere
+    const isToday = selectedDate === new Date().toISOString().split('T')[0];
+    if (isToday) {
+      const updatedStudents = students.map(student => ({
+        ...student,
+        attendanceToday: attendanceMap[student.id] === 'present'
+      }));
+      setStudents(updatedStudents);
+      saveStudents(updatedStudents);
+    }
 
     setIsSaved(true);
     setTimeout(() => setIsSaved(false), 2000);
@@ -134,9 +158,10 @@ const Attendance: React.FC = () => {
                 onChange={(e) => setFilterClass(e.target.value)}
              >
                 <option value="All">{t('filterClass')}</option>
-                <option value="Birds">Birds</option>
-                <option value="Buds">Buds</option>
-                <option value="Stars">Stars</option>
+                {/* Dynamically list unique classes */}
+                {Array.from(new Set(students.map(s => s.classGroup))).map(c => (
+                   <option key={c} value={c}>{c}</option>
+                ))}
              </select>
            </div>
            
