@@ -7,6 +7,7 @@ import { User, ChatMessage } from '../types';
 
 const Chat: React.FC = () => {
   const { t, language } = useLanguage();
+  // Get current user directly to ensure we have the session even if context isn't fully ready
   const currentUser = JSON.parse(localStorage.getItem('golden_academy_users') || '[]').find((u: User) => u.id === localStorage.getItem('golden_session_uid'));
   
   const [isOpen, setIsOpen] = useState(false);
@@ -17,6 +18,7 @@ const Chat: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // Initialize Data
   useEffect(() => {
     if (!currentUser) return;
 
@@ -32,25 +34,39 @@ const Chat: React.FC = () => {
     }
     
     setUsers(filteredUsers);
-  }, [currentUser, isOpen]);
+  }, [currentUser?.id, isOpen]); // Re-run when user or open state changes
+
+  // Polling for real-time updates
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const freshMessages = getMessages();
+      setMessages(prev => {
+        // Only update state if stringified content is different to avoid unnecessary re-renders
+        if (JSON.stringify(prev) !== JSON.stringify(freshMessages)) {
+          return freshMessages;
+        }
+        return prev;
+      });
+    }, 2000); // Poll every 2 seconds
+
+    return () => clearInterval(interval);
+  }, []);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  // Mark messages as read when opening a chat
+  // Mark messages as read and scroll to bottom
   useEffect(() => {
     if (isOpen && selectedUser && currentUser) {
-      scrollToBottom();
-
-      // Find unread messages from this sender
-      const unreadMessages = messages.filter(m => 
+      // Check if there are actually unread messages to avoid infinite loop of setMessages
+      const hasUnread = messages.some(m => 
         m.senderId === selectedUser.id && 
         m.receiverId === currentUser.id && 
         !m.isRead
       );
 
-      if (unreadMessages.length > 0) {
+      if (hasUnread) {
         const updatedMessages = messages.map(m => {
           if (m.senderId === selectedUser.id && m.receiverId === currentUser.id && !m.isRead) {
             return { ...m, isRead: true };
@@ -61,7 +77,14 @@ const Chat: React.FC = () => {
         saveMessages(updatedMessages);
       }
     }
-  }, [selectedUser, isOpen, currentUser]); // Removed 'messages' from dependency to avoid loop, logic handled carefully
+  }, [messages, isOpen, selectedUser, currentUser?.id]);
+
+  // Scroll to bottom when messages update or user changes
+  useEffect(() => {
+    if (isOpen) {
+      setTimeout(scrollToBottom, 100);
+    }
+  }, [messages.length, selectedUser, isOpen]);
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
@@ -80,7 +103,6 @@ const Chat: React.FC = () => {
     setMessages(updatedMessages);
     saveMessages(updatedMessages);
     setNewMessage('');
-    setTimeout(scrollToBottom, 100);
   };
 
   const getFilteredUsers = () => {
