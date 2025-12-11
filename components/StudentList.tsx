@@ -1,6 +1,7 @@
 
+
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, Plus, Phone, Star, ChevronLeft, ChevronRight, X, Save, Filter, Camera, ShieldCheck, Edit2, Trash2, AlertCircle, Mail, Calendar } from 'lucide-react';
+import { Search, Plus, Phone, Star, ChevronLeft, ChevronRight, X, Save, Filter, Camera, ShieldCheck, Edit2, Trash2, AlertCircle, Mail, Calendar, UserCheck, UserPlus, CheckCircle } from 'lucide-react';
 import { Student, StudentStatus, User, ClassGroup } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
 import { getStudents, saveStudents, getUsers, saveUsers, getClasses } from '../services/storageService';
@@ -24,6 +25,11 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
   const [newStudentAvatar, setNewStudentAvatar] = useState<string>('');
   const [error, setError] = useState('');
   
+  // New States for Parent Selection Logic
+  const [parentMode, setParentMode] = useState<'new' | 'existing'>('new');
+  const [existingParents, setExistingParents] = useState<User[]>([]);
+  const [selectedParentId, setSelectedParentId] = useState('');
+  
   // State to track if we are editing
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
 
@@ -39,7 +45,7 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
     parentEmail: ''
   });
 
-  // Load students and classes from storage on mount
+  // Load students, classes and users on mount
   useEffect(() => {
     setStudents(getStudents());
     const loadedClasses = getClasses();
@@ -48,6 +54,10 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
     if (loadedClasses.length > 0) {
       setStudentData(prev => ({ ...prev, classGroup: loadedClasses[0].name }));
     }
+    
+    // Load existing parents
+    const allUsers = getUsers();
+    setExistingParents(allUsers.filter(u => u.role === 'parent'));
   }, []);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -63,14 +73,19 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
 
   const handleOpenModal = (student?: Student) => {
     setError('');
+    
+    // Refresh parents list
+    const allUsers = getUsers();
+    setExistingParents(allUsers.filter(u => u.role === 'parent'));
+
     if (student) {
       // Edit Mode
       setEditingStudent(student);
       setNewStudentAvatar(student.avatar);
+      setParentMode('new'); // When editing, usually we show data directly, defaulting to 'new' mode UI but prefilled
       
       // Try to find linked parent user to populate credentials
-      const users = getUsers();
-      const parentUser = users.find(u => u.linkedStudentId === student.id && u.role === 'parent');
+      const parentUser = allUsers.find(u => u.linkedStudentId === student.id && u.role === 'parent');
 
       setStudentData({
         name: student.name,
@@ -87,6 +102,9 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
       // Add Mode
       setEditingStudent(null);
       setNewStudentAvatar('');
+      setParentMode('new'); // Default to new parent
+      setSelectedParentId('');
+      
       const defaultClass = classes.length > 0 ? classes[0].name : 'Birds';
       setStudentData({ 
         name: '', 
@@ -101,6 +119,24 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
       });
     }
     setIsModalOpen(true);
+  };
+
+  const handleParentSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const pId = e.target.value;
+    setSelectedParentId(pId);
+    
+    const parent = existingParents.find(p => p.id === pId);
+    if (parent) {
+      setStudentData(prev => ({
+        ...prev,
+        parentName: parent.name,
+        phone: parent.phone || '',
+        parentEmail: parent.email || '',
+        // Clear username/pass as we won't create a new user
+        parentUsername: '',
+        parentPassword: ''
+      }));
+    }
   };
 
   const handleDeleteStudent = (e: React.MouseEvent, id: string) => {
@@ -124,8 +160,8 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
     setError('');
     if (!studentData.name || !studentData.parentName) return;
 
-    // Check parent username duplicate if provided
-    if (studentData.parentUsername) {
+    // Check parent username duplicate if provided (only in 'new' mode)
+    if (parentMode === 'new' && studentData.parentUsername) {
       const allUsers = getUsers();
       const parentUser = editingStudent 
         ? allUsers.find(u => u.linkedStudentId === editingStudent.id && u.role === 'parent')
@@ -182,25 +218,44 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
     setStudents(updatedStudentsList);
     saveStudents(updatedStudentsList);
 
-    // Handle Parent User
+    // Handle Parent User Logic
     const currentUsers = getUsers();
-    const existingParentIndex = currentUsers.findIndex(u => u.linkedStudentId === currentStudentId && u.role === 'parent');
-
-    if (existingParentIndex >= 0) {
-      // Update existing parent user
-      const updatedUsers = [...currentUsers];
-      updatedUsers[existingParentIndex] = {
-        ...updatedUsers[existingParentIndex],
-        name: studentData.parentName,
-        username: studentData.parentUsername.trim() || updatedUsers[existingParentIndex].username,
-        // Only update password if provided
-        password: studentData.parentPassword || updatedUsers[existingParentIndex].password,
-        phone: studentData.phone,
-        email: studentData.parentEmail
-      };
-      saveUsers(updatedUsers);
-    } else if (studentData.parentUsername && studentData.parentPassword) {
-      // Create new parent user if credentials provided
+    
+    // CASE A: Editing Existing Student
+    if (editingStudent) {
+        const existingParentIndex = currentUsers.findIndex(u => u.linkedStudentId === currentStudentId && u.role === 'parent');
+        
+        if (existingParentIndex >= 0) {
+          // Update existing parent user associated with this student
+          const updatedUsers = [...currentUsers];
+          updatedUsers[existingParentIndex] = {
+            ...updatedUsers[existingParentIndex],
+            name: studentData.parentName,
+            username: studentData.parentUsername.trim() || updatedUsers[existingParentIndex].username,
+            password: studentData.parentPassword || updatedUsers[existingParentIndex].password,
+            phone: studentData.phone,
+            email: studentData.parentEmail
+          };
+          saveUsers(updatedUsers);
+        } else if (studentData.parentUsername && studentData.parentPassword) {
+           // Case where student existed but had no parent account, so we create one now
+           const newUser: User = {
+            id: `u-${Date.now()}`,
+            name: studentData.parentName,
+            username: studentData.parentUsername.trim(),
+            password: studentData.parentPassword,
+            role: 'parent',
+            linkedStudentId: currentStudentId,
+            phone: studentData.phone,
+            email: studentData.parentEmail,
+            avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(studentData.parentName)}&background=random`,
+            interests: []
+          };
+          saveUsers([...currentUsers, newUser]);
+        }
+    } 
+    // CASE B: New Student with NEW Parent
+    else if (parentMode === 'new' && studentData.parentUsername && studentData.parentPassword) {
       const newUser: User = {
         id: `u-${Date.now()}`,
         name: studentData.parentName,
@@ -215,6 +270,10 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
       };
       saveUsers([...currentUsers, newUser]);
     }
+    // CASE C: New Student with EXISTING Parent (No user creation needed)
+    // We simply use the parentName and phone stored in student record.
+    // Note: The existing parent User record will still point to their original child via linkedStudentId.
+    // Full multi-child support would require updating the User model to have linkedStudentIds[].
 
     setIsModalOpen(false);
   };
@@ -532,15 +591,53 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
                   </select>
                 </div>
 
-                <div className="col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('parentName')}</label>
-                  <input 
-                    required
-                    type="text" 
-                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-                    value={studentData.parentName}
-                    onChange={e => setStudentData({...studentData, parentName: e.target.value})}
-                  />
+                {/* Parent Information Section */}
+                <div className="col-span-2 mt-2">
+                   <div className="flex items-center justify-between mb-3">
+                      <label className="block text-sm font-medium text-gray-700">{t('parentName')}</label>
+                      
+                      {!editingStudent && (
+                        <div className="flex bg-gray-100 p-1 rounded-lg">
+                           <button
+                             type="button"
+                             onClick={() => setParentMode('new')}
+                             className={`px-3 py-1 text-xs font-bold rounded-md transition-all flex items-center gap-1 ${parentMode === 'new' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-500'}`}
+                           >
+                             <UserPlus size={12} />
+                             {t('parentModeNew')}
+                           </button>
+                           <button
+                             type="button"
+                             onClick={() => setParentMode('existing')}
+                             className={`px-3 py-1 text-xs font-bold rounded-md transition-all flex items-center gap-1 ${parentMode === 'existing' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-500'}`}
+                           >
+                             <UserCheck size={12} />
+                             {t('parentModeExisting')}
+                           </button>
+                        </div>
+                      )}
+                   </div>
+
+                   {parentMode === 'existing' ? (
+                      <select
+                        className="w-full px-4 py-2 border border-indigo-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-indigo-50/30"
+                        value={selectedParentId}
+                        onChange={handleParentSelect}
+                      >
+                        <option value="">{t('selectParent')}</option>
+                        {existingParents.map(p => (
+                          <option key={p.id} value={p.id}>{p.name} ({p.phone})</option>
+                        ))}
+                      </select>
+                   ) : (
+                      <input 
+                        required
+                        type="text" 
+                        className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                        value={studentData.parentName}
+                        onChange={e => setStudentData({...studentData, parentName: e.target.value})}
+                      />
+                   )}
                 </div>
 
                 <div className="col-span-2">
@@ -549,55 +646,63 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
                     required
                     type="tel"
                     dir="ltr"
+                    disabled={parentMode === 'existing'}
                     style={{ direction: 'ltr', textAlign: 'left' }}
-                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-left font-sans"
+                    className={`w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-left font-sans ${parentMode === 'existing' ? 'bg-gray-50 text-gray-500' : ''}`}
                     value={studentData.phone}
                     onChange={e => setStudentData({...studentData, phone: e.target.value})}
                   />
                 </div>
               </div>
 
-              {/* Parent Account Section */}
+              {/* Parent Account Section - Only show inputs if creating NEW parent */}
               <div className="mt-6 pt-4 border-t border-gray-100">
                  <div className="flex items-center gap-2 mb-4 text-indigo-700">
                    <ShieldCheck size={20} />
                    <h4 className="font-bold">{t('parentAccount')}</h4>
                  </div>
                  
-                 <div className="grid grid-cols-2 gap-4">
-                    <div className="col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('parentUsername')}</label>
-                      <input 
-                        type="text" 
-                        className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-gray-50"
-                        value={studentData.parentUsername}
-                        onChange={e => setStudentData({...studentData, parentUsername: e.target.value})}
-                      />
-                    </div>
-                    <div className="col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('email')}</label>
-                      <div className="relative">
+                 {parentMode === 'new' ? (
+                   <div className="grid grid-cols-2 gap-4 animate-fade-in">
+                      <div className="col-span-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">{t('parentUsername')}</label>
                         <input 
-                          type="email" 
-                          className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-gray-50 pl-10"
-                          value={studentData.parentEmail}
-                          onChange={e => setStudentData({...studentData, parentEmail: e.target.value})}
-                          placeholder="parent@example.com"
+                          type="text" 
+                          className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-gray-50"
+                          value={studentData.parentUsername}
+                          onChange={e => setStudentData({...studentData, parentUsername: e.target.value})}
                         />
-                         <Mail size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                       </div>
-                    </div>
-                    <div className="col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('parentPassword')}</label>
-                      <input 
-                        type="password" 
-                        className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-gray-50"
-                        value={studentData.parentPassword}
-                        onChange={e => setStudentData({...studentData, parentPassword: e.target.value})}
-                        placeholder={editingStudent ? t('leaveBlankToKeep') : ""}
-                      />
-                    </div>
-                 </div>
+                      <div className="col-span-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">{t('email')}</label>
+                        <div className="relative">
+                          <input 
+                            type="email" 
+                            className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-gray-50 pl-10"
+                            value={studentData.parentEmail}
+                            onChange={e => setStudentData({...studentData, parentEmail: e.target.value})}
+                            placeholder="parent@example.com"
+                          />
+                           <Mail size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                        </div>
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">{t('parentPassword')}</label>
+                        <input 
+                          type="password" 
+                          className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-gray-50"
+                          value={studentData.parentPassword}
+                          onChange={e => setStudentData({...studentData, parentPassword: e.target.value})}
+                          placeholder={editingStudent ? t('leaveBlankToKeep') : ""}
+                        />
+                      </div>
+                   </div>
+                 ) : (
+                   <div className="p-4 bg-green-50 rounded-xl text-green-700 text-sm flex items-center gap-2">
+                      <CheckCircle size={18} />
+                      Parent account already exists for {studentData.parentName}.
+                   </div>
+                 )}
               </div>
 
               <div className="pt-4 flex gap-3">

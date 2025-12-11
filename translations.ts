@@ -137,6 +137,10 @@ export const translations = {
     parentUsername: "Username (Parent)",
     parentPassword: "Password",
     leaveBlankToKeep: "Leave blank to keep current password",
+    parentMode: "Parent Selection",
+    parentModeNew: "Register New Parent",
+    parentModeExisting: "Select Existing Parent",
+    selectParent: "Select Parent from List",
 
     // Student Detail
     dailyReport: "Daily Report",
@@ -511,6 +515,10 @@ export const translations = {
     parentUsername: "اسم المستخدم (لولي الأمر)",
     parentPassword: "كلمة المرور",
     leaveBlankToKeep: "اتركه فارغاً للإبقاء على كلمة المرور الحالية",
+    parentMode: "اختيار ولي الأمر",
+    parentModeNew: "تسجيل ولي أمر جديد",
+    parentModeExisting: "اختيار ولي أمر موجود",
+    selectParent: "اختر ولي الأمر من القائمة",
 
     // Student Detail
     dailyReport: "التقرير اليومي",
