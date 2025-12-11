@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Trash2, Shield, X, School, Briefcase, AlertCircle, CheckCircle, Save as SaveIcon, Edit2, ChevronLeft, ChevronRight, UserPlus, Users, Calendar, Lock } from 'lucide-react';
+import { Plus, Search, Trash2, Shield, X, School, AlertCircle, CheckCircle, Save as SaveIcon, Edit2, ChevronLeft, ChevronRight, Lock } from 'lucide-react';
 import { getUsers, saveUsers, getStudents, saveStudents, getClasses, saveClasses } from '../services/storageService';
 import { User, UserRole, Student, ClassGroup, StudentStatus } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
