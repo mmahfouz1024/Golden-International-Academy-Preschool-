@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Megaphone, Send, Trash2, Bell } from 'lucide-react';
+import { Megaphone, Send, Trash2, Bell, Calendar } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useNotification } from '../contexts/NotificationContext';
 import { getUsers, getPosts, savePosts } from '../services/storageService';
@@ -75,15 +75,24 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       
-      <div className="flex justify-between items-end">
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 border-b border-gray-100 pb-6">
         <div>
-          <h2 className="text-2xl font-bold text-gray-800">{t('dashboard')}</h2>
-          <p className="text-gray-500 mt-1">{t('overview')}</p>
+          <h2 className="text-3xl font-display font-bold text-gray-800">{t('dashboard')}</h2>
         </div>
-        <div className="text-sm text-gray-500 bg-white px-3 py-1 rounded-full border border-gray-200 shadow-sm">
-          {new Date().toLocaleDateString(language === 'ar' ? 'ar-EG' : 'en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+        
+        <div className={`flex flex-col ${language === 'ar' ? 'md:items-end' : 'md:items-end'} gap-1`}>
+          <div className="flex items-center gap-2 text-indigo-600 bg-indigo-50 px-4 py-2 rounded-2xl">
+             <Calendar size={20} />
+             <span className="text-xl font-bold font-display">
+                {new Date().toLocaleDateString(language === 'ar' ? 'ar-EG' : 'en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+             </span>
+          </div>
+          <span className="text-sm font-medium text-gray-400 px-2 tracking-wide">
+            Golden International Academy & Preschool
+          </span>
         </div>
       </div>
 
