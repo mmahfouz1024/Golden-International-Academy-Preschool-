@@ -407,31 +407,45 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
                   { key: 'lunch', label: t('lunch'), icon: Utensils },
                   { key: 'snack', label: t('snack'), icon: Check },
                 ].map((meal) => (
-                  <div key={meal.key} className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-gray-600">
-                      <meal.icon size={16} />
-                      <span className="text-sm font-medium">{meal.label}</span>
+                  <div key={meal.key} className="space-y-2 pb-2 border-b border-gray-50 last:border-0 last:pb-0">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-gray-600">
+                        <meal.icon size={16} />
+                        <span className="text-sm font-medium">{meal.label}</span>
+                        </div>
+                        <div className="flex bg-gray-100 rounded-lg p-1">
+                        {mealOptions.map((opt) => (
+                            <button
+                            key={opt.value}
+                            disabled={readOnly}
+                            onClick={() => setReport({ ...report, meals: { ...report.meals, [meal.key]: opt.value } })}
+                            className={`px-3 py-1 rounded-md text-xs font-medium transition-all ${
+                                (report.meals as any)[meal.key] === opt.value
+                                ? 'bg-white text-indigo-600 shadow-sm'
+                                : 'text-gray-500 hover:text-gray-700'
+                            }`}
+                            >
+                            {opt.label}
+                            </button>
+                        ))}
+                        </div>
                     </div>
-                    <div className="flex bg-gray-100 rounded-lg p-1">
-                      {mealOptions.map((opt) => (
-                        <button
-                          key={opt.value}
-                          disabled={readOnly}
-                          onClick={() => setReport({ ...report, meals: { ...report.meals, [meal.key]: opt.value } })}
-                          className={`px-3 py-1 rounded-md text-xs font-medium transition-all ${
-                            (report.meals as any)[meal.key] === opt.value
-                              ? 'bg-white text-indigo-600 shadow-sm'
-                              : 'text-gray-500 hover:text-gray-700'
-                          }`}
-                        >
-                          {opt.label}
-                        </button>
-                      ))}
-                    </div>
+                    {/* Specific Meal Item Input */}
+                    <input
+                        type="text"
+                        disabled={readOnly}
+                        placeholder={t('mealItemPlaceholder')}
+                        className="w-full px-3 py-2 bg-gray-50 rounded-lg border border-gray-100 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:opacity-70 disabled:bg-transparent"
+                        value={(report.meals as any)[`${meal.key}Item`] || ''}
+                        onChange={(e) => setReport({
+                            ...report,
+                            meals: { ...report.meals, [`${meal.key}Item`]: e.target.value }
+                        })}
+                    />
                   </div>
                 ))}
                 
-                <div>
+                <div className="pt-2">
                   <label className="text-xs font-bold text-gray-400 mb-1 block">{t('mealNotes')}</label>
                   <textarea 
                     disabled={readOnly}

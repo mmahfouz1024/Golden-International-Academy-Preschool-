@@ -177,6 +177,7 @@ export const translations = {
     addPhoto: "Add Photo",
     noPhotos: "No photos added today",
     noReportForDate: "No daily report has been added for this date yet",
+    mealItemPlaceholder: "Meal item (e.g. Rice, Sandwich)",
 
     // Activity Items
     Montessori: "Montessori",
@@ -564,6 +565,7 @@ export const translations = {
     addPhoto: "إضافة صورة",
     noPhotos: "لم يتم إضافة صور اليوم",
     noReportForDate: "لم يتم إضافة تقرير يومي لهذا التاريخ بعد",
+    mealItemPlaceholder: "صنف الوجبة (مثال: أرز، ساندوتش)",
 
     // Activity Items
     Montessori: "منتسوري",
