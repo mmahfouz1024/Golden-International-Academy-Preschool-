@@ -148,7 +148,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
             {t('welcome')}
             <Sparkles size={20} className="text-yellow-300 animate-spin-slow" />
           </h2>
-          <p className="text-white text-lg font-extrabold mt-2 tracking-wide drop-shadow-md">Golden International Academy & Preschool</p>
+          <p className="text-white text-base font-bold mt-2 tracking-wide drop-shadow-md">Golden International Academy & Preschool</p>
         </div>
 
         {/* Content Section */}
