@@ -148,7 +148,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
             {t('welcome')}
             <Sparkles size={20} className="text-yellow-300 animate-spin-slow" />
           </h2>
-          <p className="text-indigo-100 text-sm opacity-90">{t('appSubtitle')}</p>
+          <p className="text-indigo-100 text-sm opacity-90">Golden International Academy & Preschool</p>
         </div>
 
         {/* Content Section */}
@@ -276,7 +276,8 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
           )}
 
           <div className="text-center pt-6">
-             <p className="text-xs text-gray-400 font-medium">Golden International Academy</p>
+             <p className="text-xs text-gray-400 font-medium">Powered by Mohamed Mahfouz</p>
+             <p className="text-[10px] text-gray-300 mt-0.5">eMail: M.mahfouz1024@gmail.com</p>
           </div>
         </div>
       </div>
