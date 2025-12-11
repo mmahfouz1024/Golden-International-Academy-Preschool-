@@ -191,6 +191,26 @@ export const forceSyncFromCloud = async () => {
   return await syncAllFromCloud();
 };
 
+/**
+ * Specifically sync messages for real-time chat.
+ * Checks cloud if enabled, updates local storage, then returns latest messages.
+ */
+export const syncMessages = async (): Promise<ChatMessage[]> => {
+  if (isCloudEnabled) {
+    try {
+      // 1. Fetch from cloud
+      const { data } = await fetchDataFromCloud(KEYS.MESSAGES);
+      if (data) {
+        // 2. Update local cache
+        localStorage.setItem(KEYS.MESSAGES, JSON.stringify(data));
+      }
+    } catch (e) {
+      console.error("Background message sync failed", e);
+    }
+  }
+  // 3. Return local data (which is now fresh)
+  return getMessages();
+};
 
 // Users
 export const getUsers = (): User[] => {

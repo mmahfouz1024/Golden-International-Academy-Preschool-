@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Send, Search, MessageCircle, X, ChevronLeft, ChevronRight, User as UserIcon } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
-import { getUsers, getMessages, saveMessages } from '../services/storageService';
+import { getUsers, getMessages, saveMessages, syncMessages } from '../services/storageService';
 import { User, ChatMessage } from '../types';
 
 const Chat: React.FC = () => {
@@ -30,7 +30,7 @@ const Chat: React.FC = () => {
     
     setCurrentUser(myUser);
 
-    // 2. Load Messages
+    // 2. Load Messages (Initial)
     const allMessages = getMessages();
     setMessages(allMessages);
 
@@ -51,27 +51,50 @@ const Chat: React.FC = () => {
     loadData();
   }, [isOpen]);
 
-  // Polling for real-time updates
+  // Polling for real-time updates (Cloud Sync & Local Sync)
   useEffect(() => {
-    if (!isOpen) return;
+    // We poll even if closed to show notification badge, but less frequently if closed
+    const pollInterval = isOpen ? 3000 : 10000;
 
-    const interval = setInterval(() => {
-      // Refresh Messages
-      const freshMessages = getMessages();
+    const interval = setInterval(async () => {
+      // 1. Sync messages from cloud (if enabled)
+      const freshMessages = await syncMessages();
+      
       setMessages(prev => {
+        // Simple optimization: only update state if length changed or last ID changed
+        // For a small app, strict equality check via JSON is acceptable
         if (JSON.stringify(prev) !== JSON.stringify(freshMessages)) {
           return freshMessages;
         }
         return prev;
       });
       
-      // Refresh Users (in case someone new registered)
-      loadData();
+      // Refresh Users occasionally (in case someone new registered)
+      if (isOpen) {
+         // We can just re-read local users here
+         const currentUsers = getUsers();
+         if (currentUser && currentUsers.length - 1 !== users.length) {
+             // Re-run filter logic if counts mismatch roughly
+             loadData();
+         }
+      }
 
-    }, 2000); 
+    }, pollInterval); 
 
-    return () => clearInterval(interval);
-  }, [isOpen]);
+    // Also listen for local storage events (Cross-tab sync for same browser)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'golden_academy_messages') {
+        const freshMessages = getMessages();
+        setMessages(freshMessages);
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [isOpen, users.length, currentUser]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -106,7 +129,7 @@ const Chat: React.FC = () => {
     }
   }, [messages.length, selectedUser, isOpen]);
 
-  const handleSendMessage = (e: React.FormEvent) => {
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMessage.trim() || !selectedUser || !currentUser) return;
 
@@ -119,11 +142,11 @@ const Chat: React.FC = () => {
       isRead: false
     };
 
-    // Update state immediately
+    // Update state immediately for UX
     const updatedMessages = [...messages, newMsg];
     setMessages(updatedMessages);
     
-    // Persist to storage
+    // Persist to storage (and sync to cloud)
     saveMessages(updatedMessages);
     
     setNewMessage('');
