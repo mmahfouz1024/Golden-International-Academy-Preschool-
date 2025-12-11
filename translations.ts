@@ -56,7 +56,7 @@ export const translations = {
     
     // SWAPPED ROLES HERE
     roleAdmin: "General Manager",
-    roleManager: "Administrator",
+    roleManager: "Admin",
     
     roleTeacher: "Teacher",
     roleParent: "Parent",
@@ -249,7 +249,7 @@ export const translations = {
     childAge: "Child Age",
     childClass: "Child Class",
     childNotListed: "Child not listed?",
-    adminRestrictedError: "Administrators cannot modify General Manager accounts.",
+    adminRestrictedError: "Admins cannot modify General Manager accounts.",
 
     // Teacher Management
     teacherManagement: "Teacher Management",
@@ -430,7 +430,7 @@ export const translations = {
     
     // SWAPPED ROLES ARABIC
     roleAdmin: "المدير العام",
-    roleManager: "المشرف الإداري",
+    roleManager: "أدمن",
     
     roleTeacher: "المعلم",
     roleParent: "ولي الأمر",
@@ -623,7 +623,7 @@ export const translations = {
     childAge: "عمر الطفل",
     childClass: "فصل الطفل",
     childNotListed: "الطفل غير موجود؟",
-    adminRestrictedError: "عفواً، لا يمكن للمشرف الإداري تعديل حساب المدير العام.",
+    adminRestrictedError: "عفواً، لا يمكن للأدمن تعديل حساب المدير العام.",
 
     // Teacher Management
     teacherManagement: "إدارة المعلمات",
