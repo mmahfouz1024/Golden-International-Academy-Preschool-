@@ -7,6 +7,7 @@ import AIPlanner from './components/AIPlanner';
 import StudentDetail from './components/StudentDetail';
 import Attendance from './components/Attendance';
 import UserManagement from './components/UserManagement';
+import TeacherManagement from './components/TeacherManagement';
 import ClassManagement from './components/ClassManagement';
 import Directory from './components/Directory';
 import ReportsArchive from './components/ReportsArchive';
@@ -304,6 +305,7 @@ const AppContent: React.FC = () => {
       case 'directory': return <Directory />;
       case 'reports-archive': return <ReportsArchive onViewReport={handleViewHistoricalReport} />;
       case 'users': return <UserManagement />;
+      case 'teachers': return <TeacherManagement />;
       case 'classes': return <ClassManagement />;
       case 'database': return <DatabaseControl />;
       // Profile handled above
@@ -414,6 +416,7 @@ const AppContent: React.FC = () => {
                       (currentView === 'directory' && t('directoryTitle')) ||
                       (currentView === 'reports-archive' && t('reportsArchive')) ||
                       (currentView === 'users' && t('users')) ||
+                      (currentView === 'teachers' && t('teacherManagement')) ||
                       (currentView === 'classes' && t('classManagement')) ||
                       (currentView === 'database' && t('dbSettings')) ||
                       (currentView === 'profile' && t('profile'))

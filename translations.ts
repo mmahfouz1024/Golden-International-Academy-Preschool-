@@ -45,6 +45,7 @@ export const translations = {
     attendance: "Attendance",
     aiPlanner: "AI Assistant",
     users: "Users",
+    teachers: "Teachers",
     classes: "Classes",
     directory: "Directory",
     reportsArchive: "Reports Archive",
@@ -205,7 +206,7 @@ export const translations = {
     sendWhatsapp: "Send via WhatsApp",
 
     // User Management
-    userManagement: "User & Teacher Management",
+    userManagement: "User Management",
     manageUsers: "Manage accounts, permissions, and class assignments",
     usersList: "Users List",
     addUser: "Add User",
@@ -229,6 +230,16 @@ export const translations = {
     childAge: "Child Age",
     childClass: "Child Class",
     childNotListed: "Child not listed?",
+
+    // Teacher Management
+    teacherManagement: "Teacher Management",
+    manageTeachers: "Manage teacher profiles and class assignments",
+    addTeacher: "Add Teacher",
+    editTeacher: "Edit Teacher",
+    deleteTeacherConfirm: "Are you sure you want to delete this teacher account?",
+    assignedClasses: "Assigned Classes",
+    email: "Email Address",
+    mobile: "Mobile Number",
 
     // Class Management
     classManagement: "Class Management",
@@ -282,8 +293,6 @@ export const translations = {
     personalInfo: "Personal Information",
     security: "Security & Password",
     fullName: "Account Name",
-    email: "Email Address",
-    mobile: "Mobile Number",
     interests: "Interests (comma separated)",
     changePhoto: "Change Photo",
     currentPassword: "Current Password",
