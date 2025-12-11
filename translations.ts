@@ -1,6 +1,7 @@
 
 
 
+
 export const translations = {
   en: {
     // General
@@ -19,6 +20,7 @@ export const translations = {
     back: "Back",
     yes: "Yes",
     no: "No",
+    allow: "Allow",
     noChildRecord: "No child record linked to this account",
     contactAdmin: "Please contact school administration",
 
@@ -292,6 +294,8 @@ export const translations = {
     enableNotifications: "Enable Mobile Notifications",
     notificationsEnabled: "Notifications Enabled",
     notificationsDesc: "Receive alerts for new messages and announcements",
+    enableSystemNotifications: "Allow System Notifications",
+    systemNotificationsDesc: "Get real-time updates on your phone even when app is closed",
 
     // Notifications
     notifications: "Notifications",

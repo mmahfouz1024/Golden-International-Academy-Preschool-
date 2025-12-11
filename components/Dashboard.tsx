@@ -1,14 +1,19 @@
 
+
+
 import React, { useState, useEffect } from 'react';
-import { Users, UserCheck, GraduationCap, Megaphone, Send, Trash2 } from 'lucide-react';
+import { Users, UserCheck, GraduationCap, Megaphone, Send, Trash2, Bell } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { ATTENDANCE_DATA } from '../constants';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useNotification } from '../contexts/NotificationContext';
 import { getStudents, getUsers, getPosts, savePosts } from '../services/storageService';
 import { Post, User } from '../types';
 
 const Dashboard: React.FC = () => {
   const { t, language } = useLanguage();
+  const { requestPermission, permissionStatus } = useNotification();
+
   const [statsData, setStatsData] = useState({
     totalStudents: 0,
     presentToday: 0,
@@ -96,6 +101,7 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      
       <div className="flex justify-between items-end">
         <div>
           <h2 className="text-2xl font-bold text-gray-800">{t('dashboard')}</h2>
@@ -105,6 +111,27 @@ const Dashboard: React.FC = () => {
           {new Date().toLocaleDateString(language === 'ar' ? 'ar-EG' : 'en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
         </div>
       </div>
+
+      {/* Permission Banner for Mobile Notifications */}
+      {permissionStatus === 'default' && (
+         <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl p-4 shadow-lg text-white flex flex-col sm:flex-row items-center justify-between gap-4 animate-fade-in">
+            <div className="flex items-center gap-3">
+               <div className="p-2 bg-white/20 rounded-lg">
+                  <Bell size={24} className="animate-pulse" />
+               </div>
+               <div>
+                  <h3 className="font-bold">{t('enableSystemNotifications')}</h3>
+                  <p className="text-sm text-indigo-100">{t('systemNotificationsDesc')}</p>
+               </div>
+            </div>
+            <button 
+               onClick={requestPermission}
+               className="bg-white text-indigo-600 px-6 py-2 rounded-lg font-bold hover:bg-indigo-50 transition-colors shadow-sm whitespace-nowrap"
+            >
+               {t('allow')}
+            </button>
+         </div>
+      )}
 
       {/* School Announcements Section - Moved to Top */}
       <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col max-h-[400px]">
@@ -244,4 +271,3 @@ const Dashboard: React.FC = () => {
 };
 
 export default Dashboard;
-    

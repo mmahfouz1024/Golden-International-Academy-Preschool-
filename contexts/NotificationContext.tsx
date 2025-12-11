@@ -1,4 +1,6 @@
 
+
+
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { AppNotification } from '../types';
 import { getNotifications, saveNotifications, getMessages, getPosts } from '../services/storageService';
@@ -103,7 +105,8 @@ export const NotificationProvider: React.FC<{children: React.ReactNode}> = ({ ch
             badge: NOTIFICATION_ICON,
             vibrate: [200, 100, 200],
             tag: 'golden-app',
-            data: { url: '/' }
+            data: { url: '/' },
+            requireInteraction: true // Keeps notification visible until clicked
           } as any).catch(err => console.error("SW Show Notification Error:", err));
         }).catch(e => {
             console.error("SW Registration not ready:", e);
