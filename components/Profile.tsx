@@ -1,8 +1,9 @@
 
 import React, { useState, useRef } from 'react';
-import { User, Mail, Phone, Lock, Camera, Save, Check } from 'lucide-react';
+import { User, Mail, Phone, Lock, Camera, Save, Check, Bell } from 'lucide-react';
 import { User as UserType } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useNotification } from '../contexts/NotificationContext';
 
 interface ProfileProps {
   user: UserType;
@@ -11,6 +12,7 @@ interface ProfileProps {
 
 const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser }) => {
   const { t, language } = useLanguage();
+  const { requestPermission, permissionStatus } = useNotification();
   const [activeTab, setActiveTab] = useState<'details' | 'security'>('details');
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
@@ -93,6 +95,13 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser }) => {
   const showSuccess = (msg: string) => {
     setSuccessMsg(msg);
     setTimeout(() => setSuccessMsg(''), 3000);
+  };
+
+  const handleEnableNotifications = async () => {
+    const granted = await requestPermission();
+    if (granted) {
+      showSuccess(t('notificationsEnabled'));
+    }
   };
 
   return (
@@ -237,50 +246,76 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser }) => {
                 </div>
              </form>
            ) : (
-             <form onSubmit={handlePasswordChange} className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('currentPassword')}</label>
-                  <input 
-                    type="password"
-                    required
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-                    value={passwordData.current}
-                    onChange={e => setPasswordData({...passwordData, current: e.target.value})}
-                  />
-                </div>
+             <div className="space-y-8">
+                 {/* Notification Permission Card */}
+                 <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-xl border border-indigo-100">
+                    <div className="flex items-start gap-4">
+                       <div className="p-3 bg-white rounded-full text-indigo-600 shadow-sm">
+                          <Bell size={24} />
+                       </div>
+                       <div className="flex-1">
+                          <h4 className="font-bold text-gray-800 mb-1">{t('enableNotifications')}</h4>
+                          <p className="text-sm text-gray-600 mb-4">{t('notificationsDesc')}</p>
+                          <button 
+                             onClick={handleEnableNotifications}
+                             disabled={permissionStatus === 'granted'}
+                             className={`px-5 py-2 rounded-lg text-sm font-bold transition-all ${
+                                permissionStatus === 'granted' 
+                                  ? 'bg-green-100 text-green-700 cursor-default'
+                                  : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm'
+                             }`}
+                          >
+                             {permissionStatus === 'granted' ? t('notificationsEnabled') : t('enableNotifications')}
+                          </button>
+                       </div>
+                    </div>
+                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('newPassword')}</label>
-                  <input 
-                    type="password"
-                    required
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-                    value={passwordData.new}
-                    onChange={e => setPasswordData({...passwordData, new: e.target.value})}
-                  />
-                </div>
+                 <form onSubmit={handlePasswordChange} className="space-y-6 pt-2">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">{t('currentPassword')}</label>
+                      <input 
+                        type="password"
+                        required
+                        className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                        value={passwordData.current}
+                        onChange={e => setPasswordData({...passwordData, current: e.target.value})}
+                      />
+                    </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('confirmPassword')}</label>
-                  <input 
-                    type="password"
-                    required
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-                    value={passwordData.confirm}
-                    onChange={e => setPasswordData({...passwordData, confirm: e.target.value})}
-                  />
-                </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">{t('newPassword')}</label>
+                      <input 
+                        type="password"
+                        required
+                        className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                        value={passwordData.new}
+                        onChange={e => setPasswordData({...passwordData, new: e.target.value})}
+                      />
+                    </div>
 
-                <div className="pt-4">
-                  <button 
-                    type="submit"
-                    className="bg-red-500 text-white px-8 py-3 rounded-xl font-bold hover:bg-red-600 shadow-lg shadow-red-200 transition-all flex items-center gap-2"
-                  >
-                    <Lock size={18} />
-                    {t('changePassword')}
-                  </button>
-                </div>
-             </form>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">{t('confirmPassword')}</label>
+                      <input 
+                        type="password"
+                        required
+                        className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                        value={passwordData.confirm}
+                        onChange={e => setPasswordData({...passwordData, confirm: e.target.value})}
+                      />
+                    </div>
+
+                    <div className="pt-4">
+                      <button 
+                        type="submit"
+                        className="bg-red-500 text-white px-8 py-3 rounded-xl font-bold hover:bg-red-600 shadow-lg shadow-red-200 transition-all flex items-center gap-2"
+                      >
+                        <Lock size={18} />
+                        {t('changePassword')}
+                      </button>
+                    </div>
+                 </form>
+             </div>
            )}
 
         </div>

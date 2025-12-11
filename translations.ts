@@ -1,5 +1,6 @@
 
 
+
 export const translations = {
   en: {
     // General
@@ -288,6 +289,9 @@ export const translations = {
     passwordMismatch: "Passwords do not match",
     passwordWrong: "Incorrect current password",
     profileUpdated: "Profile updated successfully",
+    enableNotifications: "Enable Mobile Notifications",
+    notificationsEnabled: "Notifications Enabled",
+    notificationsDesc: "Receive alerts for new messages and announcements",
 
     // Notifications
     notifications: "Notifications",
@@ -295,6 +299,8 @@ export const translations = {
     markAllRead: "Mark all as read",
     newReportMsg: "Daily report updated for student",
     systemMsg: "System Notification",
+    newMessage: "New Message",
+    newAnnouncement: "New Announcement",
 
     // Database
     dbSettings: "Database Settings",
