@@ -347,10 +347,18 @@ const UserManagement: React.FC = () => {
     }
   };
 
-  const filteredUsers = users.filter(u => 
-    u.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    u.username.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredUsers = users.filter(u => {
+    const matchesSearch = u.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                          u.username.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    // VISIBILITY RULE:
+    // If current user is NOT admin (General Manager), hide any user who IS admin (General Manager).
+    if (currentUser?.role !== 'admin' && u.role === 'admin') {
+      return false;
+    }
+
+    return matchesSearch;
+  });
 
   const canEditUser = (targetUser: User) => {
     if (!currentUser) return false;
