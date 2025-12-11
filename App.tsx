@@ -9,6 +9,7 @@ import Attendance from './components/Attendance';
 import UserManagement from './components/UserManagement';
 import TeacherManagement from './components/TeacherManagement';
 import ClassManagement from './components/ClassManagement';
+import DailyScheduleManagement from './components/DailyScheduleManagement';
 import Directory from './components/Directory';
 import ReportsArchive from './components/ReportsArchive';
 import Profile from './components/Profile';
@@ -307,6 +308,7 @@ const AppContent: React.FC = () => {
       case 'users': return <UserManagement />;
       case 'teachers': return <TeacherManagement />;
       case 'classes': return <ClassManagement />;
+      case 'schedule-manage': return <DailyScheduleManagement />;
       case 'database': return <DatabaseControl />;
       // Profile handled above
       case 'parent-view':
@@ -418,6 +420,7 @@ const AppContent: React.FC = () => {
                       (currentView === 'users' && t('users')) ||
                       (currentView === 'teachers' && t('teacherManagement')) ||
                       (currentView === 'classes' && t('classManagement')) ||
+                      (currentView === 'schedule-manage' && t('scheduleManagement')) ||
                       (currentView === 'database' && t('dbSettings')) ||
                       (currentView === 'profile' && t('profile'))
                   )

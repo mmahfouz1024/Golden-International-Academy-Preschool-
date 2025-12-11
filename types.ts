@@ -1,5 +1,4 @@
 
-
 export enum StudentStatus {
   Active = 'Active',
   Inactive = 'Inactive',
@@ -135,4 +134,11 @@ export interface DatabaseConfig {
   key: string;
   autoSync: boolean;
   lastSync?: string;
+}
+
+export interface ScheduleItem {
+  id: string;
+  time: string;
+  title: string;
+  color: 'green' | 'blue' | 'orange' | 'purple' | 'red';
 }

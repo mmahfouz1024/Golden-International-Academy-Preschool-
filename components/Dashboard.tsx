@@ -3,8 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { Megaphone, Send, Trash2, Bell, Calendar } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useNotification } from '../contexts/NotificationContext';
-import { getUsers, getPosts, savePosts } from '../services/storageService';
-import { Post, User } from '../types';
+import { getUsers, getPosts, savePosts, getSchedule } from '../services/storageService';
+import { Post, User, ScheduleItem } from '../types';
 
 const Dashboard: React.FC = () => {
   const { t, language } = useLanguage();
@@ -12,6 +12,7 @@ const Dashboard: React.FC = () => {
   const [isRequestingPermission, setIsRequestingPermission] = useState(false);
   
   const [posts, setPosts] = useState<Post[]>([]);
+  const [schedule, setSchedule] = useState<ScheduleItem[]>([]);
   const [newPostContent, setNewPostContent] = useState('');
   
   // Initialize user synchronously to avoid content flicker
@@ -28,6 +29,11 @@ const Dashboard: React.FC = () => {
     // Fetch real data from storage/database
     const loadedPosts = getPosts();
     setPosts(loadedPosts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+    
+    // Fetch Schedule
+    const loadedSchedule = getSchedule();
+    loadedSchedule.sort((a, b) => a.time.localeCompare(b.time));
+    setSchedule(loadedSchedule);
   }, []);
   
   const handlePost = () => {
@@ -72,6 +78,17 @@ const Dashboard: React.FC = () => {
       hour: '2-digit',
       minute: '2-digit'
     });
+  };
+
+  const getScheduleItemStyle = (color: string) => {
+    switch (color) {
+      case 'green': return 'border-green-500 bg-green-50';
+      case 'blue': return 'border-blue-500 bg-blue-50';
+      case 'orange': return 'border-orange-500 bg-orange-50';
+      case 'purple': return 'border-purple-500 bg-purple-50';
+      case 'red': return 'border-red-500 bg-red-50';
+      default: return 'border-gray-500 bg-gray-50';
+    }
   };
 
   return (
@@ -189,21 +206,25 @@ const Dashboard: React.FC = () => {
             </div>
         </div>
 
-        {/* Daily Schedule */}
+        {/* Daily Schedule - Dynamic Data */}
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 h-fit">
             <h3 className="text-lg font-bold text-gray-800 mb-4">{t('dailySchedule')}</h3>
             <div className="space-y-4">
-              {[
-                { time: '08:00', title: 'Arrival & Reception', color: 'border-green-500 bg-green-50' },
-                { time: '09:00', title: 'Morning Circle', color: 'border-blue-500 bg-blue-50' },
-                { time: '10:30', title: 'Breakfast', color: 'border-orange-500 bg-orange-50' },
-                { time: '11:00', title: 'Free Play', color: 'border-purple-500 bg-purple-50' },
-              ].map((item, idx) => (
-                <div key={idx} className="flex items-start gap-3 p-3 rounded-lg border-l-4 border-r-0 border-gray-200" style={{ borderColor: item.color.split(' ')[0].replace('border-', '') }}>
-                  <span className="text-sm font-bold text-gray-600 bg-white px-2 py-0.5 rounded shadow-sm min-w-[60px] text-center">{item.time}</span>
+              {schedule.map((item) => (
+                <div 
+                  key={item.id} 
+                  className={`flex items-start gap-3 p-3 rounded-lg border-l-4 border-r-0 border-gray-200 ${getScheduleItemStyle(item.color)}`}
+                  style={{ borderColor: getScheduleItemStyle(item.color).split(' ')[0].replace('border-', '') }}
+                >
+                  <span className="text-sm font-bold text-gray-600 bg-white px-2 py-0.5 rounded shadow-sm min-w-[60px] text-center" dir="ltr">{item.time}</span>
                   <span className="text-gray-800 font-medium">{item.title}</span>
                 </div>
               ))}
+              {schedule.length === 0 && (
+                <div className="text-center py-8 text-gray-400 text-sm italic">
+                  --
+                </div>
+              )}
             </div>
         </div>
 

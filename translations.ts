@@ -64,6 +64,7 @@ export const translations = {
     themeGarden: "Garden (Green)",
     themeSunshine: "Sunshine (Orange)",
     database: "Database Management",
+    dailyScheduleManage: "Schedule Management",
 
     // Dashboard
     statsTotalStudents: "Total Students",
@@ -79,6 +80,21 @@ export const translations = {
     post: "Post",
     postedBy: "Posted by",
     deletePost: "Delete Post",
+
+    // Schedule Management
+    scheduleManagement: "Daily Schedule Management",
+    manageSchedule: "Add or edit daily schedule items",
+    addItem: "Add Item",
+    editItem: "Edit Item",
+    time: "Time",
+    activityTitle: "Activity Title",
+    colorLabel: "Color Label",
+    deleteItemConfirm: "Are you sure you want to delete this schedule item?",
+    colorGreen: "Green (Start/Food)",
+    colorBlue: "Blue (Learning)",
+    colorOrange: "Orange (Play/Break)",
+    colorPurple: "Purple (Nap/End)",
+    colorRed: "Red (Important)",
 
     // Daily Report Management
     dailyReportTitle: "Daily Report Management",

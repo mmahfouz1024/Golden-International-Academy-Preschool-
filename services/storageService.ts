@@ -1,6 +1,6 @@
 
 import { MOCK_USERS, MOCK_STUDENTS, MOCK_CLASSES, MOCK_REPORTS } from '../constants';
-import { User, Student, ClassGroup, DailyReport, DatabaseConfig, AppNotification, ChatMessage, Post } from '../types';
+import { User, Student, ClassGroup, DailyReport, DatabaseConfig, AppNotification, ChatMessage, Post, ScheduleItem } from '../types';
 import { initSupabase, syncDataToCloud, fetchDataFromCloud } from './supabaseClient';
 
 const KEYS = {
@@ -11,7 +11,8 @@ const KEYS = {
   DB_CONFIG: 'golden_academy_db_config',
   NOTIFICATIONS: 'golden_academy_notifications',
   MESSAGES: 'golden_academy_messages',
-  POSTS: 'golden_academy_posts'
+  POSTS: 'golden_academy_posts',
+  SCHEDULE: 'golden_academy_schedule'
 };
 
 // Initialize DB
@@ -24,6 +25,13 @@ const DEFAULT_CONFIG: DatabaseConfig = {
   key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpvbXB6aHJyZ2F6YnNxb2V0ZGJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUyNzkzNDMsImV4cCI6MjA4MDg1NTM0M30.av1WThwU7L0WeUHPzw29bt-OL-esWH-OihZJCIgXbAc',
   autoSync: true
 };
+
+const DEFAULT_SCHEDULE: ScheduleItem[] = [
+  { id: '1', time: '08:00', title: 'Arrival & Reception', color: 'green' },
+  { id: '2', time: '09:00', title: 'Morning Circle', color: 'blue' },
+  { id: '3', time: '10:30', title: 'Breakfast', color: 'orange' },
+  { id: '4', time: '11:00', title: 'Free Play', color: 'purple' },
+];
 
 export const initStorage = async (): Promise<{ success: boolean; message?: string }> => {
   const config = getDatabaseConfig();
@@ -44,6 +52,7 @@ export const initStorage = async (): Promise<{ success: boolean; message?: strin
     localStorage.removeItem(KEYS.NOTIFICATIONS);
     localStorage.removeItem(KEYS.MESSAGES);
     localStorage.removeItem(KEYS.POSTS);
+    localStorage.removeItem(KEYS.SCHEDULE);
 
     const connected = initSupabase(config);
     isCloudEnabled = connected;
@@ -74,6 +83,7 @@ export const initStorage = async (): Promise<{ success: boolean; message?: strin
         localStorage.setItem(KEYS.STUDENTS, JSON.stringify(MOCK_STUDENTS));
         localStorage.setItem(KEYS.CLASSES, JSON.stringify(MOCK_CLASSES));
         localStorage.setItem(KEYS.REPORTS, JSON.stringify(MOCK_REPORTS));
+        localStorage.setItem(KEYS.SCHEDULE, JSON.stringify(DEFAULT_SCHEDULE));
         
         // Seed default notification so it exists in DB
         const defaultNotifications: AppNotification[] = [{
@@ -140,7 +150,7 @@ const saveAndSync = async (key: string, data: any) => {
 
 const syncAllFromCloud = async () => {
   try {
-    const keys = [KEYS.USERS, KEYS.STUDENTS, KEYS.CLASSES, KEYS.REPORTS, KEYS.NOTIFICATIONS, KEYS.MESSAGES, KEYS.POSTS];
+    const keys = [KEYS.USERS, KEYS.STUDENTS, KEYS.CLASSES, KEYS.REPORTS, KEYS.NOTIFICATIONS, KEYS.MESSAGES, KEYS.POSTS, KEYS.SCHEDULE];
     let syncedCount = 0;
     for (const key of keys) {
       const { data } = await fetchDataFromCloud(key);
@@ -174,6 +184,7 @@ export const forceSyncToCloud = async () => {
      await syncDataToCloud(KEYS.NOTIFICATIONS, JSON.parse(localStorage.getItem(KEYS.NOTIFICATIONS) || '[]'));
      await syncDataToCloud(KEYS.MESSAGES, JSON.parse(localStorage.getItem(KEYS.MESSAGES) || '[]'));
      await syncDataToCloud(KEYS.POSTS, JSON.parse(localStorage.getItem(KEYS.POSTS) || '[]'));
+     await syncDataToCloud(KEYS.SCHEDULE, JSON.parse(localStorage.getItem(KEYS.SCHEDULE) || JSON.stringify(DEFAULT_SCHEDULE)));
      
      const config = getDatabaseConfig();
      config.lastSync = new Date().toISOString();
@@ -225,6 +236,7 @@ export const createBackupData = () => {
     notifications: getNotifications(),
     messages: getMessages(),
     posts: getPosts(),
+    schedule: getSchedule(),
     // We do NOT include DB_CONFIG to allow restoring data across different environments without breaking auth
   };
   return backup;
@@ -243,6 +255,7 @@ export const restoreBackupData = (data: any) => {
     if (data.notifications) localStorage.setItem(KEYS.NOTIFICATIONS, JSON.stringify(data.notifications));
     if (data.messages) localStorage.setItem(KEYS.MESSAGES, JSON.stringify(data.messages));
     if (data.posts) localStorage.setItem(KEYS.POSTS, JSON.stringify(data.posts));
+    if (data.schedule) localStorage.setItem(KEYS.SCHEDULE, JSON.stringify(data.schedule));
 
     // If cloud is enabled, we should push this restored data to cloud immediately
     if (isCloudEnabled) {
@@ -345,4 +358,17 @@ export const getPosts = (): Post[] => {
 
 export const savePosts = (posts: Post[]) => {
   saveAndSync(KEYS.POSTS, posts);
+};
+
+// Schedule
+export const getSchedule = (): ScheduleItem[] => {
+  const stored = localStorage.getItem(KEYS.SCHEDULE);
+  if (!stored) {
+    return DEFAULT_SCHEDULE;
+  }
+  return JSON.parse(stored);
+};
+
+export const saveSchedule = (schedule: ScheduleItem[]) => {
+  saveAndSync(KEYS.SCHEDULE, schedule);
 };
