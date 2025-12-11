@@ -19,7 +19,7 @@ const Dashboard: React.FC = () => {
   const [newPostContent, setNewPostContent] = useState('');
   
   // Initialize user synchronously to avoid content flicker
-  const [currentUser, setCurrentUser] = useState<User | null>(() => {
+  const [currentUser] = useState<User | null>(() => {
     const userId = localStorage.getItem('golden_session_uid');
     if (userId) {
       const users = getUsers();
@@ -244,3 +244,4 @@ const Dashboard: React.FC = () => {
 };
 
 export default Dashboard;
+    
