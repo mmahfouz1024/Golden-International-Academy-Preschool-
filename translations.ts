@@ -30,12 +30,14 @@ export const translations = {
     demoData: "Demo Data",
     forgotPassword: "Forgot Password?",
     recoverAccount: "Recover Account",
-    enterUsernameRecover: "Enter your username to search",
-    sendRecoveryEmail: "Send Recovery Email",
+    enterUsernameRecover: "Enter your username",
+    sendRecoveryRequest: "Send Reset Request",
     backToLogin: "Back to Login",
     userNotFound: "User not found",
     noEmailLinked: "No email address linked to this account",
     recoverySuccess: "Recovery link sent successfully to",
+    recoveryRequestSent: "Request sent to Admin.",
+    whatsappRecoveryMsg: "The admin has been notified. You will be contacted via WhatsApp with your new password.",
     sending: "Sending...",
 
     // Sidebar
@@ -415,12 +417,14 @@ export const translations = {
     demoData: "بيانات تجريبية",
     forgotPassword: "نسيت كلمة المرور؟",
     recoverAccount: "استعادة الحساب",
-    enterUsernameRecover: "أدخل اسم المستخدم للبحث",
-    sendRecoveryEmail: "إرسال بريد الاستعادة",
+    enterUsernameRecover: "أدخل اسم المستخدم",
+    sendRecoveryRequest: "إرسال طلب الاستعادة",
     backToLogin: "العودة لتسجيل الدخول",
     userNotFound: "المستخدم غير موجود",
     noEmailLinked: "لا يوجد بريد إلكتروني مرتبط بهذا الحساب",
     recoverySuccess: "تم إرسال رابط الاستعادة بنجاح إلى",
+    recoveryRequestSent: "تم إرسال الطلب للإدارة",
+    whatsappRecoveryMsg: "تم ارسال الطلب للادارة وسيتم التواصل معك عبر الواتس اب لتزويدك بكلمة المرور الجديدة",
     sending: "جاري الإرسال...",
 
     // Sidebar
