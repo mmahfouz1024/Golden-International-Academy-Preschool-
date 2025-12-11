@@ -17,6 +17,9 @@ interface NotificationContextType {
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
 
+// Use a reliable external URL for the icon to ensure mobile devices render it
+const NOTIFICATION_ICON = "https://cdn-icons-png.flaticon.com/512/2990/2990638.png";
+
 export const NotificationProvider: React.FC<{children: React.ReactNode}> = ({ children }) => {
   const { t } = useLanguage();
   const [notifications, setNotifications] = useState<AppNotification[]>(() => {
@@ -39,12 +42,12 @@ export const NotificationProvider: React.FC<{children: React.ReactNode}> = ({ ch
 
   const requestPermission = async () => {
     if (typeof Notification === 'undefined') {
-      console.log('This browser does not support desktop notification');
+      alert('This browser does not support notifications.');
       return false;
     }
     
     if (permissionStatus === 'denied') {
-        alert('Notifications are blocked. Please enable them in your browser settings.');
+        alert('Notifications are blocked by your browser.\n\nTo fix:\n1. Click the Lock icon 🔒 in the URL bar.\n2. Click "Permissions" or "Site Settings".\n3. Set Notifications to "Allow".');
         return false;
     }
 
@@ -93,21 +96,33 @@ export const NotificationProvider: React.FC<{children: React.ReactNode}> = ({ ch
     if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.ready.then(registration => {
-          // Cast options to any to avoid TS error with 'vibrate' on some environments
+          // Cast options to any to avoid TS error with 'vibrate'
           registration.showNotification(title, {
             body: message,
-            icon: '/manifest/icon-192x192.png',
+            icon: NOTIFICATION_ICON, // Using valid URL is critical for Android
+            badge: NOTIFICATION_ICON,
             vibrate: [200, 100, 200],
             tag: 'golden-app',
             data: { url: '/' }
-          } as any);
-        }).catch(e => console.error("SW notification error", e));
+          } as any).catch(err => console.error("SW Show Notification Error:", err));
+        }).catch(e => {
+            console.error("SW Registration not ready:", e);
+            // Fallback to standard notification if SW fails
+            try {
+                new Notification(title, {
+                    body: message,
+                    icon: NOTIFICATION_ICON
+                });
+            } catch (fallbackErr) {
+                console.error("Fallback notification failed", fallbackErr);
+            }
+        });
       } else {
-        // Fallback
+        // Fallback for browsers without SW support
         try {
           new Notification(title, {
             body: message,
-            icon: '/manifest/icon-192x192.png'
+            icon: NOTIFICATION_ICON
           });
         } catch (e) {
           console.error("Notification fallback error", e);
@@ -116,8 +131,17 @@ export const NotificationProvider: React.FC<{children: React.ReactNode}> = ({ ch
     }
   };
 
-  const testNotification = () => {
-      addNotification("Test Notification", "This is a test notification from Golden Academy", "success");
+  const testNotification = async () => {
+      if (permissionStatus !== 'granted') {
+          const granted = await requestPermission();
+          if (!granted) return;
+      }
+      
+      try {
+          addNotification("Golden Academy", "This is a test notification! 🔔", "success");
+      } catch (e) {
+          alert("Error sending notification: " + e);
+      }
   };
 
   const markAsRead = (id: string) => {

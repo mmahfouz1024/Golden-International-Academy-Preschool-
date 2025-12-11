@@ -1,6 +1,6 @@
 
 import React, { useState, useRef } from 'react';
-import { User, Mail, Phone, Lock, Camera, Save, Check, Bell } from 'lucide-react';
+import { User, Mail, Phone, Lock, Camera, Save, Check, Bell, AlertTriangle } from 'lucide-react';
 import { User as UserType } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useNotification } from '../contexts/NotificationContext';
@@ -101,6 +101,7 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser }) => {
     const granted = await requestPermission();
     if (granted) {
       showSuccess(t('notificationsEnabled'));
+      setTimeout(() => testNotification(), 1000); // Auto test
     }
   };
 
@@ -279,9 +280,13 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser }) => {
                               )}
                           </div>
                           {permissionStatus === 'denied' && (
-                             <p className="text-xs text-red-500 mt-2 font-bold">
-                                Notifications are blocked. Please enable them in browser settings.
-                             </p>
+                             <div className="mt-4 p-3 bg-red-50 border border-red-100 rounded-lg flex gap-2 text-sm text-red-600">
+                                <AlertTriangle size={16} className="shrink-0 mt-0.5" />
+                                <div>
+                                   <span className="font-bold block">Notifications are blocked.</span>
+                                   To fix: Click the Lock icon (🔒) in your browser address bar and set Notifications to "Allow".
+                                </div>
+                             </div>
                           )}
                        </div>
                     </div>
