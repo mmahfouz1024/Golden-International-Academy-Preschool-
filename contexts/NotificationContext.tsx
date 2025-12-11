@@ -1,6 +1,4 @@
 
-
-
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { AppNotification } from '../types';
 import { getNotifications, saveNotifications, getMessages, getPosts } from '../services/storageService';
@@ -15,6 +13,7 @@ interface NotificationContextType {
   requestPermission: () => Promise<boolean>;
   permissionStatus: NotificationPermission;
   testNotification: () => void;
+  isSupported: boolean;
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
@@ -35,6 +34,10 @@ export const NotificationProvider: React.FC<{children: React.ReactNode}> = ({ ch
     }
     return 'default';
   });
+
+  const [isSupported] = useState<boolean>(() => {
+    return typeof window !== 'undefined' && 'Notification' in window;
+  });
   
   // Refs to track counts for polling
   const lastMessageCount = useRef(0);
@@ -43,14 +46,15 @@ export const NotificationProvider: React.FC<{children: React.ReactNode}> = ({ ch
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
   const requestPermission = async () => {
-    if (typeof Notification === 'undefined') {
-      alert('This browser does not support notifications.');
-      return false;
+    if (!isSupported) {
+       alert(t('notificationsNotSupported'));
+       return false;
     }
     
-    if (permissionStatus === 'denied') {
-        alert('Notifications are blocked by your browser.\n\nTo fix:\n1. Click the Lock icon 🔒 in the URL bar.\n2. Click "Permissions" or "Site Settings".\n3. Set Notifications to "Allow".');
-        return false;
+    // Secure Context Check for Android/Mobile
+    if (!window.isSecureContext && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+       alert(t('httpsRequired'));
+       return false;
     }
 
     try {
@@ -95,7 +99,7 @@ export const NotificationProvider: React.FC<{children: React.ReactNode}> = ({ ch
     setNotifications(prev => [newNotification, ...prev]);
 
     // Show system notification via Service Worker (Best for Mobile)
-    if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+    if (isSupported && Notification.permission === 'granted') {
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.ready.then(registration => {
           // Cast options to any to avoid TS error with 'vibrate'
@@ -213,7 +217,8 @@ export const NotificationProvider: React.FC<{children: React.ReactNode}> = ({ ch
       markAllAsRead,
       requestPermission,
       permissionStatus,
-      testNotification
+      testNotification,
+      isSupported
     }}>
       {children}
     </NotificationContext.Provider>

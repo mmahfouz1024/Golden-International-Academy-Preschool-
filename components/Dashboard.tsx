@@ -1,6 +1,4 @@
 
-
-
 import React, { useState, useEffect } from 'react';
 import { Users, UserCheck, GraduationCap, Megaphone, Send, Trash2, Bell } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
@@ -12,7 +10,7 @@ import { Post, User } from '../types';
 
 const Dashboard: React.FC = () => {
   const { t, language } = useLanguage();
-  const { requestPermission, permissionStatus } = useNotification();
+  const { requestPermission, permissionStatus, isSupported } = useNotification();
 
   const [statsData, setStatsData] = useState({
     totalStudents: 0,
@@ -112,8 +110,8 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Permission Banner for Mobile Notifications */}
-      {permissionStatus === 'default' && (
+      {/* Permission Banner for Mobile Notifications - Only Show if Supported */}
+      {permissionStatus === 'default' && isSupported && (
          <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl p-4 shadow-lg text-white flex flex-col sm:flex-row items-center justify-between gap-4 animate-fade-in">
             <div className="flex items-center gap-3">
                <div className="p-2 bg-white/20 rounded-lg">

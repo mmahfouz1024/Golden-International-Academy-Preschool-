@@ -1,7 +1,4 @@
 
-
-
-
 export const translations = {
   en: {
     // General
@@ -296,8 +293,8 @@ export const translations = {
     notificationsDesc: "Receive alerts for new messages and announcements",
     enableSystemNotifications: "Allow System Notifications",
     systemNotificationsDesc: "Get real-time updates on your phone even when app is closed",
-
-    // Notifications
+    
+    // Notifications & Errors
     notifications: "Notifications",
     noNotifications: "No new notifications",
     markAllRead: "Mark all as read",
@@ -305,6 +302,8 @@ export const translations = {
     systemMsg: "System Notification",
     newMessage: "New Message",
     newAnnouncement: "New Announcement",
+    httpsRequired: "Notifications require HTTPS (or localhost).",
+    notificationsNotSupported: "System notifications not supported on this device.",
 
     // Database
     dbSettings: "Database Settings",
