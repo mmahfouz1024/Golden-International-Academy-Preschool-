@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, Edit2, X, Save as SaveIcon, Clock, CalendarDays } from 'lucide-react';
+import { Plus, Trash2, Edit2, X, Save as SaveIcon, Clock } from 'lucide-react';
 import { getSchedule, saveSchedule } from '../services/storageService';
 import { ScheduleItem } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
