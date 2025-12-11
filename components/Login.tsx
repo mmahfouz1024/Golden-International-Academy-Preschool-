@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { LogIn, Sun, Cloud, Star, Sparkles, UserCircle, KeyRound } from 'lucide-react';
 import { getUsers } from '../services/storageService';
@@ -19,7 +20,15 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const handleLoginSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const users = getUsers();
-    const user = users.find(u => u.username === username && u.password === password);
+    
+    // Normalize inputs: trim whitespace and lowercase username for case-insensitive check
+    const normalizedInputUsername = username.trim().toLowerCase();
+    const normalizedInputPassword = password.trim();
+
+    const user = users.find(u => 
+      u.username.trim().toLowerCase() === normalizedInputUsername && 
+      u.password === normalizedInputPassword
+    );
     
     if (user) {
       onLogin(user);

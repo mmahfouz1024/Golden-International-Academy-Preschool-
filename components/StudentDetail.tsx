@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { 
   Smile, Frown, Meh, Sun, Cloud, Moon, 
   Utensils, Droplets, Clock, Plus, Trash2, 
-  Gamepad2, Pencil, Check, Lock, Image, Save, Calendar, Cake, FileText, ChevronDown, BookOpen
+  Gamepad2, Pencil, Check, Lock, Image, Save, Calendar, Cake, FileText, ChevronDown, BookOpen, X
 } from 'lucide-react';
 import { Student, DailyReport, Mood, MealStatus, BathroomType } from '../types';
 import { getReports, saveReports } from '../services/storageService';
@@ -43,10 +43,17 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
     meals: { breakfast: 'none', lunch: 'none', snack: 'none', waterCups: 0, notes: '' },
     bathroom: [],
     nap: { slept: false, notes: '' },
-    academic: { religion: '', arabic: '', english: '', math: '' },
+    academic: { religion: [], arabic: [], english: [], math: [] },
     activities: [],
     photos: [],
     notes: ''
+  });
+
+  const [academicInputs, setAcademicInputs] = useState({
+    religion: '',
+    arabic: '',
+    english: '',
+    math: ''
   });
 
   const [isSaved, setIsSaved] = useState(false);
@@ -79,11 +86,29 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
     const reportKey = `${student.id}_${selectedDate}`;
     
     if (allReports[reportKey]) {
-      // Ensure academic object exists for legacy reports
       const loadedReport = allReports[reportKey];
+      
+      // Ensure academic object exists and normalize strings to arrays for legacy support
+      const normalizeAcademic = (val: string | string[] | undefined) => {
+         if (Array.isArray(val)) return val;
+         if (typeof val === 'string' && val.trim() !== '') return [val];
+         return [];
+      };
+
       if (!loadedReport.academic) {
-        loadedReport.academic = { religion: '', arabic: '', english: '', math: '' };
+        loadedReport.academic = { religion: [], arabic: [], english: [], math: [] };
+      } else {
+        loadedReport.academic.religion = normalizeAcademic(loadedReport.academic.religion as any);
+        loadedReport.academic.arabic = normalizeAcademic(loadedReport.academic.arabic as any);
+        loadedReport.academic.english = normalizeAcademic(loadedReport.academic.english as any);
+        loadedReport.academic.math = normalizeAcademic(loadedReport.academic.math as any);
       }
+      
+      // Ensure activities array exists
+      if (!Array.isArray(loadedReport.activities)) {
+        loadedReport.activities = [];
+      }
+      
       setReport(loadedReport);
       setDoesReportExist(true);
     } else {
@@ -97,8 +122,8 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
         meals: { breakfast: 'none', lunch: 'none', snack: 'none', waterCups: 0, notes: '' },
         bathroom: [],
         nap: { slept: false, notes: '' },
-        academic: { religion: '', arabic: '', english: '', math: '' },
-        activities: [],
+        academic: { religion: [], arabic: [], english: [], math: [] },
+        activities: [], // Ensure array is initialized
         photos: [],
         notes: ''
       });
@@ -188,6 +213,91 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
         return { ...prev, activities: [...activities, activity] };
       }
     });
+  };
+
+  const handleAddAcademicItem = (subject: keyof typeof academicInputs) => {
+    const val = academicInputs[subject].trim();
+    if (!val) return;
+    
+    setReport(prev => {
+      const currentList = prev.academic?.[subject] || [];
+      return {
+        ...prev,
+        academic: {
+          ...prev.academic,
+          [subject]: [...currentList, val]
+        }
+      };
+    });
+    
+    setAcademicInputs(prev => ({ ...prev, [subject]: '' }));
+  };
+
+  const handleRemoveAcademicItem = (subject: keyof typeof academicInputs, index: number) => {
+    setReport(prev => {
+      const currentList = prev.academic?.[subject] || [];
+      return {
+        ...prev,
+        academic: {
+          ...prev.academic,
+          [subject]: currentList.filter((_, i) => i !== index)
+        }
+      };
+    });
+  };
+
+  const renderAcademicSection = (subjectKey: keyof typeof academicInputs, title: string, isLtr: boolean = false) => {
+    const items = report.academic?.[subjectKey] || [];
+    
+    return (
+      <div className="space-y-2">
+        <label className="text-xs font-bold text-gray-500 block">{title}</label>
+        {!readOnly && (
+          <div className="flex gap-2">
+            <input 
+              type="text"
+              className={`flex-1 p-3 bg-gray-50 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 text-sm ${isLtr ? 'text-left font-sans' : ''}`}
+              dir={isLtr ? 'ltr' : undefined}
+              value={academicInputs[subjectKey]}
+              onChange={e => setAcademicInputs({...academicInputs, [subjectKey]: e.target.value})}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleAddAcademicItem(subjectKey);
+                }
+              }}
+              placeholder={t('add')}
+            />
+            <button 
+              onClick={() => handleAddAcademicItem(subjectKey)}
+              disabled={!academicInputs[subjectKey].trim()}
+              className="bg-indigo-600 text-white p-3 rounded-xl hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+            >
+              <Plus size={20} />
+            </button>
+          </div>
+        )}
+        
+        <div className="flex flex-wrap gap-2">
+          {items.map((item, idx) => (
+             <div key={idx} className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm border font-medium ${isLtr ? 'font-sans' : ''} bg-white border-gray-200 text-gray-700 shadow-sm`}>
+               <span dir={isLtr ? 'ltr' : undefined}>{item}</span>
+               {!readOnly && (
+                 <button 
+                   onClick={() => handleRemoveAcademicItem(subjectKey, idx)}
+                   className="text-gray-400 hover:text-red-500 rounded-full p-0.5 hover:bg-red-50 transition-colors"
+                 >
+                   <X size={14} />
+                 </button>
+               )}
+             </div>
+          ))}
+          {items.length === 0 && readOnly && (
+             <span className="text-sm text-gray-400 italic">--</span>
+          )}
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -438,56 +548,18 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
                 )}
             </div>
 
-            {/* Academic Card (Placed AFTER Nap) */}
+            {/* Academic Card (Updated to allow list of items) */}
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
               <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
                 <BookOpen className="text-indigo-500" />
                 {t('academic')}
               </h3>
               
-              <div className="space-y-4">
-                <div>
-                   <label className="text-xs font-bold text-gray-500 mb-1 block">{t('religion')}</label>
-                   <input 
-                     type="text"
-                     disabled={readOnly}
-                     className="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                     value={report.academic?.religion || ''}
-                     onChange={e => setReport({...report, academic: { ...report.academic, religion: e.target.value }})}
-                   />
-                </div>
-                <div>
-                   <label className="text-xs font-bold text-gray-500 mb-1 block">{t('arabicSubject')}</label>
-                   <input 
-                     type="text"
-                     disabled={readOnly}
-                     className="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                     value={report.academic?.arabic || ''}
-                     onChange={e => setReport({...report, academic: { ...report.academic, arabic: e.target.value }})}
-                   />
-                </div>
-                <div>
-                   <label className="text-xs font-bold text-gray-500 mb-1 block">{t('englishSubject')}</label>
-                   <input 
-                     type="text"
-                     disabled={readOnly}
-                     dir="ltr"
-                     className="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 text-left font-sans"
-                     value={report.academic?.english || ''}
-                     onChange={e => setReport({...report, academic: { ...report.academic, english: e.target.value }})}
-                   />
-                </div>
-                <div>
-                   <label className="text-xs font-bold text-gray-500 mb-1 block">{t('mathSubject')}</label>
-                   <input 
-                     type="text"
-                     disabled={readOnly}
-                     dir="ltr"
-                     className="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 text-left font-sans"
-                     value={report.academic?.math || ''}
-                     onChange={e => setReport({...report, academic: { ...report.academic, math: e.target.value }})}
-                   />
-                </div>
+              <div className="space-y-6">
+                {renderAcademicSection('religion', t('religion'))}
+                {renderAcademicSection('arabic', t('arabicSubject'))}
+                {renderAcademicSection('english', t('englishSubject'), true)}
+                {renderAcademicSection('math', t('mathSubject'), true)}
               </div>
             </div>
 
@@ -499,29 +571,32 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
               </h3>
               
               <div className="grid grid-cols-2 gap-3">
-                {activitiesList.map((act) => (
-                  <div 
-                    key={act}
-                    onClick={() => toggleActivity(act)}
-                    className={`
-                      cursor-pointer flex items-center gap-3 p-3 rounded-xl border-2 transition-all select-none
-                      ${report.activities.includes(act) 
-                        ? 'border-indigo-500 bg-indigo-50' 
-                        : 'border-transparent bg-gray-50 hover:bg-gray-100'}
-                      ${readOnly ? 'cursor-default opacity-80' : ''}
-                    `}
-                  >
-                    <div className={`
-                      w-5 h-5 rounded border flex items-center justify-center transition-colors
-                      ${report.activities.includes(act) ? 'bg-indigo-600 border-indigo-600' : 'bg-white border-gray-300'}
-                    `}>
-                      {report.activities.includes(act) && <Check size={14} className="text-white" />}
+                {activitiesList.map((act) => {
+                  const isSelected = (report.activities || []).includes(act);
+                  return (
+                    <div 
+                      key={act}
+                      onClick={() => toggleActivity(act)}
+                      className={`
+                        cursor-pointer flex items-center gap-3 p-3 rounded-xl border-2 transition-all select-none
+                        ${isSelected
+                          ? 'border-indigo-500 bg-indigo-50' 
+                          : 'border-transparent bg-gray-50 hover:bg-gray-100'}
+                        ${readOnly ? 'cursor-default opacity-80' : ''}
+                      `}
+                    >
+                      <div className={`
+                        w-5 h-5 rounded border flex items-center justify-center transition-colors
+                        ${isSelected ? 'bg-indigo-600 border-indigo-600' : 'bg-white border-gray-300'}
+                      `}>
+                        {isSelected && <Check size={14} className="text-white" />}
+                      </div>
+                      <span className={`text-sm font-medium ${isSelected ? 'text-indigo-700' : 'text-gray-600'}`}>
+                        {t(act as any)}
+                      </span>
                     </div>
-                    <span className={`text-sm font-medium ${report.activities.includes(act) ? 'text-indigo-700' : 'text-gray-600'}`}>
-                      {t(act as any)}
-                    </span>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 

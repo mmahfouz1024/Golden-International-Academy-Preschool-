@@ -1,4 +1,5 @@
 
+
 export enum StudentStatus {
   Active = 'Active',
   Inactive = 'Inactive',
@@ -64,10 +65,10 @@ export interface DailyReport {
     notes?: string;
   };
   academic?: {
-    religion?: string;
-    arabic?: string;
-    english?: string;
-    math?: string;
+    religion?: string[];
+    arabic?: string[];
+    english?: string[];
+    math?: string[];
   };
   activities: string[];
   photos?: string[]; // Array of base64 strings or URLs
