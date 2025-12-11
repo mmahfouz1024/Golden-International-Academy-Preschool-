@@ -62,6 +62,7 @@ const UserManagement: React.FC = () => {
     role: 'teacher',
     permissions: [],
     linkedStudentId: '',
+    linkedStudentIds: [],
     assignedClassIds: []
   });
 
@@ -85,6 +86,12 @@ const UserManagement: React.FC = () => {
       // Find classes where this user is the teacher
       const assignedClasses = classes.filter(c => c.teacherId === user.id);
       
+      // Handle legacy single ID vs new Array ID
+      let currentLinkedIds = user.linkedStudentIds || [];
+      if (currentLinkedIds.length === 0 && user.linkedStudentId) {
+          currentLinkedIds = [user.linkedStudentId];
+      }
+
       setFormData({
         name: user.name,
         username: user.username,
@@ -92,6 +99,7 @@ const UserManagement: React.FC = () => {
         role: user.role,
         permissions: user.permissions || DEFAULT_PERMISSIONS[user.role as keyof typeof DEFAULT_PERMISSIONS] || [],
         linkedStudentId: user.linkedStudentId || '',
+        linkedStudentIds: currentLinkedIds,
         assignedClassIds: assignedClasses.map(c => c.id)
       });
     } else {
@@ -103,6 +111,7 @@ const UserManagement: React.FC = () => {
         role: 'teacher',
         permissions: DEFAULT_PERMISSIONS['teacher'],
         linkedStudentId: '',
+        linkedStudentIds: [],
         assignedClassIds: []
       });
     }
@@ -139,6 +148,16 @@ const UserManagement: React.FC = () => {
     } else {
       setFormData({ ...formData, permissions: [...currentPerms, pageId] });
     }
+  };
+
+  // Helper to toggle linked student for multi-child parent
+  const toggleLinkedStudent = (studentId: string) => {
+      const currentIds = formData.linkedStudentIds || [];
+      if (currentIds.includes(studentId)) {
+          setFormData({ ...formData, linkedStudentIds: currentIds.filter(id => id !== studentId) });
+      } else {
+          setFormData({ ...formData, linkedStudentIds: [...currentIds, studentId] });
+      }
   };
 
   // Helper to calculate age from birthday
@@ -190,7 +209,8 @@ const UserManagement: React.FC = () => {
     }
 
     // Validation: Parent must have a linked student
-    let finalLinkedStudentId = formData.linkedStudentId;
+    let finalLinkedStudentIds = formData.linkedStudentIds || [];
+    let finalLinkedStudentId = formData.linkedStudentId; // Legacy support (usually first child)
 
     if (formData.role === 'parent') {
         // Option A: Registering a NEW student
@@ -219,16 +239,23 @@ const UserManagement: React.FC = () => {
             setStudents(updatedStudentsList);
             saveStudents(updatedStudentsList);
 
-            finalLinkedStudentId = newStudentId;
+            // Add this new student to the list of linked students
+            finalLinkedStudentIds = [...finalLinkedStudentIds, newStudentId];
         } 
-        // Option B: Selecting existing student
-        else if (!finalLinkedStudentId) {
-            setError("Please select a student to link with this parent account.");
+        // Option B: Selecting existing students
+        else if (finalLinkedStudentIds.length === 0) {
+            setError("Please select at least one student to link with this parent account.");
             return;
+        }
+        
+        // Sync legacy ID with the first item in the array for backward compatibility
+        if (finalLinkedStudentIds.length > 0) {
+            finalLinkedStudentId = finalLinkedStudentIds[0];
         }
     } else {
         // If not parent, clear linked student
         finalLinkedStudentId = ''; 
+        finalLinkedStudentIds = [];
     }
 
     // Check for duplicate username
@@ -254,7 +281,8 @@ const UserManagement: React.FC = () => {
           permissions: cleanPermissions,
           username: (formData.username || '').trim(), 
           id: userId,
-          linkedStudentId: finalLinkedStudentId
+          linkedStudentId: finalLinkedStudentId,
+          linkedStudentIds: finalLinkedStudentIds
       } as User : u);
     } else {
       const newUser: User = {
@@ -266,6 +294,7 @@ const UserManagement: React.FC = () => {
         role: formData.role || 'teacher',
         permissions: cleanPermissions,
         linkedStudentId: finalLinkedStudentId,
+        linkedStudentIds: finalLinkedStudentIds,
       } as User;
       updatedUsers = [...users, newUser];
     }
@@ -273,8 +302,10 @@ const UserManagement: React.FC = () => {
     saveUsers(updatedUsers);
 
     // If we created a new student, ensure their "parentName" matches the user name we just saved
-    if (isRegisteringStudent && finalLinkedStudentId) {
-       const fixedStudents = getStudents().map(s => s.id === finalLinkedStudentId ? { ...s, parentName: formData.name! } : s);
+    if (isRegisteringStudent && finalLinkedStudentIds.length > 0) {
+       // We only need to update the newly created one (last added to array)
+       const newChildId = finalLinkedStudentIds[finalLinkedStudentIds.length - 1];
+       const fixedStudents = getStudents().map(s => s.id === newChildId ? { ...s, parentName: formData.name! } : s);
        setStudents(fixedStudents);
        saveStudents(fixedStudents);
     }
@@ -381,10 +412,13 @@ const UserManagement: React.FC = () => {
                       <img src={user.avatar} alt={user.name} className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover border-2 border-white shadow-sm" />
                       <div className="flex flex-col">
                          <span className="font-medium text-gray-900 text-sm sm:text-base group-hover:text-indigo-600 transition-colors">{user.name}</span>
-                         {user.linkedStudentId && (
+                         {/* Show number of linked children if parent */}
+                         {user.role === 'parent' && (user.linkedStudentIds?.length || user.linkedStudentId) && (
                             <span className="text-[10px] text-gray-500 flex items-center gap-1">
                                <School size={10} />
-                               {students.find(s => s.id === user.linkedStudentId)?.name || t('linkedStudent')}
+                               {user.linkedStudentIds && user.linkedStudentIds.length > 1 
+                                  ? `${user.linkedStudentIds.length} Children` 
+                                  : (students.find(s => s.id === user.linkedStudentId)?.name || t('linkedStudent'))}
                             </span>
                          )}
                       </div>
@@ -608,16 +642,19 @@ const UserManagement: React.FC = () => {
                           </div>
                        ) : (
                           <div>
-                            <select
-                              className="w-full px-4 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 bg-white"
-                              value={formData.linkedStudentId}
-                              onChange={e => setFormData({...formData, linkedStudentId: e.target.value})}
-                            >
-                              <option value="">{t('selectStudent')}</option>
-                              {students.map(s => (
-                                <option key={s.id} value={s.id}>{s.name} ({s.classGroup})</option>
-                              ))}
-                            </select>
+                            <div className="mb-2 max-h-40 overflow-y-auto border border-green-200 rounded-lg bg-white p-2 space-y-1">
+                               {students.map(s => (
+                                  <label key={s.id} className="flex items-center gap-2 p-1.5 hover:bg-green-50 rounded cursor-pointer">
+                                     <input 
+                                        type="checkbox"
+                                        checked={formData.linkedStudentIds?.includes(s.id)}
+                                        onChange={() => toggleLinkedStudent(s.id)}
+                                        className="text-green-600 rounded focus:ring-green-500"
+                                     />
+                                     <span className="text-sm text-gray-700">{s.name} <span className="text-xs text-gray-400">({s.classGroup})</span></span>
+                                  </label>
+                               ))}
+                            </div>
                             <p className="text-xs text-green-600 mt-2 flex items-center gap-1 cursor-pointer hover:underline" onClick={() => setIsRegisteringStudent(true)}>
                                <Plus size={12} /> {t('childNotListed')}
                             </p>

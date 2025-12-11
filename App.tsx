@@ -19,7 +19,7 @@ import Login from './components/Login';
 import Chat from './components/Chat';
 import NotificationDropdown from './components/NotificationDropdown';
 import BackgroundPattern from './components/BackgroundPattern';
-import { Menu, Bell, ChevronRight, ChevronLeft, WifiOff, RefreshCw } from 'lucide-react';
+import { Menu, Bell, ChevronRight, ChevronLeft, WifiOff, RefreshCw, Star, Users } from 'lucide-react';
 import { Student, User } from './types';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import { NotificationProvider, useNotification } from './contexts/NotificationContext';
@@ -35,6 +35,9 @@ const AppContent: React.FC = () => {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showNotifications, setShowNotifications] = useState(false);
   
+  // Parent specific: List of children
+  const [parentChildren, setParentChildren] = useState<Student[]>([]);
+
   // Initialization States
   const [isInitialized, setIsInitialized] = useState(false);
   const [initError, setInitError] = useState<string | null>(null);
@@ -64,6 +67,28 @@ const AppContent: React.FC = () => {
     startApp();
   }, []);
 
+  // Helper to find all children for a parent user
+  const findChildrenForParent = (parentUser: User): Student[] => {
+      const allStudents = getStudents();
+      let children: Student[] = [];
+
+      // 1. Check array IDs (New)
+      if (parentUser.linkedStudentIds && parentUser.linkedStudentIds.length > 0) {
+          children = allStudents.filter(s => parentUser.linkedStudentIds!.includes(s.id));
+      } 
+      // 2. Check single ID (Legacy)
+      else if (parentUser.linkedStudentId) {
+          const child = allStudents.find(s => s.id === parentUser.linkedStudentId);
+          if (child) children = [child];
+      }
+      // 3. Fallback match by Name if IDs missing (Robustness)
+      if (children.length === 0) {
+          children = allStudents.filter(s => s.parentName === parentUser.name);
+      }
+      
+      return children;
+  };
+
   // Session Restoration Logic
   useEffect(() => {
     if (isInitialized && !user && !initError) {
@@ -78,12 +103,14 @@ const AppContent: React.FC = () => {
       
              // Route based on role
              if (foundUser.role === 'parent') {
-                const allStudents = getStudents();
-                const child = allStudents.find(s => s.id === foundUser.linkedStudentId);
-                if (child) {
-                  setSelectedStudent(child);
+                const children = findChildrenForParent(foundUser);
+                setParentChildren(children);
+                
+                // If only one child, auto-select
+                if (children.length === 1) {
+                    setSelectedStudent(children[0]);
                 }
-                // Set default view to dashboard for parents
+                // Set default view to dashboard for parents (or child selection)
                 setCurrentView('dashboard');
               } else {
                 if (foundUser.role === 'admin') {
@@ -136,13 +163,15 @@ const AppContent: React.FC = () => {
     localStorage.setItem('golden_session_uid', loggedInUser.id);
     
     if (loggedInUser.role === 'parent') {
-      // Use getStudents() from storageService instead of MOCK_STUDENTS
-      const allStudents = getStudents();
-      const child = allStudents.find(s => s.id === loggedInUser.linkedStudentId);
-      if (child) {
-        setSelectedStudent(child);
+      const children = findChildrenForParent(loggedInUser);
+      setParentChildren(children);
+
+      // If only one child, auto-select. If multiple, selectedStudent remains null (triggering selection screen)
+      if (children.length === 1) {
+        setSelectedStudent(children[0]);
+      } else {
+        setSelectedStudent(null);
       }
-      // Set default view to dashboard for parents
       setCurrentView('dashboard');
     } else {
       if (loggedInUser.role === 'admin') {
@@ -159,6 +188,7 @@ const AppContent: React.FC = () => {
     setUser(null);
     localStorage.removeItem('golden_session_uid'); // Clear session
     setSelectedStudent(null);
+    setParentChildren([]);
     setSelectedReportDate(undefined);
     setCurrentView('dashboard');
   };
@@ -205,10 +235,15 @@ const AppContent: React.FC = () => {
       return;
     }
 
-    // 3. Deselect Student (Admin/Teacher only)
+    // 3. Deselect Student (Admin/Teacher only OR Parent going back to list)
     if (selectedStudent) {
       if (user?.role === 'parent') {
-        // Parent cannot deselect their child, so just go to dashboard if they were viewing child details
+        // If parent has multiple children, go back to selection list
+        if (parentChildren.length > 1) {
+            setSelectedStudent(null);
+            return;
+        }
+        // If single child, they stay on dashboard/detail or handle navigation otherwise
         if (currentView === 'parent-view') {
            setCurrentView('dashboard');
            return;
@@ -237,7 +272,7 @@ const AppContent: React.FC = () => {
   const showBackButton = 
     currentView === 'profile' || 
     !!selectedReportDate || 
-    (!!selectedStudent && user?.role !== 'parent') || 
+    (!!selectedStudent && (user?.role !== 'parent' || parentChildren.length > 1)) || 
     (currentView !== 'dashboard' && currentView !== 'parent-view' && user?.role !== 'parent') ||
     (user?.role === 'parent' && currentView !== 'dashboard');
 
@@ -277,6 +312,45 @@ const AppContent: React.FC = () => {
        }
     }
 
+    // 3. Parent Multi-Child Selection Screen
+    if (user?.role === 'parent' && currentView === 'parent-view' && !selectedStudent) {
+       if (parentChildren.length > 0) {
+           return (
+               <div className="flex flex-col items-center justify-center min-h-[50vh] animate-fade-in">
+                   <div className="text-center mb-8">
+                       <h2 className="text-2xl font-bold text-gray-800 mb-2">{t('selectChildTitle')}</h2>
+                       <p className="text-gray-500">{t('selectChildSubtitle')}</p>
+                   </div>
+                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full max-w-2xl">
+                       {parentChildren.map(child => (
+                           <button 
+                               key={child.id}
+                               onClick={() => setSelectedStudent(child)}
+                               className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md hover:border-indigo-200 transition-all flex flex-col items-center gap-4 group"
+                           >
+                               <img src={child.avatar} alt={child.name} className="w-24 h-24 rounded-full border-4 border-indigo-50 object-cover group-hover:scale-105 transition-transform" />
+                               <div className="text-center">
+                                   <h3 className="text-lg font-bold text-gray-800">{child.name}</h3>
+                                   <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-medium mt-1">
+                                      <Star size={12} /> {child.classGroup}
+                                   </span>
+                               </div>
+                           </button>
+                       ))}
+                   </div>
+               </div>
+           );
+       } else {
+           return (
+              <div className="flex flex-col items-center justify-center h-[50vh] text-gray-400">
+                <Users size={48} className="mb-4 opacity-20" />
+                <p className="text-xl font-medium">{t('noChildRecord')}</p>
+                <p className="text-sm mt-2">{t('contactAdmin')}</p>
+              </div>
+            );
+       }
+    }
+
     const isAllowed = (view: string) => {
        if (!user) return false;
        if (view === 'profile') return true;
@@ -310,14 +384,6 @@ const AppContent: React.FC = () => {
       case 'classes': return <ClassManagement />;
       case 'schedule-manage': return <DailyScheduleManagement />;
       case 'database': return <DatabaseControl />;
-      // Profile handled above
-      case 'parent-view':
-         return (
-          <div className="flex flex-col items-center justify-center h-[50vh] text-gray-400">
-            <p className="text-xl font-medium">{t('noChildRecord')}</p>
-            <p className="text-sm mt-2">{t('contactAdmin')}</p>
-          </div>
-        );
       default: return <Dashboard />;
     }
   };
@@ -406,7 +472,7 @@ const AppContent: React.FC = () => {
 
             <h2 className="text-xl font-bold text-gray-800 hidden sm:block">
               {user.role === 'parent' 
-                ? (currentView === 'dashboard' ? t('dashboard') : t('myChild'))
+                ? (currentView === 'dashboard' ? t('dashboard') : (selectedStudent ? t('myChild') : t('myChildren')))
                 : (selectedStudent 
                     ? t('dailyReport')
                     : (currentView === 'dashboard' && t('dashboard')) ||

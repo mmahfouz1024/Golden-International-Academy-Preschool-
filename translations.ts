@@ -254,6 +254,11 @@ export const translations = {
     childClass: "Child Class",
     childNotListed: "Child not listed?",
     adminRestrictedError: "Admins cannot modify General Manager accounts.",
+    
+    // Parent Multi-Child View
+    selectChildTitle: "Who is using the app?",
+    selectChildSubtitle: "Select a child to view their report",
+    myChildren: "My Children",
 
     // Teacher Management
     teacherManagement: "Teacher Management",
@@ -632,6 +637,11 @@ export const translations = {
     childClass: "فصل الطفل",
     childNotListed: "الطفل غير موجود؟",
     adminRestrictedError: "عفواً، لا يمكن للأدمن تعديل حساب المدير العام.",
+    
+    // Parent Multi-Child View
+    selectChildTitle: "من يستخدم التطبيق؟",
+    selectChildSubtitle: "اختر الطفل لعرض تقريره",
+    myChildren: "أطفالي",
 
     // Teacher Management
     teacherManagement: "إدارة المعلمات",

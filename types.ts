@@ -83,7 +83,8 @@ export interface User {
   name: string;
   role: UserRole;
   permissions?: string[]; // Array of allowed view IDs (e.g., ['dashboard', 'students'])
-  linkedStudentId?: string; // If role is parent
+  linkedStudentId?: string; // Legacy: Single child
+  linkedStudentIds?: string[]; // New: Multiple children support
   avatar?: string;
   email?: string;
   phone?: string;
