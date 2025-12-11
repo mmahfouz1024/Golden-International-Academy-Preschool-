@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Trash2, Shield, X, School, Briefcase, AlertCircle, CheckCircle, Save as SaveIcon, Edit2, ChevronLeft, ChevronRight, UserPlus, Users } from 'lucide-react';
+import { Plus, Search, Trash2, Shield, X, School, Briefcase, AlertCircle, CheckCircle, Save as SaveIcon, Edit2, ChevronLeft, ChevronRight, UserPlus, Users, Calendar } from 'lucide-react';
 import { getUsers, saveUsers, getStudents, saveStudents, getClasses, saveClasses } from '../services/storageService';
 import { User, UserRole, Student, ClassGroup, StudentStatus } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -58,6 +58,7 @@ const UserManagement: React.FC = () => {
   const [newStudentData, setNewStudentData] = useState({
     name: '',
     age: '4',
+    birthday: '',
     classGroup: ''
   });
 
@@ -65,7 +66,7 @@ const UserManagement: React.FC = () => {
     setError('');
     setSuccessMsg('');
     setIsRegisteringStudent(false);
-    setNewStudentData({ name: '', age: '4', classGroup: '' });
+    setNewStudentData({ name: '', age: '4', birthday: '', classGroup: '' });
 
     if (user) {
       setEditingUser(user);
@@ -126,6 +127,23 @@ const UserManagement: React.FC = () => {
     }
   };
 
+  // Helper to calculate age from birthday
+  const handleBirthdayChange = (val: string) => {
+    let age = newStudentData.age;
+    if (val) {
+        const birthDate = new Date(val);
+        const today = new Date();
+        let calculatedAge = today.getFullYear() - birthDate.getFullYear();
+        const m = today.getMonth() - birthDate.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+            calculatedAge--;
+        }
+        // Ensure reasonable age for kindergarten (e.g. at least 2)
+        if (calculatedAge >= 0) age = calculatedAge.toString();
+    }
+    setNewStudentData({ ...newStudentData, birthday: val, age });
+  };
+
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -148,6 +166,7 @@ const UserManagement: React.FC = () => {
                 id: newStudentId,
                 name: newStudentData.name,
                 age: parseInt(newStudentData.age) || 4,
+                birthday: newStudentData.birthday,
                 classGroup: newStudentData.classGroup || (classes.length > 0 ? classes[0].name : 'Birds'),
                 parentName: formData.name || 'Parent', // Temporary parent name until user is saved
                 phone: '', // Will be updated if user provides phone
@@ -526,30 +545,44 @@ const UserManagement: React.FC = () => {
                                   onChange={e => setNewStudentData({...newStudentData, name: e.target.value})}
                                 />
                              </div>
-                             <div className="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label className="block text-xs font-medium text-gray-500 mb-1">{t('childAge')}</label>
+                             
+                             <div className="flex gap-3 items-center">
+                                <div className="flex-1">
+                                    <label className="block text-xs font-medium text-gray-500 mb-1">{t('birthday')}</label>
+                                    <div className="relative">
+                                      <input
+                                        type="date"
+                                        className="w-full pl-8 pr-3 py-2 border border-gray-200 rounded-md focus:ring-1 focus:ring-green-500 focus:border-green-500 text-sm"
+                                        value={newStudentData.birthday}
+                                        onChange={e => handleBirthdayChange(e.target.value)}
+                                      />
+                                      <Calendar size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                                    </div>
+                                </div>
+                                <div className="w-20">
+                                    <label className="block text-xs font-medium text-gray-500 mb-1">{t('studentAge')}</label>
                                     <input
                                       type="number"
-                                      className="w-full px-3 py-2 border border-gray-200 rounded-md focus:ring-1 focus:ring-green-500 focus:border-green-500 text-sm"
+                                      className="w-full px-3 py-2 border border-gray-200 rounded-md focus:ring-1 focus:ring-green-500 focus:border-green-500 text-sm bg-gray-50"
                                       value={newStudentData.age}
                                       onChange={e => setNewStudentData({...newStudentData, age: e.target.value})}
                                     />
                                 </div>
-                                <div>
-                                    <label className="block text-xs font-medium text-gray-500 mb-1">{t('childClass')}</label>
-                                    <select
-                                        className="w-full px-3 py-2 border border-gray-200 rounded-md focus:ring-1 focus:ring-green-500 focus:border-green-500 text-sm bg-white"
-                                        value={newStudentData.classGroup}
-                                        onChange={e => setNewStudentData({...newStudentData, classGroup: e.target.value})}
-                                    >
-                                        <option value="">Select...</option>
-                                        {classes.map(c => (
-                                            <option key={c.id} value={c.name}>{c.name}</option>
-                                        ))}
-                                        {classes.length === 0 && <option value="Birds">Birds</option>}
-                                    </select>
-                                </div>
+                             </div>
+
+                             <div>
+                                <label className="block text-xs font-medium text-gray-500 mb-1">{t('childClass')}</label>
+                                <select
+                                    className="w-full px-3 py-2 border border-gray-200 rounded-md focus:ring-1 focus:ring-green-500 focus:border-green-500 text-sm bg-white"
+                                    value={newStudentData.classGroup}
+                                    onChange={e => setNewStudentData({...newStudentData, classGroup: e.target.value})}
+                                >
+                                    <option value="">Select...</option>
+                                    {classes.map(c => (
+                                        <option key={c.id} value={c.name}>{c.name}</option>
+                                    ))}
+                                    {classes.length === 0 && <option value="Birds">Birds</option>}
+                                </select>
                              </div>
                         </div>
                     ) : (
