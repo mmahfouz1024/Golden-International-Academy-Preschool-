@@ -104,68 +104,8 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {stats.map((stat, index) => {
-          const Icon = stat.icon;
-          return (
-            <div key={index} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4 hover:shadow-md transition-shadow">
-              <div className={`p-4 rounded-xl ${stat.color}`}>
-                <Icon size={24} />
-              </div>
-              <div>
-                <p className="text-sm text-gray-500 font-medium">{stat.label}</p>
-                <div className="flex items-baseline gap-1">
-                  <h3 className="text-2xl font-bold text-gray-800">{stat.value}</h3>
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        {/* Attendance Chart */}
-        <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-            <h3 className="text-lg font-bold text-gray-800 mb-6">{t('attendanceChart')}</h3>
-            <div className="h-64 w-full">
-              <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-                <BarChart data={ATTENDANCE_DATA}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#6b7280' }} dy={10} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#6b7280' }} />
-                  <Tooltip 
-                    cursor={{ fill: '#f9fafb' }}
-                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                  />
-                  <Bar dataKey="present" name="Present" fill="#4f46e5" radius={[4, 4, 0, 0]} barSize={32} />
-                  <Bar dataKey="absent" name="Absent" fill="#fecaca" radius={[4, 4, 0, 0]} barSize={32} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-            <h3 className="text-lg font-bold text-gray-800 mb-4">{t('dailySchedule')}</h3>
-            <div className="space-y-4">
-              {[
-                { time: '08:00', title: 'Arrival & Reception', color: 'border-green-500 bg-green-50' },
-                { time: '09:00', title: 'Morning Circle', color: 'border-blue-500 bg-blue-50' },
-                { time: '10:30', title: 'Breakfast', color: 'border-orange-500 bg-orange-50' },
-                { time: '11:00', title: 'Free Play', color: 'border-purple-500 bg-purple-50' },
-              ].map((item, idx) => (
-                <div key={idx} className="flex items-start gap-3 p-3 rounded-lg border-l-4 border-r-0 border-gray-200" style={{ borderColor: item.color.split(' ')[0].replace('border-', '') }}>
-                  <span className="text-sm font-bold text-gray-600 bg-white px-2 py-0.5 rounded shadow-sm min-w-[60px] text-center">{item.time}</span>
-                  <span className="text-gray-800 font-medium">{item.title}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* School Announcements Section */}
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col h-full max-h-[800px]">
+      {/* School Announcements Section - Moved to Top */}
+      <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col max-h-[400px]">
           <div className="flex items-center gap-2 mb-6">
             <Megaphone className="text-orange-500" size={24} />
             <h3 className="text-lg font-bold text-gray-800">{t('schoolAnnouncements')}</h3>
@@ -228,6 +168,67 @@ const Dashboard: React.FC = () => {
               </div>
             )}
           </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {stats.map((stat, index) => {
+          const Icon = stat.icon;
+          return (
+            <div key={index} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4 hover:shadow-md transition-shadow">
+              <div className={`p-4 rounded-xl ${stat.color}`}>
+                <Icon size={24} />
+              </div>
+              <div>
+                <p className="text-sm text-gray-500 font-medium">{stat.label}</p>
+                <div className="flex items-baseline gap-1">
+                  <h3 className="text-2xl font-bold text-gray-800">{stat.value}</h3>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        {/* Attendance Chart */}
+        <div className="lg:col-span-2 space-y-6">
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+            <h3 className="text-lg font-bold text-gray-800 mb-6">{t('attendanceChart')}</h3>
+            <div className="h-64 w-full">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                <BarChart data={ATTENDANCE_DATA}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#6b7280' }} dy={10} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#6b7280' }} />
+                  <Tooltip 
+                    cursor={{ fill: '#f9fafb' }}
+                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                  />
+                  <Bar dataKey="present" name="Present" fill="#4f46e5" radius={[4, 4, 0, 0]} barSize={32} />
+                  <Bar dataKey="absent" name="Absent" fill="#fecaca" radius={[4, 4, 0, 0]} barSize={32} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+
+        {/* Daily Schedule - Moved to col-span-1 to match previous layout flow but now next to chart */}
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+            <h3 className="text-lg font-bold text-gray-800 mb-4">{t('dailySchedule')}</h3>
+            <div className="space-y-4">
+              {[
+                { time: '08:00', title: 'Arrival & Reception', color: 'border-green-500 bg-green-50' },
+                { time: '09:00', title: 'Morning Circle', color: 'border-blue-500 bg-blue-50' },
+                { time: '10:30', title: 'Breakfast', color: 'border-orange-500 bg-orange-50' },
+                { time: '11:00', title: 'Free Play', color: 'border-purple-500 bg-purple-50' },
+              ].map((item, idx) => (
+                <div key={idx} className="flex items-start gap-3 p-3 rounded-lg border-l-4 border-r-0 border-gray-200" style={{ borderColor: item.color.split(' ')[0].replace('border-', '') }}>
+                  <span className="text-sm font-bold text-gray-600 bg-white px-2 py-0.5 rounded shadow-sm min-w-[60px] text-center">{item.time}</span>
+                  <span className="text-gray-800 font-medium">{item.title}</span>
+                </div>
+              ))}
+            </div>
         </div>
 
       </div>

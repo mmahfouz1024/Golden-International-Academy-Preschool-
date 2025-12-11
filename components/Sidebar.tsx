@@ -31,7 +31,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
 
   const allMenuItems = [
-    { id: 'dashboard', label: t('dashboard'), icon: LayoutDashboard, defaultRoles: ['admin', 'manager', 'teacher'] },
+    { id: 'dashboard', label: t('dashboard'), icon: LayoutDashboard, defaultRoles: ['admin', 'manager', 'teacher', 'parent'] },
     // Chat removed from sidebar
     { id: 'students', label: t('students'), icon: Users, defaultRoles: ['admin', 'manager', 'teacher'] },
     { id: 'attendance', label: t('attendance'), icon: CalendarCheck, defaultRoles: ['admin', 'manager', 'teacher'] },
@@ -50,9 +50,13 @@ const Sidebar: React.FC<SidebarProps> = ({
     // Admin always sees everything (except parent view usually)
     if (user.role === 'admin' && item.id !== 'parent-view') return true;
 
-    // Parent always sees parent view
-    if (user.role === 'parent' && item.id === 'parent-view') return true;
-    if (user.role === 'parent') return false;
+    // Parent Logic
+    if (user.role === 'parent') {
+      if (item.id === 'parent-view' || item.id === 'dashboard') return true;
+      // If explicit permissions exist for the user, use them
+      if (user.permissions && user.permissions.includes(item.id)) return true;
+      return false;
+    }
 
     // If explicit permissions exist for the user, use them
     if (user.permissions && user.permissions.length > 0) {
