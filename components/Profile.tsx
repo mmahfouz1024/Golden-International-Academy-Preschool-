@@ -12,7 +12,7 @@ interface ProfileProps {
 
 const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser }) => {
   const { t, language } = useLanguage();
-  const { requestPermission, permissionStatus } = useNotification();
+  const { requestPermission, permissionStatus, testNotification } = useNotification();
   const [activeTab, setActiveTab] = useState<'details' | 'security'>('details');
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
@@ -256,17 +256,33 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser }) => {
                        <div className="flex-1">
                           <h4 className="font-bold text-gray-800 mb-1">{t('enableNotifications')}</h4>
                           <p className="text-sm text-gray-600 mb-4">{t('notificationsDesc')}</p>
-                          <button 
-                             onClick={handleEnableNotifications}
-                             disabled={permissionStatus === 'granted'}
-                             className={`px-5 py-2 rounded-lg text-sm font-bold transition-all ${
-                                permissionStatus === 'granted' 
-                                  ? 'bg-green-100 text-green-700 cursor-default'
-                                  : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm'
-                             }`}
-                          >
-                             {permissionStatus === 'granted' ? t('notificationsEnabled') : t('enableNotifications')}
-                          </button>
+                          <div className="flex gap-3 flex-wrap">
+                              <button 
+                                 onClick={handleEnableNotifications}
+                                 disabled={permissionStatus === 'granted'}
+                                 className={`px-5 py-2 rounded-lg text-sm font-bold transition-all ${
+                                    permissionStatus === 'granted' 
+                                      ? 'bg-green-100 text-green-700 cursor-default'
+                                      : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm'
+                                 }`}
+                              >
+                                 {permissionStatus === 'granted' ? t('notificationsEnabled') : t('enableNotifications')}
+                              </button>
+                              
+                              {permissionStatus === 'granted' && (
+                                  <button 
+                                     onClick={testNotification}
+                                     className="px-5 py-2 bg-white border border-indigo-200 text-indigo-600 rounded-lg text-sm font-bold hover:bg-indigo-50 shadow-sm"
+                                  >
+                                     Test
+                                  </button>
+                              )}
+                          </div>
+                          {permissionStatus === 'denied' && (
+                             <p className="text-xs text-red-500 mt-2 font-bold">
+                                Notifications are blocked. Please enable them in browser settings.
+                             </p>
+                          )}
                        </div>
                     </div>
                  </div>

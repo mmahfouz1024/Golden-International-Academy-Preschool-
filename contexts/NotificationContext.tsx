@@ -12,6 +12,7 @@ interface NotificationContextType {
   markAllAsRead: () => void;
   requestPermission: () => Promise<boolean>;
   permissionStatus: NotificationPermission;
+  testNotification: () => void;
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
@@ -41,9 +42,23 @@ export const NotificationProvider: React.FC<{children: React.ReactNode}> = ({ ch
       console.log('This browser does not support desktop notification');
       return false;
     }
+    
+    if (permissionStatus === 'denied') {
+        alert('Notifications are blocked. Please enable them in your browser settings.');
+        return false;
+    }
+
     try {
       const result = await Notification.requestPermission();
       setPermissionStatus(result);
+      if (result === 'granted') {
+          // Ensure SW is ready
+          if ('serviceWorker' in navigator) {
+             navigator.serviceWorker.ready.then(registration => {
+                console.log("SW ready for notifications");
+             });
+          }
+      }
       return result === 'granted';
     } catch (e) {
       console.error("Error requesting notification permission", e);
@@ -78,11 +93,13 @@ export const NotificationProvider: React.FC<{children: React.ReactNode}> = ({ ch
     if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.ready.then(registration => {
+          // Cast options to any to avoid TS error with 'vibrate' on some environments
           registration.showNotification(title, {
             body: message,
             icon: '/manifest/icon-192x192.png',
             vibrate: [200, 100, 200],
-            tag: 'golden-app'
+            tag: 'golden-app',
+            data: { url: '/' }
           } as any);
         }).catch(e => console.error("SW notification error", e));
       } else {
@@ -97,6 +114,10 @@ export const NotificationProvider: React.FC<{children: React.ReactNode}> = ({ ch
         }
       }
     }
+  };
+
+  const testNotification = () => {
+      addNotification("Test Notification", "This is a test notification from Golden Academy", "success");
   };
 
   const markAsRead = (id: string) => {
@@ -164,7 +185,8 @@ export const NotificationProvider: React.FC<{children: React.ReactNode}> = ({ ch
       markAsRead, 
       markAllAsRead,
       requestPermission,
-      permissionStatus
+      permissionStatus,
+      testNotification
     }}>
       {children}
     </NotificationContext.Provider>
