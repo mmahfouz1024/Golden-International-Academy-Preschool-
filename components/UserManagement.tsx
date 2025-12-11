@@ -1,8 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Trash2, Shield, X, School, Briefcase, AlertCircle, CheckCircle, Save as SaveIcon, Edit2, ChevronLeft, ChevronRight } from 'lucide-react';
-import { getUsers, saveUsers, getStudents, getClasses, saveClasses } from '../services/storageService';
-import { User, UserRole, Student, ClassGroup } from '../types';
+import { Plus, Search, Trash2, Shield, X, School, Briefcase, AlertCircle, CheckCircle, Save as SaveIcon, Edit2, ChevronLeft, ChevronRight, UserPlus, Users } from 'lucide-react';
+import { getUsers, saveUsers, getStudents, saveStudents, getClasses, saveClasses } from '../services/storageService';
+import { User, UserRole, Student, ClassGroup, StudentStatus } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
 
 const UserManagement: React.FC = () => {
@@ -53,9 +53,20 @@ const UserManagement: React.FC = () => {
     assignedClassIds: []
   });
 
+  // State for quick student registration
+  const [isRegisteringStudent, setIsRegisteringStudent] = useState(false);
+  const [newStudentData, setNewStudentData] = useState({
+    name: '',
+    age: '4',
+    classGroup: ''
+  });
+
   const handleOpenModal = (user?: User) => {
     setError('');
     setSuccessMsg('');
+    setIsRegisteringStudent(false);
+    setNewStudentData({ name: '', age: '4', classGroup: '' });
+
     if (user) {
       setEditingUser(user);
       // Find classes where this user is the teacher
@@ -91,6 +102,10 @@ const UserManagement: React.FC = () => {
       role,
       permissions: DEFAULT_PERMISSIONS[role as keyof typeof DEFAULT_PERMISSIONS] || []
     });
+    // Reset student registration if leaving parent role
+    if (role !== 'parent') {
+        setIsRegisteringStudent(false);
+    }
   };
 
   const togglePermission = (pageId: string) => {
@@ -118,9 +133,44 @@ const UserManagement: React.FC = () => {
     if (!formData.username || !formData.name || !formData.password) return;
 
     // Validation: Parent must have a linked student
-    if (formData.role === 'parent' && !formData.linkedStudentId) {
-      setError("Please select a student to link with this parent account.");
-      return;
+    let finalLinkedStudentId = formData.linkedStudentId;
+
+    if (formData.role === 'parent') {
+        // Option A: Registering a NEW student
+        if (isRegisteringStudent) {
+            if (!newStudentData.name) {
+                setError("Please enter the new child's name.");
+                return;
+            }
+            // Create the new student first
+            const newStudentId = Date.now().toString();
+            const newStudent: Student = {
+                id: newStudentId,
+                name: newStudentData.name,
+                age: parseInt(newStudentData.age) || 4,
+                classGroup: newStudentData.classGroup || (classes.length > 0 ? classes[0].name : 'Birds'),
+                parentName: formData.name || 'Parent', // Temporary parent name until user is saved
+                phone: '', // Will be updated if user provides phone
+                status: StudentStatus.Active,
+                attendanceToday: false,
+                avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(newStudentData.name)}&background=random&color=fff`
+            };
+
+            // Save new student to state and storage
+            const updatedStudentsList = [...students, newStudent];
+            setStudents(updatedStudentsList);
+            saveStudents(updatedStudentsList);
+
+            finalLinkedStudentId = newStudentId;
+        } 
+        // Option B: Selecting existing student
+        else if (!finalLinkedStudentId) {
+            setError("Please select a student to link with this parent account.");
+            return;
+        }
+    } else {
+        // If not parent, clear linked student
+        finalLinkedStudentId = ''; 
     }
 
     // Check for duplicate username
@@ -140,7 +190,13 @@ const UserManagement: React.FC = () => {
 
     // 1. Save User Logic
     if (editingUser) {
-      updatedUsers = users.map(u => u.id === editingUser.id ? { ...u, ...formData, username: (formData.username || '').trim(), id: userId } as User : u);
+      updatedUsers = users.map(u => u.id === editingUser.id ? { 
+          ...u, 
+          ...formData, 
+          username: (formData.username || '').trim(), 
+          id: userId,
+          linkedStudentId: finalLinkedStudentId
+      } as User : u);
     } else {
       const newUser: User = {
         id: userId,
@@ -150,12 +206,19 @@ const UserManagement: React.FC = () => {
         password: formData.password!,
         role: formData.role || 'teacher',
         permissions: formData.permissions,
-        linkedStudentId: formData.linkedStudentId,
+        linkedStudentId: finalLinkedStudentId,
       } as User;
       updatedUsers = [...users, newUser];
     }
     setUsers(updatedUsers);
     saveUsers(updatedUsers);
+
+    // If we created a new student, ensure their "parentName" matches the user name we just saved
+    if (isRegisteringStudent && finalLinkedStudentId) {
+       const fixedStudents = getStudents().map(s => s.id === finalLinkedStudentId ? { ...s, parentName: formData.name! } : s);
+       setStudents(fixedStudents);
+       saveStudents(fixedStudents);
+    }
 
     // 2. Assign/Unassign Multiple Classes Logic
     const canHaveClass = formData.role === 'teacher';
@@ -425,18 +488,82 @@ const UserManagement: React.FC = () => {
 
                 {/* Conditional Fields based on Role */}
                 {formData.role === 'parent' && (
-                  <div className="col-span-2 bg-green-50 p-4 rounded-xl border border-green-100">
-                    <label className="block text-sm font-bold text-green-800 mb-2">{t('linkedStudent')}</label>
-                    <select
-                      className="w-full px-4 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 bg-white"
-                      value={formData.linkedStudentId}
-                      onChange={e => setFormData({...formData, linkedStudentId: e.target.value})}
-                    >
-                      <option value="">{t('selectStudent')}</option>
-                      {students.map(s => (
-                        <option key={s.id} value={s.id}>{s.name} ({s.classGroup})</option>
-                      ))}
-                    </select>
+                  <div className="col-span-2 bg-green-50 p-4 rounded-xl border border-green-100 transition-all">
+                    <div className="flex justify-between items-center mb-2">
+                       <label className="block text-sm font-bold text-green-800">
+                           {isRegisteringStudent ? t('registerNewStudent') : t('linkedStudent')}
+                       </label>
+                       
+                       {/* Toggle Button for Quick Registration */}
+                       <button
+                         type="button"
+                         onClick={() => setIsRegisteringStudent(!isRegisteringStudent)}
+                         className="text-xs flex items-center gap-1 text-green-700 hover:text-green-900 font-bold underline"
+                       >
+                         {isRegisteringStudent ? (
+                             <>
+                                <Users size={12} />
+                                {t('selectExistingStudent')}
+                             </>
+                         ) : (
+                             <>
+                                <UserPlus size={12} />
+                                {t('childNotListed')}
+                             </>
+                         )}
+                       </button>
+                    </div>
+
+                    {isRegisteringStudent ? (
+                        <div className="space-y-3 animate-fade-in bg-white p-3 rounded-lg border border-green-200">
+                             <div>
+                                <label className="block text-xs font-medium text-gray-500 mb-1">{t('childName')}</label>
+                                <input
+                                  type="text"
+                                  className="w-full px-3 py-2 border border-gray-200 rounded-md focus:ring-1 focus:ring-green-500 focus:border-green-500 text-sm"
+                                  placeholder="Child's Full Name"
+                                  value={newStudentData.name}
+                                  onChange={e => setNewStudentData({...newStudentData, name: e.target.value})}
+                                />
+                             </div>
+                             <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label className="block text-xs font-medium text-gray-500 mb-1">{t('childAge')}</label>
+                                    <input
+                                      type="number"
+                                      className="w-full px-3 py-2 border border-gray-200 rounded-md focus:ring-1 focus:ring-green-500 focus:border-green-500 text-sm"
+                                      value={newStudentData.age}
+                                      onChange={e => setNewStudentData({...newStudentData, age: e.target.value})}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-medium text-gray-500 mb-1">{t('childClass')}</label>
+                                    <select
+                                        className="w-full px-3 py-2 border border-gray-200 rounded-md focus:ring-1 focus:ring-green-500 focus:border-green-500 text-sm bg-white"
+                                        value={newStudentData.classGroup}
+                                        onChange={e => setNewStudentData({...newStudentData, classGroup: e.target.value})}
+                                    >
+                                        <option value="">Select...</option>
+                                        {classes.map(c => (
+                                            <option key={c.id} value={c.name}>{c.name}</option>
+                                        ))}
+                                        {classes.length === 0 && <option value="Birds">Birds</option>}
+                                    </select>
+                                </div>
+                             </div>
+                        </div>
+                    ) : (
+                        <select
+                          className="w-full px-4 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 bg-white"
+                          value={formData.linkedStudentId}
+                          onChange={e => setFormData({...formData, linkedStudentId: e.target.value})}
+                        >
+                          <option value="">{t('selectStudent')}</option>
+                          {students.map(s => (
+                            <option key={s.id} value={s.id}>{s.name} ({s.classGroup})</option>
+                          ))}
+                        </select>
+                    )}
                   </div>
                 )}
 

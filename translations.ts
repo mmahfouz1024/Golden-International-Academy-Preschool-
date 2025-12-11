@@ -223,6 +223,12 @@ export const translations = {
     permissions: "Access Permissions",
     selectPermissions: "Select Allowed Pages",
     userNameLabel: "Full Name",
+    registerNewStudent: "Register New Student",
+    selectExistingStudent: "Select Existing Student",
+    childName: "Child Name",
+    childAge: "Child Age",
+    childClass: "Child Class",
+    childNotListed: "Child not listed?",
 
     // Class Management
     classManagement: "Class Management",
