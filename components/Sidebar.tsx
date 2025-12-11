@@ -1,6 +1,7 @@
 
+
 import React, { useState } from 'react';
-import { LayoutDashboard, Users, CalendarCheck, Sparkles, LogOut, Home, Download, UserCog, School, ChevronRight, Contact, FileClock, Palette, Database } from 'lucide-react';
+import { LayoutDashboard, Users, CalendarCheck, Sparkles, LogOut, Home, Download, UserCog, School, ChevronRight, Contact, FileClock, Palette, Database, FileText } from 'lucide-react';
 import { User, Theme } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -32,7 +33,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   const allMenuItems = [
     { id: 'dashboard', label: t('dashboard'), icon: LayoutDashboard, defaultRoles: ['admin', 'manager', 'teacher', 'parent'] },
-    // Chat removed from sidebar
+    { id: 'daily-report', label: t('dailyReportMenu'), icon: FileText, defaultRoles: ['admin', 'manager', 'teacher'] },
     { id: 'students', label: t('students'), icon: Users, defaultRoles: ['admin', 'manager', 'teacher'] },
     { id: 'attendance', label: t('attendance'), icon: CalendarCheck, defaultRoles: ['admin', 'manager', 'teacher'] },
     { id: 'reports-archive', label: t('reportsArchive'), icon: FileClock, defaultRoles: ['admin', 'manager', 'teacher'] },

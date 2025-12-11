@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useRef } from 'react';
 import Sidebar from './components/Sidebar';
 import Dashboard from './components/Dashboard';
@@ -12,6 +13,7 @@ import Directory from './components/Directory';
 import ReportsArchive from './components/ReportsArchive';
 import Profile from './components/Profile';
 import DatabaseControl from './components/DatabaseControl';
+import DailyReportManagement from './components/DailyReportManagement';
 import Login from './components/Login';
 import Chat from './components/Chat';
 import NotificationDropdown from './components/NotificationDropdown';
@@ -291,6 +293,7 @@ const AppContent: React.FC = () => {
 
     switch (currentView) {
       case 'dashboard': return <Dashboard />;
+      case 'daily-report': return <DailyReportManagement />;
       case 'students': return <StudentList onStudentSelect={(student) => setSelectedStudent(student)} />;
       case 'ai-planner': return <AIPlanner />;
       case 'attendance': return <Attendance />;
@@ -399,6 +402,7 @@ const AppContent: React.FC = () => {
                 : (selectedStudent 
                     ? t('dailyReport')
                     : (currentView === 'dashboard' && t('dashboard')) ||
+                      (currentView === 'daily-report' && t('dailyReportMenu')) ||
                       (currentView === 'chat' && t('chat')) ||
                       (currentView === 'students' && t('students')) ||
                       (currentView === 'ai-planner' && t('aiPlanner')) ||

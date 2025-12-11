@@ -1,4 +1,5 @@
 
+
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   Smile, Frown, Meh, Sun, Cloud, Moon, 
@@ -48,8 +49,14 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
     notes: ''
   });
 
-  const [newActivity, setNewActivity] = useState('');
   const [isSaved, setIsSaved] = useState(false);
+
+  // Predefined Activities List
+  const activitiesList = [
+    'Montessori', 'Garden', 'Coloring', 'Art', 'Swimming', 
+    'Puzzle', 'Blocks', 'Songs', 'Etiquette', 
+    'Circle time', 'Learning center', 'P.E'
+  ];
 
   // Helper to format date for display
   const getFormattedDate = (dateString: string) => {
@@ -171,14 +178,16 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
     }));
   };
 
-  const addActivity = () => {
-    if (newActivity.trim()) {
-      setReport(prev => ({
-        ...prev,
-        activities: [...prev.activities, newActivity.trim()]
-      }));
-      setNewActivity('');
-    }
+  const toggleActivity = (activity: string) => {
+    if (readOnly) return;
+    setReport(prev => {
+      const activities = prev.activities || [];
+      if (activities.includes(activity)) {
+        return { ...prev, activities: activities.filter(a => a !== activity) };
+      } else {
+        return { ...prev, activities: [...activities, activity] };
+      }
+    });
   };
 
   return (
@@ -482,47 +491,38 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
               </div>
             </div>
 
+            {/* Activities Card (Updated with Checkboxes) */}
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
               <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
                 <Gamepad2 className="text-indigo-500" />
                 {t('activities')}
               </h3>
               
-              <div className="space-y-2 mb-4">
-                {report.activities.map((act, idx) => (
-                  <div key={idx} className="flex items-center justify-between bg-indigo-50 p-3 rounded-xl">
-                    <span className="text-sm text-indigo-900">{act}</span>
-                    {!readOnly && (
-                      <button 
-                        onClick={() => setReport({ ...report, activities: report.activities.filter((_, i) => i !== idx) })}
-                        className="text-indigo-400 hover:text-indigo-600"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    )}
+              <div className="grid grid-cols-2 gap-3">
+                {activitiesList.map((act) => (
+                  <div 
+                    key={act}
+                    onClick={() => toggleActivity(act)}
+                    className={`
+                      cursor-pointer flex items-center gap-3 p-3 rounded-xl border-2 transition-all select-none
+                      ${report.activities.includes(act) 
+                        ? 'border-indigo-500 bg-indigo-50' 
+                        : 'border-transparent bg-gray-50 hover:bg-gray-100'}
+                      ${readOnly ? 'cursor-default opacity-80' : ''}
+                    `}
+                  >
+                    <div className={`
+                      w-5 h-5 rounded border flex items-center justify-center transition-colors
+                      ${report.activities.includes(act) ? 'bg-indigo-600 border-indigo-600' : 'bg-white border-gray-300'}
+                    `}>
+                      {report.activities.includes(act) && <Check size={14} className="text-white" />}
+                    </div>
+                    <span className={`text-sm font-medium ${report.activities.includes(act) ? 'text-indigo-700' : 'text-gray-600'}`}>
+                      {t(act as any)}
+                    </span>
                   </div>
                 ))}
-                {report.activities.length === 0 && <p className="text-sm text-gray-400 italic text-center py-4">{t('noResults')}</p>}
               </div>
-
-              {!readOnly && (
-                <div className="flex gap-2">
-                  <input 
-                    type="text" 
-                    className="flex-1 px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                    placeholder={t('addActivity')}
-                    value={newActivity}
-                    onChange={(e) => setNewActivity(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && addActivity()}
-                  />
-                  <button 
-                    onClick={addActivity}
-                    className="bg-indigo-600 text-white p-2 rounded-xl hover:bg-indigo-700 transition-colors"
-                  >
-                    <Plus size={20} />
-                  </button>
-                </div>
-              )}
             </div>
 
             <div className="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">

@@ -1,4 +1,5 @@
 
+
 export const translations = {
   en: {
     // General
@@ -39,6 +40,7 @@ export const translations = {
 
     // Sidebar
     dashboard: "Dashboard",
+    dailyReportMenu: "Daily Reports",
     students: "Students",
     attendance: "Attendance",
     aiPlanner: "AI Assistant",
@@ -76,6 +78,18 @@ export const translations = {
     post: "Post",
     postedBy: "Posted by",
     deletePost: "Delete Post",
+
+    // Daily Report Management
+    dailyReportTitle: "Daily Report Management",
+    dailyReportSubtitle: "Create or modify daily reports for students",
+    addNewReport: "Add New Report",
+    editExistingReport: "Edit Existing Report",
+    selectStudentForReport: "Select Student for Report",
+    selectDate: "Select Date",
+    startReporting: "Start Reporting",
+    reportExistsWarning: "A report already exists for this date. Switching to Edit mode.",
+    reportNotFoundWarning: "No report found for this date. Switching to Add mode.",
+    selectOption: "Select an Option",
 
     // Student List
     studentRegistry: "Student Registry",
@@ -135,6 +149,20 @@ export const translations = {
     addPhoto: "Add Photo",
     noPhotos: "No photos added today",
     noReportForDate: "No daily report has been added for this date yet",
+
+    // Activity Items
+    Montessori: "Montessori",
+    Garden: "Garden",
+    Coloring: "Coloring",
+    Art: "Art",
+    Swimming: "Swimming",
+    Puzzle: "Puzzle",
+    Blocks: "Blocks",
+    Songs: "Songs",
+    Etiquette: "Etiquette",
+    "Circle time": "Circle Time",
+    "Learning center": "Learning Center",
+    "P.E": "P.E",
 
     // Moods & Options
     happy: "Happy",
@@ -211,7 +239,6 @@ export const translations = {
     // Reports Archive
     searchReports: "Search Reports",
     searchReportsSubtitle: "Browse past daily reports for students",
-    selectDate: "Select Date",
     allDates: "All Dates",
     viewReport: "View Report",
     reportFor: "Report for",
