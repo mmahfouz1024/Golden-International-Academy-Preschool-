@@ -78,11 +78,13 @@ export const translations = {
     dailySchedule: "Daily Schedule",
     overview: "Overview of kindergarten performance today",
     currency: "SAR",
-    schoolAnnouncements: "School Announcements",
+    schoolAnnouncements: "Bulletin Board",
     writeAnnouncement: "Write a new announcement...",
     post: "Post",
     postedBy: "Posted by",
     deletePost: "Delete Post",
+    pinPost: "Pin to Top",
+    unpinPost: "Unpin",
 
     // Schedule Management
     scheduleManagement: "Daily Schedule Management",
@@ -461,11 +463,13 @@ export const translations = {
     dailySchedule: "الجدول اليومي",
     overview: "نظرة عامة على أداء الروضة اليوم",
     currency: "ريال",
-    schoolAnnouncements: "إعلانات الروضة",
+    schoolAnnouncements: "لوحة الإعلانات",
     writeAnnouncement: "كتابة إعلان جديد...",
     post: "نشر",
     postedBy: "نشر بواسطة",
     deletePost: "حذف المنشور",
+    pinPost: "تثبيت في الأعلى",
+    unpinPost: "إلغاء التثبيت",
 
     // Schedule Management
     scheduleManagement: "إدارة الجدول اليومي",

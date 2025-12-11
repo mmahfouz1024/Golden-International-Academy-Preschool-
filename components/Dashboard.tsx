@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Megaphone, Send, Trash2, Bell, Calendar } from 'lucide-react';
+import { Megaphone, Send, Trash2, Bell, Calendar, Pin, PinOff } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useNotification } from '../contexts/NotificationContext';
 import { getUsers, getPosts, savePosts, getSchedule } from '../services/storageService';
@@ -25,10 +25,20 @@ const Dashboard: React.FC = () => {
     return null;
   });
 
+  const sortPosts = (postsToSort: Post[]) => {
+    return postsToSort.sort((a, b) => {
+      // 1. Sort by Pinned status first
+      if (a.isPinned && !b.isPinned) return -1;
+      if (!a.isPinned && b.isPinned) return 1;
+      // 2. Sort by Date descending
+      return new Date(b.date).getTime() - new Date(a.date).getTime();
+    });
+  };
+
   useEffect(() => {
     // Fetch real data from storage/database
     const loadedPosts = getPosts();
-    setPosts(loadedPosts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+    setPosts(sortPosts(loadedPosts));
     
     // Fetch Schedule
     const loadedSchedule = getSchedule();
@@ -45,10 +55,11 @@ const Dashboard: React.FC = () => {
       authorName: currentUser.name,
       authorRole: currentUser.role,
       content: newPostContent.trim(),
-      date: new Date().toISOString()
+      date: new Date().toISOString(),
+      isPinned: false
     };
 
-    const updatedPosts = [newPost, ...posts];
+    const updatedPosts = sortPosts([newPost, ...posts]);
     setPosts(updatedPosts);
     savePosts(updatedPosts);
     setNewPostContent('');
@@ -60,6 +71,20 @@ const Dashboard: React.FC = () => {
       setPosts(updatedPosts);
       savePosts(updatedPosts);
     }
+  };
+
+  const handleTogglePin = (id: string) => {
+    const updatedPosts = posts.map(p => {
+      if (p.id === id) {
+        return { ...p, isPinned: !p.isPinned };
+      }
+      return p;
+    });
+    
+    // Re-sort and save
+    const sortedPosts = sortPosts(updatedPosts);
+    setPosts(sortedPosts);
+    savePosts(sortedPosts);
   };
 
   const handlePermissionClick = async () => {
@@ -140,7 +165,7 @@ const Dashboard: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
-        {/* School Announcements Section */}
+        {/* School Announcements Section (Bulletin Board) */}
         <div className="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col h-[650px]">
             <div className="flex items-center gap-2 mb-6">
               <Megaphone className="text-orange-500" size={24} />
@@ -172,7 +197,21 @@ const Dashboard: React.FC = () => {
             <div className="flex-1 overflow-y-auto pr-1 custom-scrollbar space-y-4">
               {posts.length > 0 ? (
                 posts.map(post => (
-                  <div key={post.id} className="bg-indigo-50/50 p-4 rounded-xl border border-indigo-100 relative group">
+                  <div 
+                    key={post.id} 
+                    className={`p-4 rounded-xl border relative group transition-all ${
+                        post.isPinned 
+                            ? 'bg-amber-50 border-amber-200 shadow-sm' 
+                            : 'bg-indigo-50/50 border-indigo-100'
+                    }`}
+                  >
+                    {post.isPinned && (
+                        <div className={`absolute top-0 ${language === 'ar' ? 'left-0' : 'right-0'} bg-amber-200 text-amber-800 px-2 py-0.5 rounded-bl-lg rounded-tr-lg text-[10px] font-bold flex items-center gap-1`}>
+                            <Pin size={10} fill="currentColor" />
+                            Pinned
+                        </div>
+                    )}
+
                     <div className="flex justify-between items-start mb-2">
                       <div className="flex items-center gap-2">
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white ${post.authorRole === 'admin' ? 'bg-purple-500' : 'bg-orange-500'}`}>
@@ -183,17 +222,28 @@ const Dashboard: React.FC = () => {
                           <p className="text-[10px] text-gray-500">{t(`role${post.authorRole.charAt(0).toUpperCase() + post.authorRole.slice(1)}` as any)} • {getRelativeTime(post.date)}</p>
                         </div>
                       </div>
+                      
+                      {/* Action Buttons */}
                       {canCreatePost && (
-                        <button 
-                          onClick={() => handleDeletePost(post.id)}
-                          className="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
-                          title={t('deletePost')}
-                        >
-                          <Trash2 size={16} />
-                        </button>
+                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button
+                                onClick={() => handleTogglePin(post.id)}
+                                className={`p-1.5 rounded-lg transition-colors ${post.isPinned ? 'text-amber-600 hover:bg-amber-100' : 'text-gray-400 hover:text-indigo-500 hover:bg-indigo-50'}`}
+                                title={post.isPinned ? t('unpinPost') : t('pinPost')}
+                            >
+                                {post.isPinned ? <PinOff size={16} /> : <Pin size={16} />}
+                            </button>
+                            <button 
+                              onClick={() => handleDeletePost(post.id)}
+                              className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                              title={t('deletePost')}
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                        </div>
                       )}
                     </div>
-                    <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap">
+                    <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap mt-2">
                       {post.content}
                     </p>
                   </div>

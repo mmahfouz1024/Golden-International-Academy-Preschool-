@@ -125,6 +125,7 @@ export interface Post {
   authorRole: UserRole;
   content: string;
   date: string;
+  isPinned?: boolean;
 }
 
 export type Theme = 'smart' | 'blossom' | 'garden' | 'sunshine';
