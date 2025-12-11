@@ -110,10 +110,21 @@ const UserManagement: React.FC = () => {
   };
 
   const handleRoleChange = (role: UserRole) => {
+    // Determine default permissions based on role
+    let newPermissions = DEFAULT_PERMISSIONS[role as keyof typeof DEFAULT_PERMISSIONS] || [];
+    
+    // Strict Clean up immediately on change
+    if (role === 'teacher') {
+        newPermissions = newPermissions.filter(p => p !== 'users');
+    }
+    if (currentUser?.role === 'manager') {
+        newPermissions = newPermissions.filter(p => p !== 'database');
+    }
+
     setFormData({
       ...formData,
       role,
-      permissions: DEFAULT_PERMISSIONS[role as keyof typeof DEFAULT_PERMISSIONS] || []
+      permissions: newPermissions
     });
     // Reset student registration if leaving parent role
     if (role !== 'parent') {
@@ -164,6 +175,19 @@ const UserManagement: React.FC = () => {
     }
 
     if (!formData.username || !formData.name || !formData.password) return;
+
+    // --- ENFORCE PERMISSION RULES ---
+    let cleanPermissions = formData.permissions || [];
+
+    // Rule 1: Teacher cannot have 'users' permission
+    if (formData.role === 'teacher') {
+        cleanPermissions = cleanPermissions.filter(p => p !== 'users');
+    }
+
+    // Rule 2: Manager cannot grant 'database' permission
+    if (currentUser?.role === 'manager') {
+        cleanPermissions = cleanPermissions.filter(p => p !== 'database');
+    }
 
     // Validation: Parent must have a linked student
     let finalLinkedStudentId = formData.linkedStudentId;
@@ -227,6 +251,7 @@ const UserManagement: React.FC = () => {
       updatedUsers = users.map(u => u.id === editingUser.id ? { 
           ...u, 
           ...formData, 
+          permissions: cleanPermissions,
           username: (formData.username || '').trim(), 
           id: userId,
           linkedStudentId: finalLinkedStudentId
@@ -239,7 +264,7 @@ const UserManagement: React.FC = () => {
         username: (formData.username || '').trim(),
         password: formData.password!,
         role: formData.role || 'teacher',
-        permissions: formData.permissions,
+        permissions: cleanPermissions,
         linkedStudentId: finalLinkedStudentId,
       } as User;
       updatedUsers = [...users, newUser];
@@ -609,17 +634,24 @@ const UserManagement: React.FC = () => {
                        {t('permissions')}
                     </label>
                     <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto custom-scrollbar">
-                       {ALL_PAGES.map(page => (
-                         <label key={page.id} className="flex items-center gap-2 bg-white p-2 rounded-lg border border-gray-200 cursor-pointer hover:bg-indigo-50/50 transition-colors">
-                            <input 
-                              type="checkbox"
-                              className="text-indigo-600 rounded focus:ring-indigo-500"
-                              checked={formData.permissions?.includes(page.id)}
-                              onChange={() => togglePermission(page.id)}
-                            />
-                            <span className="text-xs font-medium text-gray-600">{page.label}</span>
-                         </label>
-                       ))}
+                       {ALL_PAGES.map(page => {
+                         const isDatabaseRestricted = currentUser?.role === 'manager' && page.id === 'database';
+                         const isUsersRestrictedForTeacher = formData.role === 'teacher' && page.id === 'users';
+                         const isDisabled = isDatabaseRestricted || isUsersRestrictedForTeacher;
+
+                         return (
+                           <label key={page.id} className={`flex items-center gap-2 bg-white p-2 rounded-lg border border-gray-200 transition-colors ${isDisabled ? 'opacity-50 cursor-not-allowed bg-gray-100' : 'cursor-pointer hover:bg-indigo-50/50'}`}>
+                              <input 
+                                type="checkbox"
+                                className="text-indigo-600 rounded focus:ring-indigo-500"
+                                checked={formData.permissions?.includes(page.id)}
+                                onChange={() => !isDisabled && togglePermission(page.id)}
+                                disabled={isDisabled}
+                              />
+                              <span className="text-xs font-medium text-gray-600">{page.label}</span>
+                           </label>
+                         );
+                       })}
                     </div>
                   </div>
                 )}
