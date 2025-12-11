@@ -46,30 +46,55 @@ export const NotificationProvider: React.FC<{children: React.ReactNode}> = ({ ch
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
-  const requestPermission = async () => {
-    // APK/WebView compatibility: Attempt request even if checks fail, 
-    // as wrappers often inject functionality.
-    try {
-      if (typeof Notification === 'undefined') {
-          console.error("Notification API not found");
-          return false;
-      }
+  const requestPermission = async (): Promise<boolean> => {
+    // 1. Basic Support Check
+    if (typeof Notification === 'undefined') {
+      console.error("Notification API not found");
+      alert(t('notificationsNotSupported'));
+      return false;
+    }
 
-      const result = await Notification.requestPermission();
-      setPermissionStatus(result);
+    try {
+      // 2. Wrap Promise/Callback logic for wide compatibility (Android WebView fix)
+      const permission = await new Promise<NotificationPermission>((resolve) => {
+        const result = Notification.requestPermission((status) => {
+          resolve(status);
+        });
+        // If it returns a promise (modern browsers), handle it
+        if (result && typeof result.then === 'function') {
+           result.then(resolve).catch((e) => {
+             console.error("Permission Request Promise failed", e);
+             resolve('denied');
+           });
+        }
+      });
+
+      console.log("Permission Request Result:", permission);
+      setPermissionStatus(permission);
       
-      if (result === 'granted') {
+      if (permission === 'granted') {
           // Ensure SW is ready
           if ('serviceWorker' in navigator) {
              navigator.serviceWorker.ready.then(() => {
                 console.log("SW ready for notifications");
              });
           }
+          // Send a test immediate notification to confirm
+          try {
+             // Basic test
+             new Notification(t('appTitle'), { body: t('notificationsEnabled'), icon: NOTIFICATION_ICON });
+          } catch(e) {
+             console.log("Immediate test notification failed (background is ok)");
+          }
+          return true;
+      } else if (permission === 'denied') {
+          // If explicitly denied, user must enable in settings
+          alert(t('notificationsBlockedMsg'));
+          return false;
       }
-      return result === 'granted';
+      return false;
     } catch (e) {
       console.error("Error requesting notification permission", e);
-      // Even if it fails, we return false but don't crash
       return false;
     }
   };

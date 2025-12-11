@@ -304,6 +304,7 @@ export const translations = {
     newAnnouncement: "New Announcement",
     httpsRequired: "Notifications require HTTPS (or localhost).",
     notificationsNotSupported: "System notifications not supported on this device.",
+    notificationsBlockedMsg: "Notifications are blocked. Please enable them in your device settings.",
 
     // Database
     dbSettings: "Database Settings",
