@@ -7,10 +7,9 @@ import { User, ChatMessage } from '../types';
 
 const Chat: React.FC = () => {
   const { t, language } = useLanguage();
-  // Get current user directly to ensure we have the session even if context isn't fully ready
-  const currentUser = JSON.parse(localStorage.getItem('golden_academy_users') || '[]').find((u: User) => u.id === localStorage.getItem('golden_session_uid'));
   
   const [isOpen, setIsOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [users, setUsers] = useState<User[]>([]);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -18,39 +17,74 @@ const Chat: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Initialize Data
+  // Initialize Data when Chat Opens or on Mount
   useEffect(() => {
-    if (!currentUser) return;
+    const loadData = () => {
+      // 1. Get Current User securely
+      const allUsers = getUsers();
+      const storedUid = localStorage.getItem('golden_session_uid');
+      const myUser = allUsers.find(u => u.id === storedUid);
+      
+      if (!myUser) return;
+      setCurrentUser(myUser);
 
-    const allUsers = getUsers();
-    const allMessages = getMessages();
-    setMessages(allMessages);
+      // 2. Load Messages
+      const allMessages = getMessages();
+      setMessages(allMessages);
 
-    let filteredUsers = allUsers.filter(u => u.id !== currentUser.id);
+      // 3. Filter Users for the Contact List
+      let filteredUsers = allUsers.filter(u => u.id !== myUser.id);
 
-    if (currentUser.role === 'parent') {
-      // Parents can see admins AND managers
-      filteredUsers = filteredUsers.filter(u => u.role === 'admin' || u.role === 'manager');
+      if (myUser.role === 'parent') {
+        // Parent sees ONLY Admin and Manager
+        filteredUsers = filteredUsers.filter(u => u.role === 'admin' || u.role === 'manager');
+      } 
+      // Admin and Manager see EVERYONE (no filter needed)
+      
+      setUsers(filteredUsers);
+    };
+
+    loadData();
+
+    // Re-load data when opening chat to ensure freshness
+    if (isOpen) {
+      loadData();
     }
-    
-    setUsers(filteredUsers);
-  }, [currentUser?.id, isOpen]); // Re-run when user or open state changes
+  }, [isOpen]);
 
   // Polling for real-time updates
   useEffect(() => {
+    if (!isOpen) return;
+
     const interval = setInterval(() => {
       const freshMessages = getMessages();
       setMessages(prev => {
-        // Only update state if stringified content is different to avoid unnecessary re-renders
         if (JSON.stringify(prev) !== JSON.stringify(freshMessages)) {
           return freshMessages;
         }
         return prev;
       });
-    }, 2000); // Poll every 2 seconds
+      
+      // Also refresh user list in case new users added
+      const allUsers = getUsers();
+      const storedUid = localStorage.getItem('golden_session_uid');
+      const myUser = allUsers.find(u => u.id === storedUid);
+      
+      if (myUser) {
+        let filteredUsers = allUsers.filter(u => u.id !== myUser.id);
+        if (myUser.role === 'parent') {
+           filteredUsers = filteredUsers.filter(u => u.role === 'admin' || u.role === 'manager');
+        }
+        setUsers(prev => {
+           if (prev.length !== filteredUsers.length) return filteredUsers;
+           return prev;
+        });
+      }
+
+    }, 2000); 
 
     return () => clearInterval(interval);
-  }, []);
+  }, [isOpen]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -59,7 +93,6 @@ const Chat: React.FC = () => {
   // Mark messages as read and scroll to bottom
   useEffect(() => {
     if (isOpen && selectedUser && currentUser) {
-      // Check if there are actually unread messages to avoid infinite loop of setMessages
       const hasUnread = messages.some(m => 
         m.senderId === selectedUser.id && 
         m.receiverId === currentUser.id && 
@@ -128,7 +161,8 @@ const Chat: React.FC = () => {
     return messages.filter(m => m.senderId === senderId && m.receiverId === currentUser.id && !m.isRead).length;
   };
 
-  if (!currentUser) return null;
+  // If user is not logged in, don't show chat button
+  if (!localStorage.getItem('golden_session_uid')) return null;
 
   return (
     <>
@@ -150,7 +184,7 @@ const Chat: React.FC = () => {
       </button>
 
       {/* Chat Widget Popup */}
-      {isOpen && (
+      {isOpen && currentUser && (
         <div className={`fixed bottom-24 ${language === 'ar' ? 'left-6' : 'right-6'} w-[90vw] md:w-96 h-[600px] max-h-[80vh] bg-white rounded-2xl shadow-2xl border border-gray-100 flex flex-col overflow-hidden z-40 animate-fade-in`}>
           
           {/* Header */}
@@ -221,6 +255,8 @@ const Chat: React.FC = () => {
                     {getFilteredUsers().length === 0 && (
                         <div className="text-center py-8 text-gray-400 text-sm">
                          {t('noResults')}
+                         <br/>
+                         <span className="text-xs opacity-70">(Check visibility permissions)</span>
                         </div>
                     )}
                 </div>
