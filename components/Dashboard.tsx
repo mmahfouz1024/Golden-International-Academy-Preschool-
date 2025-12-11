@@ -141,7 +141,7 @@ const Dashboard: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         {/* School Announcements Section */}
-        <div className="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col h-[500px]">
+        <div className="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col h-[650px]">
             <div className="flex items-center gap-2 mb-6">
               <Megaphone className="text-orange-500" size={24} />
               <h3 className="text-lg font-bold text-gray-800">{t('schoolAnnouncements')}</h3>
