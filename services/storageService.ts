@@ -212,6 +212,50 @@ export const syncMessages = async (): Promise<ChatMessage[]> => {
   return getMessages();
 };
 
+// --- BACKUP AND RESTORE FUNCTIONS ---
+
+export const createBackupData = () => {
+  const backup = {
+    version: '1.0',
+    timestamp: new Date().toISOString(),
+    users: getUsers(),
+    students: getStudents(),
+    classes: getClasses(),
+    reports: getReports(),
+    notifications: getNotifications(),
+    messages: getMessages(),
+    posts: getPosts(),
+    // We do NOT include DB_CONFIG to allow restoring data across different environments without breaking auth
+  };
+  return backup;
+};
+
+export const restoreBackupData = (data: any) => {
+  try {
+    // Basic validation
+    if (!data || typeof data !== 'object') return false;
+    
+    // Restore logic - only restore if data exists in the file to avoid wiping with nulls
+    if (data.users) localStorage.setItem(KEYS.USERS, JSON.stringify(data.users));
+    if (data.students) localStorage.setItem(KEYS.STUDENTS, JSON.stringify(data.students));
+    if (data.classes) localStorage.setItem(KEYS.CLASSES, JSON.stringify(data.classes));
+    if (data.reports) localStorage.setItem(KEYS.REPORTS, JSON.stringify(data.reports));
+    if (data.notifications) localStorage.setItem(KEYS.NOTIFICATIONS, JSON.stringify(data.notifications));
+    if (data.messages) localStorage.setItem(KEYS.MESSAGES, JSON.stringify(data.messages));
+    if (data.posts) localStorage.setItem(KEYS.POSTS, JSON.stringify(data.posts));
+
+    // If cloud is enabled, we should push this restored data to cloud immediately
+    if (isCloudEnabled) {
+       forceSyncToCloud().catch(err => console.error("Auto-sync after restore failed", err));
+    }
+
+    return true;
+  } catch (e) {
+    console.error("Restore failed", e);
+    return false;
+  }
+};
+
 // Users
 export const getUsers = (): User[] => {
   const stored = localStorage.getItem(KEYS.USERS);

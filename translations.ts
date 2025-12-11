@@ -308,7 +308,7 @@ export const translations = {
 
     // Database
     dbSettings: "Database Settings",
-    dbSubtitle: "Connect app to Supabase cloud database for synchronization",
+    dbSubtitle: "Connect app to Supabase or manage Local Backups",
     connectionStatus: "Connection Status",
     connected: "Connected",
     disconnected: "Disconnected",
@@ -327,5 +327,16 @@ export const translations = {
     syncError: "Sync failed, check configuration",
     dbConnectionError: "Connection to database failed. Please check internet.",
     dbConnectionSuccess: "Connected to database successfully",
+
+    // Backup & Restore
+    backupRestore: "Backup & Restore",
+    backupDesc: "Download a copy of your data or restore from a file.",
+    downloadBackup: "Download Backup File",
+    restoreBackup: "Restore from File",
+    restoreWarning: "Warning: Restoring will overwrite all current data. This cannot be undone.",
+    backupCreated: "Backup created successfully.",
+    restoreSuccess: "Data restored successfully. Reloading...",
+    invalidBackupFile: "Invalid backup file. Please upload a valid JSON file.",
+    uploadBackupFile: "Upload .json file",
   }
 };

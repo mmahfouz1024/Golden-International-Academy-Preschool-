@@ -1,13 +1,21 @@
 
-import React, { useState, useEffect } from 'react';
-import { Database, Save, UploadCloud, DownloadCloud, CheckCircle, AlertTriangle, Copy, Code, Lock, Unlock } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Database, Save, UploadCloud, DownloadCloud, CheckCircle, AlertTriangle, Copy, Code, Lock, Unlock, FileDown, FileUp, HardDrive } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
-import { getDatabaseConfig, saveDatabaseConfig, forceSyncToCloud, forceSyncFromCloud } from '../services/storageService';
+import { 
+  getDatabaseConfig, 
+  saveDatabaseConfig, 
+  forceSyncToCloud, 
+  forceSyncFromCloud,
+  createBackupData,
+  restoreBackupData
+} from '../services/storageService';
 import { checkConnection, generateSQLSchema } from '../services/supabaseClient';
 import { DatabaseConfig } from '../types';
 
 const DatabaseControl: React.FC = () => {
   const { t } = useLanguage();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Security State
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -93,6 +101,64 @@ const DatabaseControl: React.FC = () => {
     setTimeout(() => setMsg(null), 2000);
   };
 
+  // --- Backup & Restore Handlers ---
+
+  const handleDownloadBackup = () => {
+    try {
+      const data = createBackupData();
+      const jsonString = JSON.stringify(data, null, 2);
+      const blob = new Blob([jsonString], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      
+      const link = document.createElement('a');
+      link.href = url;
+      const dateStr = new Date().toISOString().split('T')[0];
+      link.download = `golden_academy_backup_${dateStr}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      setMsg({ type: 'success', text: t('backupCreated') });
+      setTimeout(() => setMsg(null), 3000);
+    } catch (e) {
+      console.error(e);
+      setMsg({ type: 'error', text: "Backup Failed" });
+    }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (window.confirm(t('restoreWarning'))) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const content = event.target?.result as string;
+          const parsedData = JSON.parse(content);
+          
+          const success = restoreBackupData(parsedData);
+          if (success) {
+            setMsg({ type: 'success', text: t('restoreSuccess') });
+            // Force reload to apply new data state
+            setTimeout(() => {
+              window.location.reload();
+            }, 1500);
+          } else {
+             setMsg({ type: 'error', text: t('invalidBackupFile') });
+          }
+        } catch (err) {
+          console.error(err);
+          setMsg({ type: 'error', text: t('invalidBackupFile') });
+        }
+      };
+      reader.readAsText(file);
+    }
+    // Reset input so same file can be selected again if needed
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
   if (!isAuthenticated) {
     return (
       <div className="h-[60vh] flex flex-col items-center justify-center p-4">
@@ -130,6 +196,63 @@ const DatabaseControl: React.FC = () => {
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto pb-12 animate-fade-in">
+      
+      {/* 1. Backup & Restore Section */}
+      <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+        <div className="flex items-center gap-4 mb-6">
+          <div className="p-3 bg-teal-50 text-teal-600 rounded-xl">
+            <HardDrive size={32} />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-gray-800">{t('backupRestore')}</h2>
+            <p className="text-gray-500">{t('backupDesc')}</p>
+          </div>
+        </div>
+
+        {msg && (
+          <div className={`mb-6 p-4 rounded-xl flex items-center gap-2 ${msg.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+            {msg.type === 'success' ? <CheckCircle size={20} /> : <AlertTriangle size={20} />}
+            {msg.text}
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <button 
+              onClick={handleDownloadBackup}
+              className="p-6 border-2 border-dashed border-teal-200 bg-teal-50/50 rounded-2xl hover:bg-teal-50 hover:border-teal-400 transition-all flex flex-col items-center justify-center gap-3 group"
+            >
+               <div className="p-3 bg-white text-teal-600 rounded-full shadow-sm group-hover:scale-110 transition-transform">
+                  <FileDown size={28} />
+               </div>
+               <div className="text-center">
+                 <h3 className="font-bold text-gray-800">{t('downloadBackup')}</h3>
+                 <p className="text-xs text-gray-500">Save data to .json file</p>
+               </div>
+            </button>
+
+            <button 
+              onClick={() => fileInputRef.current?.click()}
+              className="p-6 border-2 border-dashed border-blue-200 bg-blue-50/50 rounded-2xl hover:bg-blue-50 hover:border-blue-400 transition-all flex flex-col items-center justify-center gap-3 group"
+            >
+               <input 
+                  type="file" 
+                  ref={fileInputRef}
+                  onChange={handleFileSelect}
+                  className="hidden" 
+                  accept=".json"
+               />
+               <div className="p-3 bg-white text-blue-600 rounded-full shadow-sm group-hover:scale-110 transition-transform">
+                  <FileUp size={28} />
+               </div>
+               <div className="text-center">
+                 <h3 className="font-bold text-gray-800">{t('restoreBackup')}</h3>
+                 <p className="text-xs text-gray-500">Upload .json file to restore</p>
+               </div>
+            </button>
+        </div>
+      </div>
+
+      {/* 2. Cloud Database Section */}
       <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
         <div className="flex items-center gap-4 mb-6">
           <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
@@ -140,13 +263,6 @@ const DatabaseControl: React.FC = () => {
             <p className="text-gray-500">{t('dbSubtitle')}</p>
           </div>
         </div>
-
-        {msg && (
-          <div className={`mb-6 p-4 rounded-xl flex items-center gap-2 ${msg.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
-            {msg.type === 'success' ? <CheckCircle size={20} /> : <AlertTriangle size={20} />}
-            {msg.text}
-          </div>
-        )}
 
         <div className="space-y-6">
           <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
