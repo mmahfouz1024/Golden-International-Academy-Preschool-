@@ -77,10 +77,9 @@ const AppContent: React.FC = () => {
               const child = allStudents.find(s => s.id === foundUser.linkedStudentId);
               if (child) {
                 setSelectedStudent(child);
-                setCurrentView('parent-view');
-              } else {
-                setCurrentView('parent-view');
               }
+              // Set default view to dashboard for parents
+              setCurrentView('dashboard');
             } else {
               if (foundUser.role === 'admin') {
                  setCurrentView('dashboard');
@@ -134,11 +133,9 @@ const AppContent: React.FC = () => {
       const child = allStudents.find(s => s.id === loggedInUser.linkedStudentId);
       if (child) {
         setSelectedStudent(child);
-        setCurrentView('parent-view');
-      } else {
-        // Fallback if linked student is deleted or ID mismatch
-        setCurrentView('parent-view');
       }
+      // Set default view to dashboard for parents
+      setCurrentView('dashboard');
     } else {
       if (loggedInUser.role === 'admin') {
          setCurrentView('dashboard');
@@ -180,7 +177,7 @@ const AppContent: React.FC = () => {
     // 1. Exit Profile View
     if (currentView === 'profile') {
        if (user?.role === 'parent') {
-         setCurrentView('parent-view');
+         setCurrentView('dashboard');
        } else {
          // Return to first allowed view
          if (user?.role === 'admin') {
@@ -203,7 +200,11 @@ const AppContent: React.FC = () => {
     // 3. Deselect Student (Admin/Teacher only)
     if (selectedStudent) {
       if (user?.role === 'parent') {
-        // Parent cannot deselect their child
+        // Parent cannot deselect their child, so just go to dashboard if they were viewing child details
+        if (currentView === 'parent-view') {
+           setCurrentView('dashboard');
+           return;
+        }
       } else {
         setSelectedStudent(null);
       }
@@ -213,7 +214,7 @@ const AppContent: React.FC = () => {
     // 4. Navigate to Dashboard/Home
     if (currentView !== 'dashboard' && currentView !== 'parent-view') {
       if (user?.role === 'parent') {
-        setCurrentView('parent-view');
+        setCurrentView('dashboard');
       } else {
          if (user?.permissions && user.permissions.includes('dashboard')) {
              setCurrentView('dashboard');
@@ -229,7 +230,8 @@ const AppContent: React.FC = () => {
     currentView === 'profile' || 
     !!selectedReportDate || 
     (!!selectedStudent && user?.role !== 'parent') || 
-    (currentView !== 'dashboard' && currentView !== 'parent-view' && user?.role !== 'parent');
+    (currentView !== 'dashboard' && currentView !== 'parent-view' && user?.role !== 'parent') ||
+    (user?.role === 'parent' && currentView !== 'dashboard');
 
   const renderContent = () => {
     // 1. Profile View (High Priority)
@@ -237,15 +239,34 @@ const AppContent: React.FC = () => {
        return user ? <Profile user={user} onUpdateUser={handleUpdateUser} /> : null;
     }
 
+    // Fix for Parents: Ensure they can navigate to Dashboard
+    if (user?.role === 'parent' && currentView === 'dashboard') {
+        return <Dashboard />;
+    }
+
     // 2. Student Detail (If selected)
+    // For parents, selectedStudent is always set to their child. We only show it if they are on 'parent-view'.
     if (selectedStudent) {
-      return (
-        <StudentDetail 
-          student={selectedStudent} 
-          initialDate={selectedReportDate}
-          readOnly={user?.role === 'parent' || !!selectedReportDate} 
-        />
-      );
+       if (user?.role === 'parent') {
+         if (currentView === 'parent-view') {
+           return (
+              <StudentDetail 
+                student={selectedStudent} 
+                initialDate={selectedReportDate}
+                readOnly={true} 
+              />
+            );
+         }
+       } else {
+         // Admin/Teacher drill-down
+         return (
+            <StudentDetail 
+              student={selectedStudent} 
+              initialDate={selectedReportDate}
+              readOnly={!!selectedReportDate} 
+            />
+          );
+       }
     }
 
     const isAllowed = (view: string) => {
@@ -253,7 +274,10 @@ const AppContent: React.FC = () => {
        if (view === 'profile') return true;
        
        if (user.role === 'admin') return true;
-       if (user.role === 'parent' && view === 'parent-view') return true;
+       if (user.role === 'parent') {
+          if (view === 'parent-view' || view === 'dashboard') return true;
+          return user.permissions?.includes(view) || false;
+       }
        
        if (user.permissions && user.permissions.length > 0) {
          return user.permissions.includes(view);
@@ -371,7 +395,7 @@ const AppContent: React.FC = () => {
 
             <h2 className="text-xl font-bold text-gray-800 hidden sm:block">
               {user.role === 'parent' 
-                ? t('myChild')
+                ? (currentView === 'dashboard' ? t('dashboard') : t('myChild'))
                 : (selectedStudent 
                     ? t('dailyReport')
                     : (currentView === 'dashboard' && t('dashboard')) ||

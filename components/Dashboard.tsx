@@ -17,7 +17,16 @@ const Dashboard: React.FC = () => {
   
   const [posts, setPosts] = useState<Post[]>([]);
   const [newPostContent, setNewPostContent] = useState('');
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  
+  // Initialize user synchronously to avoid content flicker
+  const [currentUser, setCurrentUser] = useState<User | null>(() => {
+    const userId = localStorage.getItem('golden_session_uid');
+    if (userId) {
+      const users = getUsers();
+      return users.find(u => u.id === userId) || null;
+    }
+    return null;
+  });
 
   useEffect(() => {
     // Fetch real data from storage/database
@@ -39,13 +48,6 @@ const Dashboard: React.FC = () => {
     });
 
     setPosts(loadedPosts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
-
-    // Get current user from local storage session
-    const userId = localStorage.getItem('golden_session_uid');
-    if (userId) {
-      const user = users.find(u => u.id === userId);
-      if (user) setCurrentUser(user);
-    }
   }, []);
   
   const handlePost = () => {
@@ -170,48 +172,53 @@ const Dashboard: React.FC = () => {
           </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {stats.map((stat, index) => {
-          const Icon = stat.icon;
-          return (
-            <div key={index} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4 hover:shadow-md transition-shadow">
-              <div className={`p-4 rounded-xl ${stat.color}`}>
-                <Icon size={24} />
-              </div>
-              <div>
-                <p className="text-sm text-gray-500 font-medium">{stat.label}</p>
-                <div className="flex items-baseline gap-1">
-                  <h3 className="text-2xl font-bold text-gray-800">{stat.value}</h3>
+      {/* Stats Cards - Hidden for Parents */}
+      {currentUser?.role !== 'parent' && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {stats.map((stat, index) => {
+            const Icon = stat.icon;
+            return (
+              <div key={index} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4 hover:shadow-md transition-shadow">
+                <div className={`p-4 rounded-xl ${stat.color}`}>
+                  <Icon size={24} />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500 font-medium">{stat.label}</p>
+                  <div className="flex items-baseline gap-1">
+                    <h3 className="text-2xl font-bold text-gray-800">{stat.value}</h3>
+                  </div>
                 </div>
               </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className={`grid grid-cols-1 ${currentUser?.role !== 'parent' ? 'lg:grid-cols-3' : 'lg:grid-cols-1'} gap-6`}>
         
-        {/* Attendance Chart */}
-        <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-            <h3 className="text-lg font-bold text-gray-800 mb-6">{t('attendanceChart')}</h3>
-            <div className="h-64 w-full">
-              <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-                <BarChart data={ATTENDANCE_DATA}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#6b7280' }} dy={10} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#6b7280' }} />
-                  <Tooltip 
-                    cursor={{ fill: '#f9fafb' }}
-                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                  />
-                  <Bar dataKey="present" name="Present" fill="#4f46e5" radius={[4, 4, 0, 0]} barSize={32} />
-                  <Bar dataKey="absent" name="Absent" fill="#fecaca" radius={[4, 4, 0, 0]} barSize={32} />
-                </BarChart>
-              </ResponsiveContainer>
+        {/* Attendance Chart - Hidden for Parents */}
+        {currentUser?.role !== 'parent' && (
+          <div className="lg:col-span-2 space-y-6">
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+              <h3 className="text-lg font-bold text-gray-800 mb-6">{t('attendanceChart')}</h3>
+              <div className="h-64 w-full">
+                <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                  <BarChart data={ATTENDANCE_DATA}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#6b7280' }} dy={10} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fill: '#6b7280' }} />
+                    <Tooltip 
+                      cursor={{ fill: '#f9fafb' }}
+                      contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                    />
+                    <Bar dataKey="present" name="Present" fill="#4f46e5" radius={[4, 4, 0, 0]} barSize={32} />
+                    <Bar dataKey="absent" name="Absent" fill="#fecaca" radius={[4, 4, 0, 0]} barSize={32} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Daily Schedule - Moved to col-span-1 to match previous layout flow but now next to chart */}
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
