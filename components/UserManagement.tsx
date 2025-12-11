@@ -59,6 +59,7 @@ const UserManagement: React.FC = () => {
     name: '',
     username: '',
     password: '',
+    phone: '',
     role: 'teacher',
     permissions: [],
     linkedStudentId: '',
@@ -96,6 +97,7 @@ const UserManagement: React.FC = () => {
         name: user.name,
         username: user.username,
         password: user.password,
+        phone: user.phone || '',
         role: user.role,
         permissions: user.permissions || DEFAULT_PERMISSIONS[user.role as keyof typeof DEFAULT_PERMISSIONS] || [],
         linkedStudentId: user.linkedStudentId || '',
@@ -108,6 +110,7 @@ const UserManagement: React.FC = () => {
         name: '',
         username: '',
         password: '',
+        phone: '',
         role: 'teacher',
         permissions: DEFAULT_PERMISSIONS['teacher'],
         linkedStudentId: '',
@@ -195,6 +198,12 @@ const UserManagement: React.FC = () => {
 
     if (!formData.username || !formData.name || !formData.password) return;
 
+    // VALIDATION: Phone number mandatory for Parent role
+    if (formData.role === 'parent' && (!formData.phone || !formData.phone.trim())) {
+        setError(language === 'ar' ? 'رقم الهاتف مطلوب لحساب ولي الأمر' : 'Phone number is required for parent accounts');
+        return;
+    }
+
     // --- ENFORCE PERMISSION RULES ---
     let cleanPermissions = formData.permissions || [];
 
@@ -228,7 +237,7 @@ const UserManagement: React.FC = () => {
                 birthday: newStudentData.birthday,
                 classGroup: newStudentData.classGroup || (classes.length > 0 ? classes[0].name : 'Birds'),
                 parentName: formData.name || 'Parent', // Temporary parent name until user is saved
-                phone: '', // Will be updated if user provides phone
+                phone: formData.phone || '', // Use the phone from user form
                 status: StudentStatus.Active,
                 attendanceToday: false,
                 avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(newStudentData.name)}&background=random&color=fff`
@@ -291,6 +300,7 @@ const UserManagement: React.FC = () => {
         name: formData.name!,
         username: (formData.username || '').trim(),
         password: formData.password!,
+        phone: formData.phone,
         role: formData.role || 'teacher',
         permissions: cleanPermissions,
         linkedStudentId: finalLinkedStudentId,
@@ -305,7 +315,7 @@ const UserManagement: React.FC = () => {
     if (isRegisteringStudent && finalLinkedStudentIds.length > 0) {
        // We only need to update the newly created one (last added to array)
        const newChildId = finalLinkedStudentIds[finalLinkedStudentIds.length - 1];
-       const fixedStudents = getStudents().map(s => s.id === newChildId ? { ...s, parentName: formData.name! } : s);
+       const fixedStudents = getStudents().map(s => s.id === newChildId ? { ...s, parentName: formData.name!, phone: formData.phone! } : s);
        setStudents(fixedStudents);
        saveStudents(fixedStudents);
     }
@@ -555,6 +565,21 @@ const UserManagement: React.FC = () => {
                     className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                     value={formData.password}
                     onChange={e => setFormData({...formData, password: e.target.value})}
+                  />
+                </div>
+
+                {/* Added Phone Number Field */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {t('phone')} {formData.role === 'parent' && <span className="text-red-500">*</span>}
+                  </label>
+                  <input 
+                    type="tel" 
+                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                    value={formData.phone || ''}
+                    onChange={e => setFormData({...formData, phone: e.target.value})}
+                    required={formData.role === 'parent'}
+                    placeholder={formData.role === 'parent' ? "Required" : "Optional"}
                   />
                 </div>
 
