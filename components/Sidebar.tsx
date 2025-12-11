@@ -41,7 +41,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     { id: 'ai-planner', label: t('aiPlanner'), icon: Sparkles, defaultRoles: ['admin', 'manager', 'teacher'] },
     { id: 'classes', label: t('classes'), icon: School, defaultRoles: ['admin', 'manager'] },
     { id: 'schedule-manage', label: t('dailyScheduleManage'), icon: CalendarDays, defaultRoles: ['admin', 'manager'] },
-    { id: 'users', label: t('users'), icon: UserCog, defaultRoles: ['admin'] },
+    { id: 'users', label: t('users'), icon: UserCog, defaultRoles: ['admin', 'manager'] },
     { id: 'database', label: t('database'), icon: Database, defaultRoles: ['admin', 'manager'] },
     { id: 'parent-view', label: t('myChild'), icon: Home, defaultRoles: ['parent'] },
   ];
