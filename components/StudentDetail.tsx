@@ -1,5 +1,4 @@
 
-
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   Smile, Frown, Meh, Sun, Cloud, Moon, 
@@ -327,59 +326,6 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
               </div>
             </div>
 
-            {/* Academic Card */}
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-              <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
-                <BookOpen className="text-indigo-500" />
-                {t('academic')}
-              </h3>
-              
-              <div className="space-y-4">
-                <div>
-                   <label className="text-xs font-bold text-gray-500 mb-1 block">{t('religion')}</label>
-                   <input 
-                     type="text"
-                     disabled={readOnly}
-                     className="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                     value={report.academic?.religion || ''}
-                     onChange={e => setReport({...report, academic: { ...report.academic, religion: e.target.value }})}
-                   />
-                </div>
-                <div>
-                   <label className="text-xs font-bold text-gray-500 mb-1 block">{t('arabicSubject')}</label>
-                   <input 
-                     type="text"
-                     disabled={readOnly}
-                     className="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                     value={report.academic?.arabic || ''}
-                     onChange={e => setReport({...report, academic: { ...report.academic, arabic: e.target.value }})}
-                   />
-                </div>
-                <div>
-                   <label className="text-xs font-bold text-gray-500 mb-1 block">{t('englishSubject')}</label>
-                   <input 
-                     type="text"
-                     disabled={readOnly}
-                     dir="ltr"
-                     className="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 text-left font-sans"
-                     value={report.academic?.english || ''}
-                     onChange={e => setReport({...report, academic: { ...report.academic, english: e.target.value }})}
-                   />
-                </div>
-                <div>
-                   <label className="text-xs font-bold text-gray-500 mb-1 block">{t('mathSubject')}</label>
-                   <input 
-                     type="text"
-                     disabled={readOnly}
-                     dir="ltr"
-                     className="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 text-left font-sans"
-                     value={report.academic?.math || ''}
-                     onChange={e => setReport({...report, academic: { ...report.academic, math: e.target.value }})}
-                   />
-                </div>
-              </div>
-            </div>
-
             {/* Bathroom Card (Separated) */}
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
               <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
@@ -481,6 +427,59 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
                         <p className="text-sm italic">{t('no')} {t('nap')}</p>
                     </div>
                 )}
+            </div>
+
+            {/* Academic Card (Placed AFTER Nap) */}
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+              <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <BookOpen className="text-indigo-500" />
+                {t('academic')}
+              </h3>
+              
+              <div className="space-y-4">
+                <div>
+                   <label className="text-xs font-bold text-gray-500 mb-1 block">{t('religion')}</label>
+                   <input 
+                     type="text"
+                     disabled={readOnly}
+                     className="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                     value={report.academic?.religion || ''}
+                     onChange={e => setReport({...report, academic: { ...report.academic, religion: e.target.value }})}
+                   />
+                </div>
+                <div>
+                   <label className="text-xs font-bold text-gray-500 mb-1 block">{t('arabicSubject')}</label>
+                   <input 
+                     type="text"
+                     disabled={readOnly}
+                     className="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                     value={report.academic?.arabic || ''}
+                     onChange={e => setReport({...report, academic: { ...report.academic, arabic: e.target.value }})}
+                   />
+                </div>
+                <div>
+                   <label className="text-xs font-bold text-gray-500 mb-1 block">{t('englishSubject')}</label>
+                   <input 
+                     type="text"
+                     disabled={readOnly}
+                     dir="ltr"
+                     className="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 text-left font-sans"
+                     value={report.academic?.english || ''}
+                     onChange={e => setReport({...report, academic: { ...report.academic, english: e.target.value }})}
+                   />
+                </div>
+                <div>
+                   <label className="text-xs font-bold text-gray-500 mb-1 block">{t('mathSubject')}</label>
+                   <input 
+                     type="text"
+                     disabled={readOnly}
+                     dir="ltr"
+                     className="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 text-left font-sans"
+                     value={report.academic?.math || ''}
+                     onChange={e => setReport({...report, academic: { ...report.academic, math: e.target.value }})}
+                   />
+                </div>
+              </div>
             </div>
 
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
