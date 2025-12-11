@@ -35,6 +35,7 @@ export const NotificationProvider: React.FC<{children: React.ReactNode}> = ({ ch
     return 'default';
   });
 
+  // Simple support check
   const [isSupported] = useState<boolean>(() => {
     return typeof window !== 'undefined' && 'Notification' in window;
   });
@@ -46,20 +47,17 @@ export const NotificationProvider: React.FC<{children: React.ReactNode}> = ({ ch
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
   const requestPermission = async () => {
-    if (!isSupported) {
-       alert(t('notificationsNotSupported'));
-       return false;
-    }
-    
-    // Secure Context Check for Android/Mobile
-    if (!window.isSecureContext && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-       alert(t('httpsRequired'));
-       return false;
-    }
-
+    // APK/WebView compatibility: Attempt request even if checks fail, 
+    // as wrappers often inject functionality.
     try {
+      if (typeof Notification === 'undefined') {
+          console.error("Notification API not found");
+          return false;
+      }
+
       const result = await Notification.requestPermission();
       setPermissionStatus(result);
+      
       if (result === 'granted') {
           // Ensure SW is ready
           if ('serviceWorker' in navigator) {
@@ -71,6 +69,7 @@ export const NotificationProvider: React.FC<{children: React.ReactNode}> = ({ ch
       return result === 'granted';
     } catch (e) {
       console.error("Error requesting notification permission", e);
+      // Even if it fails, we return false but don't crash
       return false;
     }
   };
@@ -99,7 +98,7 @@ export const NotificationProvider: React.FC<{children: React.ReactNode}> = ({ ch
     setNotifications(prev => [newNotification, ...prev]);
 
     // Show system notification via Service Worker (Best for Mobile)
-    if (isSupported && Notification.permission === 'granted') {
+    if (Notification.permission === 'granted') {
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.ready.then(registration => {
           // Cast options to any to avoid TS error with 'vibrate'
@@ -111,22 +110,23 @@ export const NotificationProvider: React.FC<{children: React.ReactNode}> = ({ ch
             tag: 'golden-app',
             data: { url: '/' },
             requireInteraction: true // Keeps notification visible until clicked
-          } as any).catch(err => console.error("SW Show Notification Error:", err));
+          } as any).catch(err => {
+              console.error("SW Show Notification Error:", err);
+              // Fallback if SW fails
+              fallbackNotification(title, message);
+          });
         }).catch(e => {
             console.error("SW Registration not ready:", e);
-            // Fallback to standard notification if SW fails
-            try {
-                new Notification(title, {
-                    body: message,
-                    icon: NOTIFICATION_ICON
-                });
-            } catch (fallbackErr) {
-                console.error("Fallback notification failed", fallbackErr);
-            }
+            fallbackNotification(title, message);
         });
       } else {
-        // Fallback for browsers without SW support
-        try {
+        fallbackNotification(title, message);
+      }
+    }
+  };
+
+  const fallbackNotification = (title: string, message: string) => {
+      try {
           new Notification(title, {
             body: message,
             icon: NOTIFICATION_ICON
@@ -134,12 +134,11 @@ export const NotificationProvider: React.FC<{children: React.ReactNode}> = ({ ch
         } catch (e) {
           console.error("Notification fallback error", e);
         }
-      }
-    }
   };
 
   const testNotification = async () => {
-      if (permissionStatus !== 'granted') {
+      let currentPerm = permissionStatus;
+      if (currentPerm !== 'granted') {
           const granted = await requestPermission();
           if (!granted) return;
       }
