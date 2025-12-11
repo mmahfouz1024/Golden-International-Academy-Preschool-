@@ -26,7 +26,6 @@ export const NotificationProvider: React.FC<{children: React.ReactNode}> = ({ ch
   // Refs to track counts for polling
   const lastMessageCount = useRef(0);
   const lastPostCount = useRef(0);
-  const currentUser = useRef(localStorage.getItem('golden_session_uid'));
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
