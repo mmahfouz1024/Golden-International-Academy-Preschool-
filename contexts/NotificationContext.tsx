@@ -21,7 +21,14 @@ export const NotificationProvider: React.FC<{children: React.ReactNode}> = ({ ch
   const [notifications, setNotifications] = useState<AppNotification[]>(() => {
     return getNotifications();
   });
-  const [permissionStatus, setPermissionStatus] = useState<NotificationPermission>(Notification.permission);
+  
+  // Safe initialization of permission status
+  const [permissionStatus, setPermissionStatus] = useState<NotificationPermission>(() => {
+    if (typeof Notification !== 'undefined') {
+      return Notification.permission;
+    }
+    return 'default';
+  });
   
   // Refs to track counts for polling
   const lastMessageCount = useRef(0);
@@ -30,17 +37,22 @@ export const NotificationProvider: React.FC<{children: React.ReactNode}> = ({ ch
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
   const requestPermission = async () => {
-    if (!('Notification' in window)) {
+    if (typeof Notification === 'undefined') {
       console.log('This browser does not support desktop notification');
       return false;
     }
-    const result = await Notification.requestPermission();
-    setPermissionStatus(result);
-    return result === 'granted';
+    try {
+      const result = await Notification.requestPermission();
+      setPermissionStatus(result);
+      return result === 'granted';
+    } catch (e) {
+      console.error("Error requesting notification permission", e);
+      return false;
+    }
   };
 
   useEffect(() => {
-    if ('Notification' in window) {
+    if (typeof Notification !== 'undefined') {
       setPermissionStatus(Notification.permission);
     }
   }, []);
@@ -63,7 +75,7 @@ export const NotificationProvider: React.FC<{children: React.ReactNode}> = ({ ch
     setNotifications(prev => [newNotification, ...prev]);
 
     // Show system notification via Service Worker (Best for Mobile)
-    if (Notification.permission === 'granted') {
+    if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.ready.then(registration => {
           registration.showNotification(title, {
@@ -72,13 +84,17 @@ export const NotificationProvider: React.FC<{children: React.ReactNode}> = ({ ch
             vibrate: [200, 100, 200],
             tag: 'golden-app'
           } as any);
-        });
+        }).catch(e => console.error("SW notification error", e));
       } else {
         // Fallback
-        new Notification(title, {
-          body: message,
-          icon: '/manifest/icon-192x192.png'
-        });
+        try {
+          new Notification(title, {
+            body: message,
+            icon: '/manifest/icon-192x192.png'
+          });
+        } catch (e) {
+          console.error("Notification fallback error", e);
+        }
       }
     }
   };

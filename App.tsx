@@ -1,5 +1,4 @@
 
-
 import React, { useState, useEffect, useRef } from 'react';
 import Sidebar from './components/Sidebar';
 import Dashboard from './components/Dashboard';
@@ -54,7 +53,8 @@ const AppContent: React.FC = () => {
            console.log("DB Connected Successfully");
         }
       } catch (err) {
-        setInitError('Critical System Error');
+        console.error("App Initialization Error:", err);
+        setInitError('Critical System Error - Please refresh');
       } finally {
         setIsInitialized(true);
       }
@@ -65,33 +65,37 @@ const AppContent: React.FC = () => {
   // Session Restoration Logic
   useEffect(() => {
     if (isInitialized && !user && !initError) {
-      const storedUserId = localStorage.getItem('golden_session_uid');
-      if (storedUserId) {
-        const users = getUsers();
-        const foundUser = users.find(u => u.id === storedUserId);
-        if (foundUser) {
-           console.log("Restoring session for:", foundUser.username);
-           setUser(foundUser);
-    
-           // Route based on role
-           if (foundUser.role === 'parent') {
-              const allStudents = getStudents();
-              const child = allStudents.find(s => s.id === foundUser.linkedStudentId);
-              if (child) {
-                setSelectedStudent(child);
-              }
-              // Set default view to dashboard for parents
-              setCurrentView('dashboard');
-            } else {
-              if (foundUser.role === 'admin') {
-                 setCurrentView('dashboard');
-              } else if (foundUser.permissions && foundUser.permissions.length > 0) {
-                 setCurrentView(foundUser.permissions[0]);
+      try {
+        const storedUserId = localStorage.getItem('golden_session_uid');
+        if (storedUserId) {
+          const users = getUsers();
+          const foundUser = users.find(u => u.id === storedUserId);
+          if (foundUser) {
+             console.log("Restoring session for:", foundUser.username);
+             setUser(foundUser);
+      
+             // Route based on role
+             if (foundUser.role === 'parent') {
+                const allStudents = getStudents();
+                const child = allStudents.find(s => s.id === foundUser.linkedStudentId);
+                if (child) {
+                  setSelectedStudent(child);
+                }
+                // Set default view to dashboard for parents
+                setCurrentView('dashboard');
               } else {
-                 setCurrentView('dashboard');
+                if (foundUser.role === 'admin') {
+                   setCurrentView('dashboard');
+                } else if (foundUser.permissions && foundUser.permissions.length > 0) {
+                   setCurrentView(foundUser.permissions[0]);
+                } else {
+                   setCurrentView('dashboard');
+                }
               }
-            }
+          }
         }
+      } catch (e) {
+        console.error("Session restore failed", e);
       }
     }
   }, [isInitialized, user, initError]);
