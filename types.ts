@@ -117,6 +117,15 @@ export interface ChatMessage {
   isRead: boolean;
 }
 
+export interface Post {
+  id: string;
+  authorId: string;
+  authorName: string;
+  authorRole: UserRole;
+  content: string;
+  date: string;
+}
+
 export type Theme = 'smart' | 'blossom' | 'garden' | 'sunshine';
 
 export interface DatabaseConfig {

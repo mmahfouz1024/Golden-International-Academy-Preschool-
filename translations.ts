@@ -1,5 +1,4 @@
 
-
 export const translations = {
   en: {
     // General
@@ -72,6 +71,11 @@ export const translations = {
     dailySchedule: "Daily Schedule",
     overview: "Overview of kindergarten performance today",
     currency: "SAR",
+    schoolAnnouncements: "School Announcements",
+    writeAnnouncement: "Write a new announcement...",
+    post: "Post",
+    postedBy: "Posted by",
+    deletePost: "Delete Post",
 
     // Student List
     studentRegistry: "Student Registry",

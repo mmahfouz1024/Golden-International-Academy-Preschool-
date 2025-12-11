@@ -1,7 +1,6 @@
 
-
 import { MOCK_USERS, MOCK_STUDENTS, MOCK_CLASSES, MOCK_REPORTS } from '../constants';
-import { User, Student, ClassGroup, DailyReport, DatabaseConfig, AppNotification, ChatMessage } from '../types';
+import { User, Student, ClassGroup, DailyReport, DatabaseConfig, AppNotification, ChatMessage, Post } from '../types';
 import { initSupabase, syncDataToCloud, fetchDataFromCloud } from './supabaseClient';
 
 const KEYS = {
@@ -11,7 +10,8 @@ const KEYS = {
   REPORTS: 'golden_academy_reports',
   DB_CONFIG: 'golden_academy_db_config',
   NOTIFICATIONS: 'golden_academy_notifications',
-  MESSAGES: 'golden_academy_messages'
+  MESSAGES: 'golden_academy_messages',
+  POSTS: 'golden_academy_posts'
 };
 
 // Initialize DB
@@ -43,6 +43,7 @@ export const initStorage = async (): Promise<{ success: boolean; message?: strin
     localStorage.removeItem(KEYS.REPORTS);
     localStorage.removeItem(KEYS.NOTIFICATIONS);
     localStorage.removeItem(KEYS.MESSAGES);
+    localStorage.removeItem(KEYS.POSTS);
 
     const connected = initSupabase(config);
     isCloudEnabled = connected;
@@ -85,6 +86,7 @@ export const initStorage = async (): Promise<{ success: boolean; message?: strin
         }];
         localStorage.setItem(KEYS.NOTIFICATIONS, JSON.stringify(defaultNotifications));
         localStorage.setItem(KEYS.MESSAGES, '[]');
+        localStorage.setItem(KEYS.POSTS, '[]');
         
         const seeded = await forceSyncToCloud();
         if (!seeded) {
@@ -138,7 +140,7 @@ const saveAndSync = async (key: string, data: any) => {
 
 const syncAllFromCloud = async () => {
   try {
-    const keys = [KEYS.USERS, KEYS.STUDENTS, KEYS.CLASSES, KEYS.REPORTS, KEYS.NOTIFICATIONS, KEYS.MESSAGES];
+    const keys = [KEYS.USERS, KEYS.STUDENTS, KEYS.CLASSES, KEYS.REPORTS, KEYS.NOTIFICATIONS, KEYS.MESSAGES, KEYS.POSTS];
     let syncedCount = 0;
     for (const key of keys) {
       const { data } = await fetchDataFromCloud(key);
@@ -171,6 +173,7 @@ export const forceSyncToCloud = async () => {
      await syncDataToCloud(KEYS.REPORTS, JSON.parse(localStorage.getItem(KEYS.REPORTS) || '{}'));
      await syncDataToCloud(KEYS.NOTIFICATIONS, JSON.parse(localStorage.getItem(KEYS.NOTIFICATIONS) || '[]'));
      await syncDataToCloud(KEYS.MESSAGES, JSON.parse(localStorage.getItem(KEYS.MESSAGES) || '[]'));
+     await syncDataToCloud(KEYS.POSTS, JSON.parse(localStorage.getItem(KEYS.POSTS) || '[]'));
      
      const config = getDatabaseConfig();
      config.lastSync = new Date().toISOString();
@@ -265,4 +268,17 @@ export const getMessages = (): ChatMessage[] => {
 
 export const saveMessages = (messages: ChatMessage[]) => {
   saveAndSync(KEYS.MESSAGES, messages);
+};
+
+// Posts
+export const getPosts = (): Post[] => {
+  const stored = localStorage.getItem(KEYS.POSTS);
+  if (!stored) {
+    return [];
+  }
+  return JSON.parse(stored);
+};
+
+export const savePosts = (posts: Post[]) => {
+  saveAndSync(KEYS.POSTS, posts);
 };
