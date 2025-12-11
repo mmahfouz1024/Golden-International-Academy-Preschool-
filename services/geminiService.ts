@@ -1,3 +1,4 @@
+
 import { GoogleGenAI, Type } from "@google/genai";
 
 // Declaration to satisfy TypeScript if @types/node is missing
@@ -23,16 +24,16 @@ export const generateActivityPlan = async (ageGroup: string, topic: string) => {
     const ai = getAiClient();
     const model = 'gemini-2.5-flash';
     const prompt = `
-      بصفتك خبير تربوي في رياض الأطفال، قم بإنشاء نشاط تعليمي ممتع وتفاعلي.
-      الفئة العمرية: ${ageGroup}
-      الموضوع: ${topic}
+      As an expert kindergarten educator, create a fun and interactive learning activity.
+      Age Group: ${ageGroup}
+      Topic: ${topic}
       
-      يجب أن تكون النتيجة بتنسيق JSON يحتوي على الحقول التالية:
-      - title: عنوان النشاط
-      - duration: المدة المقترحة
-      - materials: قائمة المواد المطلوبة (array)
-      - steps: خطوات تنفيذ النشاط (array)
-      - learningOutcomes: ماذا سيتعلم الطفل (ملخص)
+      The result must be in JSON format containing the following fields:
+      - title: Activity Title
+      - duration: Suggested Duration
+      - materials: List of required materials (array)
+      - steps: Execution steps (array)
+      - learningOutcomes: What the child will learn (summary)
     `;
 
     const response = await ai.models.generateContent({
@@ -66,12 +67,12 @@ export const draftParentMessage = async (studentName: string, type: 'praise' | '
     const ai = getAiClient();
     const model = 'gemini-2.5-flash';
     const prompt = `
-      اكتب رسالة قصيرة ومهذبة لولي أمر الطالب: ${studentName}.
-      نوع الرسالة: ${type === 'praise' ? 'ثناء ومدح' : type === 'issue' ? 'مشكلة سلوكية أو ملاحظة' : 'إعلان عام'}.
-      التفاصيل: ${details}.
+      Write a short and polite message to the parent of student: ${studentName}.
+      Message Type: ${type === 'praise' ? 'Praise' : type === 'issue' ? 'Behavioral Issue or Note' : 'General Announcement'}.
+      Details: ${details}.
       
-      الأسلوب: دافئ، مهني، ومشجع. اللغة: العربية.
-      لا تضع مقدمات طويلة، ادخل في صلب الموضوع بلطف.
+      Tone: Warm, professional, and encouraging. Language: English.
+      Do not use long introductions, get straight to the point gently.
     `;
 
     const response = await ai.models.generateContent({

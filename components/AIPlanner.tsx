@@ -20,13 +20,13 @@ const AIPlanner: React.FC = () => {
   const [librarySearchTerm, setLibrarySearchTerm] = useState('');
   const [savedPlans, setSavedPlans] = useState<ActivityPlan[]>([
     {
-      title: 'نشاط الألوان الأساسية',
-      ageGroup: '3-4 سنوات (البراعم)',
-      duration: '30 دقيقة',
-      materials: ['ألوان مائية', 'أوراق بيضاء', 'فرش'],
-      steps: ['مقدمة عن الألوان', 'توزيع الأوراق', 'الرسم الحر'],
-      learningOutcomes: 'التعرف على الألوان الأحمر والأزرق والأصفر',
-      notes: 'نشاط ممتع جداً للأطفال'
+      title: 'Primary Colors Activity',
+      ageGroup: '3-4 Years (Birds)',
+      duration: '30 Minutes',
+      materials: ['Watercolors', 'White Paper', 'Brushes'],
+      steps: ['Introduction to colors', 'Distribute papers', 'Free painting'],
+      learningOutcomes: 'Identify Red, Blue, and Yellow colors',
+      notes: 'Very fun activity for kids'
     }
   ]);
 

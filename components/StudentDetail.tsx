@@ -1,5 +1,4 @@
 
-
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   Smile, Frown, Meh, Sun, Cloud, Moon, 
@@ -71,7 +70,8 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
     const [year, month, day] = dateString.split('-').map(Number);
     const date = new Date(year, month - 1, day);
     
-    return date.toLocaleDateString(language === 'ar' ? 'ar-EG' : 'en-US', {
+    // Always display date in English as requested
+    return date.toLocaleDateString('en-US', {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
@@ -323,7 +323,7 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
            <div className="relative group">
               <div className="flex items-center gap-3 bg-gray-50 hover:bg-white border border-gray-200 hover:border-indigo-300 rounded-xl px-4 py-2 transition-all cursor-pointer shadow-sm">
                 <Calendar size={20} className="text-indigo-500" />
-                <span className="font-bold text-gray-700 min-w-[140px] text-center">
+                <span className="font-bold text-gray-700 min-w-[140px] text-center" dir="ltr">
                   {getFormattedDate(selectedDate)}
                 </span>
                 <ChevronDown size={16} className="text-gray-400 group-hover:text-indigo-500" />
@@ -344,7 +344,7 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
                <FileText className="text-gray-300" size={36} />
            </div>
            <h3 className="text-lg font-bold text-gray-600">{t('noReportForDate')}</h3>
-           <p className="text-sm text-gray-400 mt-1">{getFormattedDate(selectedDate)}</p>
+           <p className="text-sm text-gray-400 mt-1" dir="ltr">{getFormattedDate(selectedDate)}</p>
         </div>
       ) : (
         <>
@@ -543,7 +543,7 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
                 ) : (
                     <div className="flex flex-col items-center justify-center py-6 text-gray-300 bg-gray-50/50 rounded-xl border border-dashed border-gray-200">
                         <Moon size={32} className="mb-2 opacity-50" />
-                        <p className="text-sm italic">{t('no')} {t('nap')}</p>
+                        <p className="text-sm italic">{t('no')}</p>
                     </div>
                 )}
             </div>
