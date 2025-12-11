@@ -59,10 +59,10 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
         return;
     }
 
-    // Find Admins (General Managers) to send the notification to
-    const admins = users.filter(u => u.role === 'admin');
+    // Find BOTH Admins (General Managers) AND Managers to send the notification to
+    const recipients = users.filter(u => u.role === 'admin' || u.role === 'manager');
     
-    if (admins.length === 0) {
+    if (recipients.length === 0) {
         setError("System Error: No Admin found to contact.");
         return;
     }
@@ -71,12 +71,12 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     const newMessages: ChatMessage[] = [];
     const timestamp = new Date().toISOString();
 
-    // Send a message to EACH admin from the user (System Alert style)
-    admins.forEach(admin => {
+    // Send a message to EACH recipient (Admin & Manager) from the user
+    recipients.forEach(recipient => {
         newMessages.push({
-            id: `sys-recover-${Date.now()}-${admin.id}`,
+            id: `sys-recover-${Date.now()}-${recipient.id}`,
             senderId: targetUser.id, // Comes "from" the user so admin sees who it is
-            receiverId: admin.id,
+            receiverId: recipient.id,
             content: `⚠️ *FORGOT PASSWORD ALERT* \n\nUser *${targetUser.name}* (Username: ${targetUser.username}) requested a password reset.\n\nRole: ${targetUser.role}\nPhone: ${targetUser.phone || 'N/A'}\n\nPlease reset their password and contact them via WhatsApp.`,
             timestamp: timestamp,
             isRead: false
