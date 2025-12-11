@@ -54,7 +54,7 @@ export const NotificationProvider: React.FC<{children: React.ReactNode}> = ({ ch
       if (result === 'granted') {
           // Ensure SW is ready
           if ('serviceWorker' in navigator) {
-             navigator.serviceWorker.ready.then(registration => {
+             navigator.serviceWorker.ready.then(() => {
                 console.log("SW ready for notifications");
              });
           }
