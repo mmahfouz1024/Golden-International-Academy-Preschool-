@@ -1,7 +1,6 @@
 
-
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, Plus, Phone, Star, ChevronLeft, ChevronRight, X, Save, Filter, Camera, ShieldCheck, Edit2, Trash2, AlertCircle, Mail, Calendar, UserCheck, UserPlus, CheckCircle } from 'lucide-react';
+import { Search, Plus, Phone, Star, ChevronLeft, ChevronRight, X, Save, Filter, Camera, ShieldCheck, Edit2, Trash2, AlertCircle, Mail, Calendar, UserCheck, UserPlus, CheckCircle, ChevronDown } from 'lucide-react';
 import { Student, StudentStatus, User, ClassGroup } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
 import { getStudents, saveStudents, getUsers, saveUsers, getClasses } from '../services/storageService';
@@ -71,6 +70,56 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
     }
   };
 
+  // Helper to calculate precise age string
+  const calculateDetailedAge = (birthDateStr: string) => {
+    if (!birthDateStr) return '';
+    const birth = new Date(birthDateStr);
+    const now = new Date();
+    
+    let years = now.getFullYear() - birth.getFullYear();
+    let months = now.getMonth() - birth.getMonth();
+    
+    if (months < 0 || (months === 0 && now.getDate() < birth.getDate())) {
+        years--;
+        months += 12;
+    }
+    
+    // Adjust month calculation if day hasn't passed yet
+    if (now.getDate() < birth.getDate()) {
+        months--;
+        if (months < 0) {
+            months += 12;
+            // logic handles year decrement above already via month diff, 
+            // but edge case: check if we need to borrow from year again (unlikely with logic above)
+        }
+    }
+
+    return `${years} Y, ${months} M`;
+  };
+
+  const getFormattedDate = (dateStr: string) => {
+    if (!dateStr) return '';
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
+    // Force English format as requested: 25 October 2025
+    return date.toLocaleDateString('en-GB', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+    });
+  };
+
+  const handleBirthdayChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const newDate = e.target.value;
+      const ageString = calculateDetailedAge(newDate);
+      
+      setStudentData(prev => ({
+          ...prev,
+          birthday: newDate,
+          age: ageString
+      }));
+  };
+
   const handleOpenModal = (student?: Student) => {
     setError('');
     
@@ -82,27 +131,29 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
       // Edit Mode
       setEditingStudent(student);
       setNewStudentAvatar(student.avatar);
-      setParentMode('new'); // When editing, usually we show data directly, defaulting to 'new' mode UI but prefilled
+      setParentMode('new'); 
       
-      // Try to find linked parent user to populate credentials
       const parentUser = allUsers.find(u => u.linkedStudentId === student.id && u.role === 'parent');
+      
+      // Calculate display age from birthday if available, otherwise use stored age number
+      const displayAge = student.birthday ? calculateDetailedAge(student.birthday) : student.age.toString();
 
       setStudentData({
         name: student.name,
-        age: student.age.toString(),
+        age: displayAge,
         birthday: student.birthday || '',
         classGroup: student.classGroup,
         parentName: student.parentName,
         phone: student.phone,
         parentUsername: parentUser ? parentUser.username : '',
-        parentPassword: '', // Don't show password for security, only allow reset
+        parentPassword: '', 
         parentEmail: parentUser?.email || ''
       });
     } else {
       // Add Mode
       setEditingStudent(null);
       setNewStudentAvatar('');
-      setParentMode('new'); // Default to new parent
+      setParentMode('new'); 
       setSelectedParentId('');
       
       const defaultClass = classes.length > 0 ? classes[0].name : 'Birds';
@@ -132,7 +183,6 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
         parentName: parent.name,
         phone: parent.phone || '',
         parentEmail: parent.email || '',
-        // Clear username/pass as we won't create a new user
         parentUsername: '',
         parentPassword: ''
       }));
@@ -148,7 +198,6 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
       setStudents(updatedList);
       saveStudents(updatedList);
 
-      // Also remove linked parent user? Optional, but good practice
       const users = getUsers();
       const updatedUsers = users.filter(u => u.linkedStudentId !== id);
       saveUsers(updatedUsers);
@@ -160,7 +209,6 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
     setError('');
     if (!studentData.name || !studentData.parentName) return;
 
-    // Check parent username duplicate if provided (only in 'new' mode)
     if (parentMode === 'new' && studentData.parentUsername) {
       const allUsers = getUsers();
       const parentUser = editingStudent 
@@ -182,12 +230,11 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
     let currentStudentId = '';
 
     if (editingStudent) {
-      // Update existing student
       currentStudentId = editingStudent.id;
       const updatedStudent: Student = {
         ...editingStudent,
         name: studentData.name,
-        age: parseInt(studentData.age) || 4,
+        age: parseInt(studentData.age) || 4, // Parsing "4 Y, 3 M" returns 4
         birthday: studentData.birthday,
         classGroup: studentData.classGroup,
         parentName: studentData.parentName,
@@ -197,19 +244,17 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
       
       updatedStudentsList = students.map(s => s.id === editingStudent.id ? updatedStudent : s);
     } else {
-      // Create new student
       currentStudentId = Date.now().toString();
       const newStudent: Student = {
         id: currentStudentId,
         name: studentData.name,
-        age: parseInt(studentData.age) || 4,
+        age: parseInt(studentData.age) || 4, // Parsing "4 Y, 3 M" returns 4
         birthday: studentData.birthday,
         classGroup: studentData.classGroup,
         parentName: studentData.parentName,
         phone: studentData.phone,
         status: StudentStatus.Active,
         attendanceToday: false,
-        // Use uploaded avatar OR generate initials avatar
         avatar: newStudentAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(studentData.name)}&background=random&color=fff`
       };
       updatedStudentsList = [newStudent, ...students];
@@ -218,15 +263,12 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
     setStudents(updatedStudentsList);
     saveStudents(updatedStudentsList);
 
-    // Handle Parent User Logic
     const currentUsers = getUsers();
     
-    // CASE A: Editing Existing Student
     if (editingStudent) {
         const existingParentIndex = currentUsers.findIndex(u => u.linkedStudentId === currentStudentId && u.role === 'parent');
         
         if (existingParentIndex >= 0) {
-          // Update existing parent user associated with this student
           const updatedUsers = [...currentUsers];
           updatedUsers[existingParentIndex] = {
             ...updatedUsers[existingParentIndex],
@@ -238,7 +280,6 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
           };
           saveUsers(updatedUsers);
         } else if (studentData.parentUsername && studentData.parentPassword) {
-           // Case where student existed but had no parent account, so we create one now
            const newUser: User = {
             id: `u-${Date.now()}`,
             name: studentData.parentName,
@@ -254,7 +295,6 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
           saveUsers([...currentUsers, newUser]);
         }
     } 
-    // CASE B: New Student with NEW Parent
     else if (parentMode === 'new' && studentData.parentUsername && studentData.parentPassword) {
       const newUser: User = {
         id: `u-${Date.now()}`,
@@ -270,10 +310,6 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
       };
       saveUsers([...currentUsers, newUser]);
     }
-    // CASE C: New Student with EXISTING Parent (No user creation needed)
-    // We simply use the parentName and phone stored in student record.
-    // Note: The existing parent User record will still point to their original child via linkedStudentId.
-    // Full multi-child support would require updating the User model to have linkedStudentIds[].
 
     setIsModalOpen(false);
   };
@@ -538,37 +574,36 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('studentAge')}</label>
-                  <input 
-                    required
-                    type="number" 
-                    min="2" max="7"
-                    dir="ltr"
-                    lang="en"
-                    style={{ direction: 'ltr', textAlign: 'left' }}
-                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-left font-sans"
-                    value={studentData.age}
-                    onChange={e => setStudentData({...studentData, age: e.target.value})}
-                  />
-                </div>
-
-                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">{t('birthday')}</label>
-                  <div className="relative group" dir="ltr" style={{ direction: 'ltr' }}>
-                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-indigo-500 pointer-events-none">
-                       <Calendar size={18} />
+                  <div className="relative group bg-white border border-gray-200 rounded-lg focus-within:ring-2 focus-within:ring-indigo-500/20 focus-within:border-indigo-500 h-[42px] flex items-center px-3">
+                    <div className="flex items-center gap-2 w-full">
+                       <Calendar size={18} className="text-indigo-500" />
+                       <span className="text-sm font-medium text-gray-700 flex-1 truncate" dir="ltr">
+                          {studentData.birthday ? getFormattedDate(studentData.birthday) : <span className="text-gray-400">Select Date</span>}
+                       </span>
+                       <ChevronDown size={14} className="text-gray-400" />
                     </div>
                     <input
                       type="date"
-                      dir="ltr"
-                      lang="en"
-                      style={{ direction: 'ltr', textAlign: 'left' }}
-                      className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-left text-gray-700 font-medium shadow-sm cursor-pointer font-sans"
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                       value={studentData.birthday}
-                      onChange={e => setStudentData({...studentData, birthday: e.target.value})}
-                      onClick={(e) => (e.target as HTMLInputElement).showPicker?.()}
+                      onChange={handleBirthdayChange}
                     />
                   </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('studentAge')}</label>
+                  <input 
+                    required
+                    type="text"
+                    readOnly 
+                    dir="ltr"
+                    style={{ direction: 'ltr', textAlign: 'left' }}
+                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none bg-gray-50 text-gray-500 cursor-not-allowed font-sans text-sm"
+                    value={studentData.age}
+                    placeholder="Auto Calculated"
+                  />
                 </div>
 
                 <div className="col-span-2">
