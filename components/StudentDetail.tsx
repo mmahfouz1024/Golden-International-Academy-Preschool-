@@ -16,6 +16,9 @@ interface StudentDetailProps {
   initialDate?: string;
 }
 
+// Helper type for safe dynamic access
+type MealDetailsKey = 'breakfastDetails' | 'lunchDetails' | 'snackDetails';
+
 const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false, initialDate }) => {
   const { t, language } = useLanguage();
   const { addNotification } = useNotification();
@@ -179,8 +182,9 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
     (['breakfast', 'lunch', 'snack'] as const).forEach(key => {
         const inputVal = mealInputs[key].trim();
         if (inputVal) {
-            const detailsKey = `${key}Details` as keyof typeof report.meals;
-            const currentList = (report.meals[detailsKey] as string[]) || [];
+            // Strictly cast to the specific array keys so TS knows it's safe
+            const detailsKey = `${key}Details` as MealDetailsKey;
+            const currentList = report.meals[detailsKey] || [];
             pendingMealsUpdates[detailsKey] = [...currentList, inputVal];
         }
     });
@@ -360,11 +364,11 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
     const val = mealInputs[mealKey].trim();
     if (!val) return;
 
-    // Map 'breakfast' -> 'breakfastDetails'
-    const detailsKey = `${String(mealKey)}Details` as keyof typeof report.meals;
+    // Map 'breakfast' -> 'breakfastDetails' and strictly cast
+    const detailsKey = `${String(mealKey)}Details` as MealDetailsKey;
 
     setReport(prev => {
-        const currentList = (prev.meals[detailsKey] as string[]) || [];
+        const currentList = prev.meals[detailsKey] || [];
         return {
             ...prev,
             meals: {
@@ -378,10 +382,10 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
   };
 
   const handleRemoveMealItem = (mealKey: keyof typeof mealInputs, index: number) => {
-    const detailsKey = `${String(mealKey)}Details` as keyof typeof report.meals;
+    const detailsKey = `${String(mealKey)}Details` as MealDetailsKey;
     
     setReport(prev => {
-        const currentList = (prev.meals[detailsKey] as string[]) || [];
+        const currentList = prev.meals[detailsKey] || [];
         return {
             ...prev,
             meals: {
@@ -558,8 +562,8 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
                   { key: 'snack', label: t('snack'), icon: Check },
                 ].map((meal) => {
                   const mealKey = meal.key as 'breakfast' | 'lunch' | 'snack';
-                  const detailsKey = `${mealKey}Details` as keyof typeof report.meals;
-                  const detailsList = (report.meals[detailsKey] as string[]) || [];
+                  const detailsKey = `${mealKey}Details` as MealDetailsKey;
+                  const detailsList = report.meals[detailsKey] || [];
 
                   return (
                     <div key={meal.key} className="space-y-2 pb-2 border-b border-gray-50 last:border-0 last:pb-0">
