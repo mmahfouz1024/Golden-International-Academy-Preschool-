@@ -48,11 +48,11 @@ export interface DailyReport {
   moodNotes?: string;
   meals: {
     breakfast: MealStatus;
-    breakfastItem?: string; // Details of what was eaten for breakfast
+    breakfastDetails?: string[]; 
     lunch: MealStatus;
-    lunchItem?: string;     // Details of what was eaten for lunch
+    lunchDetails?: string[];     
     snack: MealStatus;
-    snackItem?: string;     // Details of what was eaten for snack
+    snackDetails?: string[];     
     waterCups: number;
     notes?: string;
   };

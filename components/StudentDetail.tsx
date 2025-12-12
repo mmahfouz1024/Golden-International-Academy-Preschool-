@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   Smile, Frown, Meh, Sun, Cloud, Moon, 
@@ -39,7 +38,7 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
     date: selectedDate,
     mood: 'neutral',
     moodNotes: '',
-    meals: { breakfast: 'none', lunch: 'none', snack: 'none', waterCups: 0, notes: '' },
+    meals: { breakfast: 'none', breakfastDetails: [], lunch: 'none', lunchDetails: [], snack: 'none', snackDetails: [], waterCups: 0, notes: '' },
     bathroom: [],
     nap: { slept: false, notes: '' },
     academic: { religion: [], arabic: [], english: [], math: [] },
@@ -53,6 +52,12 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
     arabic: '',
     english: '',
     math: ''
+  });
+
+  const [mealInputs, setMealInputs] = useState({
+    breakfast: '',
+    lunch: '',
+    snack: ''
   });
 
   const [isSaved, setIsSaved] = useState(false);
@@ -110,21 +115,34 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
     if (allReports[reportKey]) {
       const loadedReport = allReports[reportKey];
       
-      // Ensure academic object exists and normalize strings to arrays for legacy support
-      const normalizeAcademic = (val: string | string[] | undefined) => {
+      // Normalization helpers for Array Data
+      const normalizeArray = (val: string | string[] | undefined) => {
          if (Array.isArray(val)) return val;
          if (typeof val === 'string' && val.trim() !== '') return [val];
          return [];
       };
 
+      // Normalize Academic
       if (!loadedReport.academic) {
         loadedReport.academic = { religion: [], arabic: [], english: [], math: [] };
       } else {
-        loadedReport.academic.religion = normalizeAcademic(loadedReport.academic.religion as any);
-        loadedReport.academic.arabic = normalizeAcademic(loadedReport.academic.arabic as any);
-        loadedReport.academic.english = normalizeAcademic(loadedReport.academic.english as any);
-        loadedReport.academic.math = normalizeAcademic(loadedReport.academic.math as any);
+        loadedReport.academic.religion = normalizeArray(loadedReport.academic.religion as any);
+        loadedReport.academic.arabic = normalizeArray(loadedReport.academic.arabic as any);
+        loadedReport.academic.english = normalizeArray(loadedReport.academic.english as any);
+        loadedReport.academic.math = normalizeArray(loadedReport.academic.math as any);
       }
+
+      // Normalize Meals (Legacy support)
+      // Check for old properties like breakfastItem and convert to array
+      const mealsAny = loadedReport.meals as any;
+      if (!loadedReport.meals.breakfastDetails && mealsAny.breakfastItem) loadedReport.meals.breakfastDetails = [mealsAny.breakfastItem];
+      if (!loadedReport.meals.lunchDetails && mealsAny.lunchItem) loadedReport.meals.lunchDetails = [mealsAny.lunchItem];
+      if (!loadedReport.meals.snackDetails && mealsAny.snackItem) loadedReport.meals.snackDetails = [mealsAny.snackItem];
+
+      // Ensure arrays exist
+      loadedReport.meals.breakfastDetails = normalizeArray(loadedReport.meals.breakfastDetails);
+      loadedReport.meals.lunchDetails = normalizeArray(loadedReport.meals.lunchDetails);
+      loadedReport.meals.snackDetails = normalizeArray(loadedReport.meals.snackDetails);
       
       // Ensure activities array exists
       if (!Array.isArray(loadedReport.activities)) {
@@ -138,14 +156,14 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
       setReport({
         id: `new-${Date.now()}`,
         studentId: student.id,
-        date: selectedDate, // Ensure date matches selectedDate
+        date: selectedDate,
         mood: 'neutral',
         moodNotes: '',
-        meals: { breakfast: 'none', lunch: 'none', snack: 'none', waterCups: 0, notes: '' },
+        meals: { breakfast: 'none', breakfastDetails: [], lunch: 'none', lunchDetails: [], snack: 'none', snackDetails: [], waterCups: 0, notes: '' },
         bathroom: [],
         nap: { slept: false, notes: '' },
         academic: { religion: [], arabic: [], english: [], math: [] },
-        activities: [], // Ensure array is initialized
+        activities: [], 
         photos: [],
         notes: ''
       });
@@ -237,6 +255,7 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
     });
   };
 
+  // --- ACADEMIC HANDLERS ---
   const handleAddAcademicItem = (subject: keyof typeof academicInputs) => {
     const val = academicInputs[subject].trim();
     if (!val) return;
@@ -265,6 +284,43 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
           [subject]: currentList.filter((_, i) => i !== index)
         }
       };
+    });
+  };
+
+  // --- MEAL HANDLERS ---
+  const handleAddMealItem = (mealKey: keyof typeof mealInputs) => {
+    const val = mealInputs[mealKey].trim();
+    if (!val) return;
+
+    // Map 'breakfast' -> 'breakfastDetails'
+    const detailsKey = `${String(mealKey)}Details` as keyof typeof report.meals;
+
+    setReport(prev => {
+        const currentList = (prev.meals[detailsKey] as string[]) || [];
+        return {
+            ...prev,
+            meals: {
+                ...prev.meals,
+                [detailsKey]: [...currentList, val]
+            }
+        };
+    });
+
+    setMealInputs(prev => ({ ...prev, [mealKey]: '' }));
+  };
+
+  const handleRemoveMealItem = (mealKey: keyof typeof mealInputs, index: number) => {
+    const detailsKey = `${String(mealKey)}Details` as keyof typeof report.meals;
+    
+    setReport(prev => {
+        const currentList = (prev.meals[detailsKey] as string[]) || [];
+        return {
+            ...prev,
+            meals: {
+                ...prev.meals,
+                [detailsKey]: currentList.filter((_, i) => i !== index)
+            }
+        };
     });
   };
 
@@ -432,44 +488,84 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
                   { key: 'breakfast', label: t('breakfast'), icon: Sun },
                   { key: 'lunch', label: t('lunch'), icon: Utensils },
                   { key: 'snack', label: t('snack'), icon: Check },
-                ].map((meal) => (
-                  <div key={meal.key} className="space-y-2 pb-2 border-b border-gray-50 last:border-0 last:pb-0">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2 text-gray-600">
-                        <meal.icon size={16} />
-                        <span className="text-sm font-medium">{meal.label}</span>
-                        </div>
-                        <div className="flex bg-gray-100 rounded-lg p-1">
-                        {mealOptions.map((opt) => (
-                            <button
-                            key={opt.value}
-                            disabled={readOnly}
-                            onClick={() => setReport({ ...report, meals: { ...report.meals, [meal.key]: opt.value } })}
-                            className={`px-3 py-1 rounded-md text-xs font-medium transition-all ${
-                                (report.meals as any)[meal.key] === opt.value
-                                ? 'bg-white text-indigo-600 shadow-sm'
-                                : 'text-gray-500 hover:text-gray-700'
-                            }`}
+                ].map((meal) => {
+                  const mealKey = meal.key as 'breakfast' | 'lunch' | 'snack';
+                  const detailsKey = `${mealKey}Details` as keyof typeof report.meals;
+                  const detailsList = (report.meals[detailsKey] as string[]) || [];
+
+                  return (
+                    <div key={meal.key} className="space-y-2 pb-2 border-b border-gray-50 last:border-0 last:pb-0">
+                      <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2 text-gray-600">
+                          <meal.icon size={16} />
+                          <span className="text-sm font-medium">{meal.label}</span>
+                          </div>
+                          <div className="flex bg-gray-100 rounded-lg p-1">
+                          {mealOptions.map((opt) => (
+                              <button
+                              key={opt.value}
+                              disabled={readOnly}
+                              onClick={() => setReport({ ...report, meals: { ...report.meals, [meal.key]: opt.value } })}
+                              className={`px-3 py-1 rounded-md text-xs font-medium transition-all ${
+                                  (report.meals as any)[meal.key] === opt.value
+                                  ? 'bg-white text-indigo-600 shadow-sm'
+                                  : 'text-gray-500 hover:text-gray-700'
+                              }`}
+                              >
+                              {opt.label}
+                              </button>
+                          ))}
+                          </div>
+                      </div>
+                      
+                      {/* New Meal Item Input with Add Button */}
+                      {!readOnly && (
+                        <div className="flex gap-2">
+                            <input
+                                type="text"
+                                placeholder={t('mealItemPlaceholder')}
+                                className="flex-1 px-3 py-2 bg-gray-50 rounded-lg border border-gray-100 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                value={mealInputs[mealKey]}
+                                onChange={(e) => setMealInputs({ ...mealInputs, [mealKey]: e.target.value })}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                        e.preventDefault();
+                                        handleAddMealItem(mealKey);
+                                    }
+                                }}
+                            />
+                            <button 
+                                onClick={() => handleAddMealItem(mealKey)}
+                                disabled={!mealInputs[mealKey].trim()}
+                                className="bg-indigo-600 text-white p-2 rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition-colors"
                             >
-                            {opt.label}
+                                <Plus size={16} />
                             </button>
-                        ))}
                         </div>
+                      )}
+
+                      {/* Display Meal Items */}
+                      <div className="flex flex-wrap gap-1.5 mt-1">
+                          {detailsList.map((item, idx) => (
+                              <div key={idx} className="flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium bg-orange-50 text-orange-700 border border-orange-100 shadow-sm">
+                                  <span>{item}</span>
+                                  {!readOnly && (
+                                      <button 
+                                          onClick={() => handleRemoveMealItem(mealKey, idx)}
+                                          className="text-orange-400 hover:text-red-500 transition-colors"
+                                      >
+                                          <X size={12} />
+                                      </button>
+                                  )}
+                              </div>
+                          ))}
+                          {detailsList.length === 0 && readOnly && (
+                              <span className="text-xs text-gray-400 italic">--</span>
+                          )}
+                      </div>
                     </div>
-                    {/* Specific Meal Item Input */}
-                    <input
-                        type="text"
-                        disabled={readOnly}
-                        placeholder={t('mealItemPlaceholder')}
-                        className="w-full px-3 py-2 bg-gray-50 rounded-lg border border-gray-100 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:opacity-70 disabled:bg-transparent"
-                        value={(report.meals as any)[`${meal.key}Item`] || ''}
-                        onChange={(e) => setReport({
-                            ...report,
-                            meals: { ...report.meals, [`${meal.key}Item`]: e.target.value }
-                        })}
-                    />
-                  </div>
-                ))}
+                  );
+                })}
                 
                 <div className="pt-2">
                   <label className="text-xs font-bold text-gray-400 mb-1 block">{t('mealNotes')}</label>

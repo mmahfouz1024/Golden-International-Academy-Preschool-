@@ -86,8 +86,11 @@ export const MOCK_REPORTS: Record<string, DailyReport> = {
     moodNotes: '',
     meals: {
       breakfast: 'all',
+      breakfastDetails: ['Cheese Sandwich', 'Milk'],
       lunch: 'some',
+      lunchDetails: ['Rice', 'Chicken'],
       snack: 'all',
+      snackDetails: ['Apple'],
       waterCups: 4,
       notes: ''
     },
@@ -112,8 +115,11 @@ export const MOCK_REPORTS: Record<string, DailyReport> = {
     moodNotes: '',
     meals: {
       breakfast: 'some',
+      breakfastDetails: ['Toast'],
       lunch: 'all',
+      lunchDetails: ['Pasta'],
       snack: 'none',
+      snackDetails: [],
       waterCups: 3,
       notes: ''
     },
@@ -137,8 +143,11 @@ export const MOCK_REPORTS: Record<string, DailyReport> = {
     moodNotes: 'Did not sleep well at home',
     meals: {
       breakfast: 'none',
+      breakfastDetails: [],
       lunch: 'some',
+      lunchDetails: ['Vegetables'],
       snack: 'some',
+      snackDetails: ['Biscuit'],
       waterCups: 2,
       notes: 'No appetite'
     },
