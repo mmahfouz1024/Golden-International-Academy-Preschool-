@@ -1,6 +1,6 @@
 
-import React, { useState, useEffect } from 'react';
-import { FilePlus, FileEdit, Search, ArrowRight, ArrowLeft, Calendar, AlertTriangle, CheckCircle } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { FilePlus, FileEdit, Search, ArrowRight, ArrowLeft, Calendar, AlertTriangle, CheckCircle, HelpCircle, ChevronDown } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { getStudents, getReports } from '../services/storageService';
 import { Student } from '../types';
@@ -16,10 +16,37 @@ const DailyReportManagement: React.FC = () => {
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [warning, setWarning] = useState<string | null>(null);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+
+  const dateInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setStudents(getStudents());
   }, []);
+
+  // Auto-focus the date input when entering selection mode
+  useEffect(() => {
+    if (mode === 'select') {
+      setTimeout(() => {
+        dateInputRef.current?.focus();
+        // Optional: showPicker() works in modern browsers to open the calendar immediately
+        // if (dateInputRef.current && 'showPicker' in dateInputRef.current) {
+        //    (dateInputRef.current as any).showPicker();
+        // }
+      }, 100);
+    }
+  }, [mode]);
+
+  const getFormattedDate = (dateStr: string) => {
+    if (!dateStr) return '';
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
+    return date.toLocaleDateString(language === 'ar' ? 'ar-EG' : 'en-GB', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+    });
+  };
 
   const handleActionSelect = (act: 'add' | 'edit') => {
     setAction(act);
@@ -27,6 +54,7 @@ const DailyReportManagement: React.FC = () => {
     setWarning(null);
     setSearchTerm('');
     setSelectedStudent(null);
+    setShowConfirmDialog(false);
   };
 
   const handleStartReport = () => {
@@ -36,17 +64,31 @@ const DailyReportManagement: React.FC = () => {
     const reportKey = `${selectedStudent.id}_${selectedDate}`;
     const exists = !!allReports[reportKey];
 
+    // Case 1: Trying to ADD but report EXISTS -> Show Blocking Dialog
     if (action === 'add' && exists) {
-        setWarning(t('reportExistsWarning'));
-        setTimeout(() => setWarning(null), 3000);
-        // We still proceed, but user is warned they are editing existing
-    } else if (action === 'edit' && !exists) {
+        setShowConfirmDialog(true);
+        return;
+    } 
+    
+    // Case 2: Trying to EDIT but report MISSING -> Warn then Create New
+    if (action === 'edit' && !exists) {
         setWarning(t('reportNotFoundWarning'));
         setTimeout(() => setWarning(null), 3000);
-        // We still proceed to create new
     }
 
+    // Default Case: New Report or Editing Existing (Normal flow)
     setMode('form');
+  };
+
+  const handleConfirmEdit = () => {
+      // User chose "Yes" to edit the existing report
+      setShowConfirmDialog(false);
+      setMode('form');
+  };
+
+  const handleCancelEdit = () => {
+      // User chose "No", close dialog and stay on selection screen to pick another date
+      setShowConfirmDialog(false);
   };
 
   const filteredStudents = students.filter(s => 
@@ -99,11 +141,21 @@ const DailyReportManagement: React.FC = () => {
          <div className="flex flex-col md:flex-row gap-6 items-center">
             <div className="flex-1 w-full">
                <label className="block text-sm font-bold text-gray-500 mb-2">{t('reportDate')}</label>
-               <div className="relative">
-                  <Calendar className={`absolute ${language === 'ar' ? 'right-4' : 'left-4'} top-1/2 -translate-y-1/2 text-gray-400`} />
+               {/* Custom Date Input for Day Month Year format */}
+               <div className="relative group bg-white border border-gray-200 rounded-xl focus-within:ring-2 focus-within:ring-indigo-500/20 focus-within:border-indigo-500 transition-all h-[52px]">
+                  <div className="absolute inset-0 flex items-center px-4 pointer-events-none justify-between">
+                      <div className="flex items-center gap-3">
+                        <Calendar size={20} className="text-indigo-500" />
+                        <span className="font-bold text-gray-700 text-lg" dir="ltr">
+                            {getFormattedDate(selectedDate)}
+                        </span>
+                      </div>
+                      <ChevronDown size={16} className="text-gray-400 group-hover:text-indigo-500" />
+                  </div>
                   <input 
+                    ref={dateInputRef}
                     type="date" 
-                    className={`w-full ${language === 'ar' ? 'pr-12' : 'pl-12'} p-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-medium text-gray-700`}
+                    className="w-full h-full opacity-0 cursor-pointer"
                     value={selectedDate}
                     onChange={(e) => setSelectedDate(e.target.value)}
                   />
@@ -112,12 +164,12 @@ const DailyReportManagement: React.FC = () => {
             
             <div className="flex-1 w-full">
                <label className="block text-sm font-bold text-gray-500 mb-2">{t('search')}</label>
-               <div className="relative">
+               <div className="relative h-[52px]">
                   <Search className={`absolute ${language === 'ar' ? 'right-4' : 'left-4'} top-1/2 -translate-y-1/2 text-gray-400`} />
                   <input 
                     type="text" 
                     placeholder={t('searchPlaceholder')}
-                    className={`w-full ${language === 'ar' ? 'pr-12' : 'pl-12'} p-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500`}
+                    className={`w-full h-full ${language === 'ar' ? 'pr-12' : 'pl-12'} p-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500`}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
@@ -185,6 +237,35 @@ const DailyReportManagement: React.FC = () => {
             <AlertTriangle size={18} />
             <span className="text-sm font-bold">{warning}</span>
          </div>
+      )}
+
+      {/* Confirmation Dialog */}
+      {showConfirmDialog && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+            <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-sm w-full text-center transform transition-all scale-100 animate-fade-in border-4 border-white">
+                <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <HelpCircle size={36} />
+                </div>
+                <h3 className="text-xl font-bold text-gray-800 mb-2">{t('reportExistsConfirmTitle')}</h3>
+                <p className="text-gray-600 mb-6 text-sm leading-relaxed">
+                    {t('reportExistsConfirmMsg')}
+                </p>
+                <div className="flex flex-col gap-3">
+                    <button 
+                        onClick={handleConfirmEdit}
+                        className="w-full py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200"
+                    >
+                        {t('editReport')} ({t('yes')})
+                    </button>
+                    <button 
+                        onClick={handleCancelEdit}
+                        className="w-full py-3 bg-white text-gray-600 border-2 border-gray-200 rounded-xl font-bold hover:bg-gray-50 transition-colors"
+                    >
+                        {t('chooseAnotherDate')} ({t('no')})
+                    </button>
+                </div>
+            </div>
+        </div>
       )}
 
       {mode === 'menu' && renderMenu()}

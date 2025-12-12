@@ -113,6 +113,10 @@ export const translations = {
     startReporting: "Start Reporting",
     reportExistsWarning: "A report already exists for this date. Switching to Edit mode.",
     reportNotFoundWarning: "No report found for this date. Switching to Add mode.",
+    reportExistsConfirmTitle: "Report Exists",
+    reportExistsConfirmMsg: "A report has already been added for this child on this date. Do you want to edit it?",
+    editReport: "Edit Report",
+    chooseAnotherDate: "Choose Another Date",
     selectOption: "Select an Option",
 
     // Student List
@@ -501,6 +505,10 @@ export const translations = {
     startReporting: "بدء التقرير",
     reportExistsWarning: "يوجد تقرير بالفعل لهذا التاريخ. سيتم التبديل لوضع التعديل.",
     reportNotFoundWarning: "لا يوجد تقرير لهذا التاريخ. سيتم التبديل لوضع الإضافة.",
+    reportExistsConfirmTitle: "التقرير موجود",
+    reportExistsConfirmMsg: "تم إضافة التقرير لهذا الطفل في هذا التاريخ من قبل. هل تريد تعديله؟",
+    editReport: "نعم، تعديل",
+    chooseAnotherDate: "لا، العودة للتاريخ",
     selectOption: "اختر عملية",
 
     // Student List
