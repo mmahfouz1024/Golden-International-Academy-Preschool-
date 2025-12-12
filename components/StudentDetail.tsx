@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { 
   Smile, Frown, Meh, Sun, Cloud, Moon, 
   Utensils, Droplets, Clock, Plus, Trash2, 
-  Gamepad2, Pencil, Check, Lock, Image, Save, Calendar, Cake, FileText, ChevronDown, BookOpen, X
+  Gamepad2, Pencil, Check, Lock, Image, Save, Calendar, Cake, FileText, ChevronDown, BookOpen, X, Baby
 } from 'lucide-react';
 import { Student, DailyReport, Mood, MealStatus, BathroomType } from '../types';
 import { getReports, saveReports } from '../services/storageService';
@@ -77,6 +77,28 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
       month: 'long',
       day: 'numeric'
     });
+  };
+
+  // Helper to calculate age string for display
+  const getDetailedAge = () => {
+    if (student.birthday) {
+      const birth = new Date(student.birthday);
+      const now = new Date();
+      let years = now.getFullYear() - birth.getFullYear();
+      let months = now.getMonth() - birth.getMonth();
+      
+      if (months < 0 || (months === 0 && now.getDate() < birth.getDate())) {
+          years--;
+          months += 12;
+      }
+      
+      if (now.getDate() < birth.getDate()) {
+          months--;
+          if (months < 0) months += 12;
+      }
+      return `${years} Y, ${months} M`;
+    }
+    return `${student.age} Years`;
   };
 
   // Load report when student or date changes
@@ -307,6 +329,10 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
           <img src={student.avatar} alt={student.name} className="w-16 h-16 rounded-full border-4 border-indigo-50 shadow-sm" />
           <div>
             <h2 className="text-2xl font-bold text-gray-800">{student.name}</h2>
+            {/* Display Age under name */}
+            <p className="text-sm font-bold text-indigo-600 mb-1 flex items-center gap-1" dir="ltr">
+               <Baby size={14} /> {getDetailedAge()}
+            </p>
             <div className="flex items-center gap-2 text-sm text-gray-500">
               <span className="bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-md font-medium">{student.classGroup}</span>
               {student.birthday && (
