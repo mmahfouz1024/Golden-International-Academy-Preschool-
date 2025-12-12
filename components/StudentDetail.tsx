@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { 
   Smile, Frown, Meh, Sun, Cloud, Moon, 
   Utensils, Droplets, Clock, Plus, Trash2, 
-  Gamepad2, Pencil, Check, Lock, Image, Save, Calendar, Cake, FileText, ChevronDown, BookOpen, X, Baby, Download, AlertTriangle
+  Gamepad2, Pencil, Check, Lock, Image, Save, Calendar, Cake, FileText, ChevronDown, BookOpen, X, Baby, Download, AlertTriangle, Share2
 } from 'lucide-react';
 import { Student, DailyReport, Mood, MealStatus, BathroomType } from '../types';
 import { getReports, saveReports } from '../services/storageService';
@@ -11,6 +11,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { useNotification } from '../contexts/NotificationContext';
 import { Capacitor } from '@capacitor/core';
 import { Filesystem, Directory } from '@capacitor/filesystem';
+import { Share } from '@capacitor/share';
 
 interface StudentDetailProps {
   student: Student;
@@ -328,16 +329,27 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
         // Prepare base64 string (remove data:image/png;base64, prefix if present)
         const base64Data = photoData.includes(',') ? photoData.split(',')[1] : photoData;
 
-        await Filesystem.writeFile({
+        // 1. Write to Cache (Safe Zone)
+        const result = await Filesystem.writeFile({
           path: fileName,
           data: base64Data,
-          directory: Directory.Documents,
+          directory: Directory.Cache, // Use cache instead of documents for better sharing support
         });
         
-        addNotification(t('savedSuccessfully'), `Photo saved to Documents folder`, 'success');
+        // 2. Share the file using System Share Sheet
+        // This is the "Magic" step - it opens the Android/iOS share menu
+        // giving the user options like "Save to Gallery", "Save to Files", "WhatsApp", etc.
+        await Share.share({
+            title: 'Download Photo',
+            text: `Photo of ${student.name} - ${selectedDate}`,
+            url: result.uri,
+            dialogTitle: 'Save Photo' // Title for the share dialog on Android
+        });
+        
       } catch (e) {
-        console.error("Native download failed", e);
-        addNotification("Download Failed", "Check app permissions for storage.", 'alert');
+        console.error("Native download/share failed", e);
+        // Fallback error message
+        addNotification("Save Failed", "Could not open share menu.", 'alert');
       }
     } else {
       // Browser Fallback
@@ -917,9 +929,9 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
                       <button 
                         onClick={() => handleDownloadPhoto(photo, idx)}
                         className="absolute top-2 left-2 p-1.5 bg-black/40 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/60"
-                        title="Download"
+                        title={Capacitor.isNativePlatform() ? "Share/Save" : "Download"}
                       >
-                        <Download size={14} />
+                        {Capacitor.isNativePlatform() ? <Share2 size={14} /> : <Download size={14} />}
                       </button>
 
                       {/* Delete Button - Only if editing */}
