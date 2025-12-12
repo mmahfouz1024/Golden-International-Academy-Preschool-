@@ -1,8 +1,9 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   Smile, Frown, Meh, Sun, Cloud, Moon, 
   Utensils, Droplets, Clock, Plus, Trash2, 
-  Gamepad2, Pencil, Check, Lock, Image, Save, Calendar, Cake, FileText, ChevronDown, BookOpen, X, Baby
+  Gamepad2, Pencil, Check, Lock, Image, Save, Calendar, Cake, FileText, ChevronDown, BookOpen, X, Baby, Download
 } from 'lucide-react';
 import { Student, DailyReport, Mood, MealStatus, BathroomType } from '../types';
 import { getReports, saveReports } from '../services/storageService';
@@ -193,18 +194,41 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
   };
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const result = reader.result as string;
-        setReport(prev => ({
-          ...prev,
-          photos: [...(prev.photos || []), result]
-        }));
-      };
-      reader.readAsDataURL(file);
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      const fileArray = Array.from(files) as File[];
+      const newPhotos: string[] = [];
+      let processedCount = 0;
+
+      fileArray.forEach(file => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          if (reader.result) {
+            newPhotos.push(reader.result as string);
+          }
+          processedCount++;
+          // When all files are processed, update state once
+          if (processedCount === fileArray.length) {
+            setReport(prev => ({
+              ...prev,
+              photos: [...(prev.photos || []), ...newPhotos]
+            }));
+          }
+        };
+        reader.readAsDataURL(file);
+      });
     }
+    // Reset input to allow selecting same files again if needed
+    if (e.target) e.target.value = '';
+  };
+
+  const handleDownloadPhoto = (photoData: string, index: number) => {
+    const link = document.createElement('a');
+    link.href = photoData;
+    link.download = `photo_${student.name}_${selectedDate}_${index + 1}.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const removePhoto = (index: number) => {
@@ -768,6 +792,17 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
                   report.photos.map((photo, idx) => (
                     <div key={idx} className="relative group aspect-video rounded-xl overflow-hidden bg-gray-100">
                       <img src={photo} alt="Daily activity" className="w-full h-full object-cover" />
+                      
+                      {/* Download Button - Visible for everyone */}
+                      <button 
+                        onClick={() => handleDownloadPhoto(photo, idx)}
+                        className="absolute top-2 left-2 p-1.5 bg-black/40 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/60"
+                        title="Download"
+                      >
+                        <Download size={14} />
+                      </button>
+
+                      {/* Delete Button - Only if editing */}
                       {!readOnly && (
                         <button 
                           onClick={() => removePhoto(idx)}
