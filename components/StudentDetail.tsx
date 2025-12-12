@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { 
   Smile, Frown, Meh, Sun, Cloud, Moon, 
   Utensils, Droplets, Clock, Plus, Trash2, 
-  Gamepad2, Pencil, Check, Lock, Image, Save, Calendar, Cake, FileText, ChevronDown, BookOpen, X, Baby, Download
+  Gamepad2, Pencil, Check, Lock, Image, Save, Calendar, Cake, FileText, ChevronDown, BookOpen, X, Baby, Download, AlertTriangle
 } from 'lucide-react';
 import { Student, DailyReport, Mood, MealStatus, BathroomType } from '../types';
 import { getReports, saveReports } from '../services/storageService';
@@ -65,6 +65,8 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
   });
 
   const [isSaved, setIsSaved] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [isCompressing, setIsCompressing] = useState(false);
 
   // Predefined Activities List
   const activitiesList = [
@@ -176,13 +178,14 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
   }, [student.id, selectedDate]);
 
   const handleSave = () => {
+    setSaveError(null);
+    
     // 1. Auto-save pending meal inputs
     const pendingMealsUpdates: Partial<typeof report.meals> = {};
     
     (['breakfast', 'lunch', 'snack'] as const).forEach(key => {
         const inputVal = mealInputs[key].trim();
         if (inputVal) {
-            // Strictly cast to the specific array keys so TS knows it's safe
             const detailsKey = `${key}Details` as MealDetailsKey;
             const currentList = report.meals[detailsKey] || [];
             pendingMealsUpdates[detailsKey] = [...currentList, inputVal];
@@ -221,52 +224,97 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
         setAcademicInputs({ religion: '', arabic: '', english: '', math: '' });
     }
 
-    const allReports = getReports();
-    const reportKey = `${student.id}_${selectedDate}`;
-    
-    const updatedReports = {
-      ...allReports,
-      [reportKey]: finalReport
-    };
-    
-    saveReports(updatedReports);
-    setDoesReportExist(true);
-    
-    setIsSaved(true);
-    addNotification(
-      t('savedSuccessfully'), 
-      `${t('newReportMsg')} ${student.name}`, 
-      'success'
-    );
-    setTimeout(() => setIsSaved(false), 2000);
+    try {
+      const allReports = getReports();
+      const reportKey = `${student.id}_${selectedDate}`;
+      
+      const updatedReports = {
+        ...allReports,
+        [reportKey]: finalReport
+      };
+      
+      saveReports(updatedReports); // This may throw QuotaExceededError
+      setDoesReportExist(true);
+      
+      setIsSaved(true);
+      addNotification(
+        t('savedSuccessfully'), 
+        `${t('newReportMsg')} ${student.name}`, 
+        'success'
+      );
+      setTimeout(() => setIsSaved(false), 2000);
+    } catch (e: any) {
+      console.error("Save failed:", e);
+      let errorMsg = "Failed to save report.";
+      if (e.name === 'QuotaExceededError' || e.message?.includes('quota')) {
+        errorMsg = "Storage full! Photos are too large. Please delete some photos or use smaller ones.";
+      }
+      setSaveError(errorMsg);
+      addNotification("Save Error", errorMsg, 'alert');
+    }
   };
 
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const compressImage = (base64Str: string, maxWidth = 800, quality = 0.7): Promise<string> => {
+    return new Promise((resolve) => {
+      const img = new globalThis.Image();
+      img.src = base64Str;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+
+        if (width > maxWidth) {
+          height = Math.round((height * maxWidth) / width);
+          width = maxWidth;
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(img, 0, 0, width, height);
+        
+        // Compress to JPEG with reduced quality
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = () => {
+        // Fallback to original if compression fails
+        resolve(base64Str); 
+      };
+    });
+  };
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
+      setIsCompressing(true);
       const fileArray = Array.from(files) as File[];
       const newPhotos: string[] = [];
-      let processedCount = 0;
+      
+      // Process sequentially to manage memory
+      for (const file of fileArray) {
+        try {
+          const base64 = await new Promise<string>((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.readAsDataURL(file);
+          });
+          
+          // Compress the image before adding to state
+          const compressed = await compressImage(base64);
+          newPhotos.push(compressed);
+        } catch (err) {
+          console.error("Error reading file", err);
+        }
+      }
 
-      fileArray.forEach(file => {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          if (reader.result) {
-            newPhotos.push(reader.result as string);
-          }
-          processedCount++;
-          // When all files are processed, update state once
-          if (processedCount === fileArray.length) {
-            setReport(prev => ({
-              ...prev,
-              photos: [...(prev.photos || []), ...newPhotos]
-            }));
-          }
-        };
-        reader.readAsDataURL(file);
-      });
+      setReport(prev => ({
+        ...prev,
+        photos: [...(prev.photos || []), ...newPhotos]
+      }));
+      setIsCompressing(false);
     }
-    // Reset input to allow selecting same files again if needed
+    
+    // Reset input
     if (e.target) e.target.value = '';
   };
 
@@ -451,7 +499,7 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
   };
 
   return (
-    <div className="space-y-6 animate-fade-in pb-10">
+    <div className="space-y-6 animate-fade-in pb-24">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
         <div className="flex items-center gap-4">
           <img src={student.avatar} alt={student.name} className="w-16 h-16 rounded-full border-4 border-indigo-50 shadow-sm" />
@@ -827,9 +875,10 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
                     <button 
                       onClick={() => fileInputRef.current?.click()}
                       className="text-sm text-indigo-600 hover:bg-indigo-50 px-3 py-1.5 rounded-lg flex items-center gap-1 transition-colors"
+                      disabled={isCompressing}
                     >
-                      <Plus size={16} />
-                      {t('addPhoto')}
+                      {isCompressing ? <div className="w-4 h-4 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"/> : <Plus size={16} />}
+                      {isCompressing ? "Compressing..." : t('addPhoto')}
                     </button>
                   </>
                 )}
@@ -888,12 +937,19 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
           </div>
 
           {!readOnly && (
-            <div className={`fixed bottom-6 ${language === 'ar' ? 'left-6' : 'right-6'} z-10`}>
+            <div className={`fixed bottom-6 ${language === 'ar' ? 'left-6' : 'right-6'} z-10 flex flex-col items-end gap-2`}>
+              {saveError && (
+                 <div className="bg-red-500 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-lg animate-bounce flex items-center gap-2">
+                    <AlertTriangle size={16} />
+                    {saveError}
+                 </div>
+              )}
               <button 
                 onClick={handleSave}
+                disabled={isCompressing}
                 className={`flex items-center gap-2 px-6 py-3 rounded-xl shadow-lg font-bold text-white transition-all transform hover:-translate-y-1 ${
                   isSaved ? 'bg-green-600' : 'bg-indigo-600 hover:bg-indigo-700'
-                }`}
+                } ${isCompressing ? 'opacity-70 cursor-not-allowed' : ''}`}
               >
                 {isSaved ? (
                   <>
