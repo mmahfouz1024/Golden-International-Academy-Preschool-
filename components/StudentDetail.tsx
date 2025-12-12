@@ -173,12 +173,56 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
   }, [student.id, selectedDate]);
 
   const handleSave = () => {
+    // 1. Auto-save pending meal inputs
+    const pendingMealsUpdates: Partial<typeof report.meals> = {};
+    
+    (['breakfast', 'lunch', 'snack'] as const).forEach(key => {
+        const inputVal = mealInputs[key].trim();
+        if (inputVal) {
+            const detailsKey = `${key}Details` as keyof typeof report.meals;
+            const currentList = (report.meals[detailsKey] as string[]) || [];
+            pendingMealsUpdates[detailsKey] = [...currentList, inputVal];
+        }
+    });
+
+    // 2. Auto-save pending academic inputs
+    const pendingAcademicUpdates: Partial<typeof report.academic> = {};
+    
+    (Object.keys(academicInputs) as Array<keyof typeof academicInputs>).forEach(key => {
+        const inputVal = academicInputs[key].trim();
+        if (inputVal) {
+            const currentList = report.academic?.[key] || [];
+            pendingAcademicUpdates[key] = [...currentList, inputVal];
+        }
+    });
+
+    // Construct final report with pending items included
+    const finalReport = {
+        ...report,
+        date: selectedDate,
+        meals: {
+            ...report.meals,
+            ...pendingMealsUpdates
+        },
+        academic: {
+            ...report.academic,
+            ...pendingAcademicUpdates
+        }
+    };
+
+    // Update state to reflect auto-saves
+    if (Object.keys(pendingMealsUpdates).length > 0 || Object.keys(pendingAcademicUpdates).length > 0) {
+        setReport(finalReport);
+        setMealInputs({ breakfast: '', lunch: '', snack: '' });
+        setAcademicInputs({ religion: '', arabic: '', english: '', math: '' });
+    }
+
     const allReports = getReports();
     const reportKey = `${student.id}_${selectedDate}`;
     
     const updatedReports = {
       ...allReports,
-      [reportKey]: { ...report, date: selectedDate }
+      [reportKey]: finalReport
     };
     
     saveReports(updatedReports);
