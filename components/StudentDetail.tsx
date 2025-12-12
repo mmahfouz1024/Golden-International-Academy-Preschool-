@@ -9,6 +9,8 @@ import { Student, DailyReport, Mood, MealStatus, BathroomType } from '../types';
 import { getReports, saveReports } from '../services/storageService';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useNotification } from '../contexts/NotificationContext';
+import { Capacitor } from '@capacitor/core';
+import { Filesystem, Directory } from '@capacitor/filesystem';
 
 interface StudentDetailProps {
   student: Student;
@@ -318,13 +320,34 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
     if (e.target) e.target.value = '';
   };
 
-  const handleDownloadPhoto = (photoData: string, index: number) => {
-    const link = document.createElement('a');
-    link.href = photoData;
-    link.download = `photo_${student.name}_${selectedDate}_${index + 1}.png`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const handleDownloadPhoto = async (photoData: string, index: number) => {
+    const fileName = `photo_${student.name}_${selectedDate}_${index + 1}.png`;
+
+    if (Capacitor.isNativePlatform()) {
+      try {
+        // Prepare base64 string (remove data:image/png;base64, prefix if present)
+        const base64Data = photoData.includes(',') ? photoData.split(',')[1] : photoData;
+
+        await Filesystem.writeFile({
+          path: fileName,
+          data: base64Data,
+          directory: Directory.Documents,
+        });
+        
+        addNotification(t('savedSuccessfully'), `Photo saved to Documents folder`, 'success');
+      } catch (e) {
+        console.error("Native download failed", e);
+        addNotification("Download Failed", "Check app permissions for storage.", 'alert');
+      }
+    } else {
+      // Browser Fallback
+      const link = document.createElement('a');
+      link.href = photoData;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
   };
 
   const removePhoto = (index: number) => {
