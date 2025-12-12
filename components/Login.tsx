@@ -279,6 +279,8 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
              <p className="text-xs text-gray-400 font-medium">Powered by Mohamed Mahfouz</p>
              <p className="text-[10px] text-gray-300 mt-0.5">eMail: M.mahfouz1024@gmail.com</p>
              <p className="text-[10px] text-gray-300 mt-0.5">Phone: 01063743345</p>
+             <p className="text-[10px] text-gray-300 mt-0.5">All rights reserved @ 2025</p>
+             <p className="text-[10px] text-gray-300 mt-0.5">Version 1.00</p>
           </div>
         </div>
       </div>
