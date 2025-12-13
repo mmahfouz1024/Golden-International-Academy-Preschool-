@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Megaphone, Send, Trash2, Bell, Calendar, Pin, PinOff } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useNotification } from '../contexts/NotificationContext';
-import { getUsers, getPosts, savePosts, getSchedule, syncPosts } from '../services/storageService';
+import { getUsers, savePosts, getSchedule, syncPosts } from '../services/storageService';
 import { Post, User, ScheduleItem } from '../types';
 
 const Dashboard: React.FC = () => {
