@@ -9,9 +9,6 @@ import { Student, DailyReport, Mood, MealStatus, BathroomType } from '../types';
 import { getReports, saveReports } from '../services/storageService';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useNotification } from '../contexts/NotificationContext';
-import { Capacitor } from '@capacitor/core';
-import { Filesystem, Directory } from '@capacitor/filesystem';
-import { Share } from '@capacitor/share';
 
 interface StudentDetailProps {
   student: Student;
@@ -330,6 +327,7 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
   };
 
   // STEP 2: Execute Download (After Confirmation)
+  // UPDATED for WebView/Appilix compatibility
   const processDownload = async () => {
     if (!downloadPreview) return;
     
@@ -338,71 +336,56 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
     // Close modal first
     setDownloadPreview(null);
 
-    // CASE A: REMOTE URL (HTTP/HTTPS)
-    // Open in system browser to allow standard download/view
-    if (photoData.startsWith('http')) {
-        window.open(photoData, '_system');
-        return;
-    }
-
-    // CASE B: BASE64 DATA (Local)
-    let ext = 'jpg';
-    if (photoData.startsWith('data:image/png')) ext = 'png';
-    
-    const fileName = `photo_${student.name.replace(/\s+/g, '_')}_${selectedDate}_${index + 1}.${ext}`;
-
-    if (Capacitor.isNativePlatform()) {
-      setIsCompressing(true); // Reuse loading state for feedback
-      try {
-        // Extract Base64 Data cleanly
-        const base64Data = photoData.includes(',') ? photoData.split(',')[1] : photoData;
-
-        // 1. Write to Cache (Safe Zone)
-        const result = await Filesystem.writeFile({
-          path: fileName,
-          data: base64Data,
-          directory: Directory.Cache, 
-        });
-        
-        // 2. Share the file using System Share Sheet
-        // Use 'files' array which is better for binary sharing on Android than 'url'
-        await Share.share({
-            title: 'Download Photo',
-            text: `Photo of ${student.name}`,
-            files: [result.uri],
-            dialogTitle: 'Save Photo' 
-        });
-        
-      } catch (e) {
-        console.error("Native download/share failed", e);
-        // Fallback error message
-        addNotification("Download Failed", "Could not open share menu.", 'alert');
-      } finally {
-        setIsCompressing(false);
-      }
-    } else {
-      // Browser Fallback (Blob) to prevent opening in new tab on mobile browsers
-      try {
-        const base64Data = photoData.includes(',') ? photoData.split(',')[1] : photoData;
-        const byteCharacters = atob(base64Data);
-        const byteNumbers = new Array(byteCharacters.length);
-        for (let i = 0; i < byteCharacters.length; i++) {
-          byteNumbers[i] = byteCharacters.charCodeAt(i);
+    try {
+        // SCENARIO 1: It's a Remote URL (Cloud)
+        if (photoData.startsWith('http')) {
+            // Open in external system browser (Chrome/Safari) to ensure download works
+            window.open(photoData, '_system');
+            return;
         }
-        const byteArray = new Uint8Array(byteNumbers);
-        const blob = new Blob([byteArray], { type: `image/${ext}` });
+
+        // SCENARIO 2: It's a Base64 String (Local)
+        // Convert Base64 to Blob/File
+        const response = await fetch(photoData);
+        const blob = await response.blob();
         
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = fileName;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        setTimeout(() => URL.revokeObjectURL(url), 100);
-      } catch (e) {
-        console.error("Web download failed", e);
-      }
+        // Determine mime type and extension
+        let ext = 'jpg';
+        let type = 'image/jpeg';
+        if (photoData.startsWith('data:image/png')) {
+            ext = 'png';
+            type = 'image/png';
+        }
+        
+        const fileName = `photo_${student.name.replace(/\s+/g, '_')}_${index + 1}.${ext}`;
+        const file = new File([blob], fileName, { type: type });
+
+        // Try the modern Web Share API Level 2 (Supported in Android WebView / Chrome)
+        // This is the best way to get a file "out" of a wrapper app into the phone's gallery/files
+        if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+            await navigator.share({
+                files: [file],
+                title: 'Download Photo',
+                text: `Photo of ${student.name}`,
+            });
+        } else {
+            // Fallback: Standard HTML5 Anchor download
+            // Note: In some strict WebViews, this might be blocked for Base64, 
+            // but it is the only fallback if Share API fails.
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = fileName;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+        }
+
+    } catch (e: any) {
+        console.error("Download error:", e);
+        // Fallback error alert so user knows something went wrong
+        alert("Download failed. Please ensure the app has storage permissions.");
     }
   };
 
@@ -973,9 +956,9 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
                       <button 
                         onClick={() => initiateDownload(photo, idx)}
                         className="absolute top-2 left-2 p-1.5 bg-black/40 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/60"
-                        title={Capacitor.isNativePlatform() ? "Share/Save" : "Download"}
+                        title={t('save')}
                       >
-                        {Capacitor.isNativePlatform() ? <Share2 size={14} /> : <Download size={14} />}
+                        <Download size={14} />
                       </button>
 
                       {/* Delete Button - Only if editing */}
@@ -1071,10 +1054,10 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
                {/* Confirmation Footer */}
                <div className="p-6 text-center space-y-4">
                   <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-2">
-                     <Download size={24} />
+                     <Share2 size={24} />
                   </div>
                   <h3 className="text-xl font-bold text-gray-800">
-                    {language === 'ar' ? 'هل تريد تنزيل الصورة؟' : 'Download Photo?'}
+                    {language === 'ar' ? 'هل تريد تنزيل/مشاركة الصورة؟' : 'Download/Share Photo?'}
                   </h3>
                   
                   <div className="flex gap-3 pt-2">
