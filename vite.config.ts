@@ -1,3 +1,4 @@
+
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 
@@ -15,6 +16,25 @@ export default defineConfig(({ mode }) => {
     build: {
       outDir: 'dist',
       emptyOutDir: true,
+      // رفع حد التحذير إلى 1000 كيلوبايت لتجنب الإزعاج
+      chunkSizeWarningLimit: 1000,
+      rollupOptions: {
+        output: {
+          // تقسيم الكود يدوياً لفصل المكتبات الكبيرة
+          manualChunks: {
+            'react-vendor': ['react', 'react-dom'],
+            'ui-vendor': ['lucide-react', 'recharts'],
+            'core-vendor': [
+              '@supabase/supabase-js', 
+              '@google/genai', 
+              '@capacitor/core', 
+              '@capacitor/filesystem', 
+              '@capacitor/share',
+              '@emailjs/browser'
+            ]
+          }
+        }
+      }
     }
   };
 });
