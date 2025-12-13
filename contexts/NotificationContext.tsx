@@ -141,7 +141,7 @@ export const NotificationProvider: React.FC<{children: React.ReactNode}> = ({ ch
     }
     // Check capacitor permissions on mount
     if (Capacitor.isNativePlatform()) {
-        LocalNotifications.checkPermissions().then(res => {
+        LocalNotifications.checkPermissions().then((res: any) => {
             if (res.display === 'granted') setPermissionStatus('granted');
         });
     }
