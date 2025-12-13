@@ -5,6 +5,7 @@ import { User, Theme } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { App } from '@capacitor/app';
+import { Capacitor } from '@capacitor/core';
 
 interface SidebarProps {
   currentView: string;
@@ -27,7 +28,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   showInstallButton,
   onInstall
 }) => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { theme, setTheme } = useTheme();
   const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
 
@@ -88,11 +89,28 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   const handleExitApp = async () => {
     if (window.confirm(t('exitConfirm'))) {
-      try {
-        await App.exitApp();
-      } catch (e) {
-        console.log("Exit app not supported on this platform, trying window.close");
-        window.close();
+      if (Capacitor.isNativePlatform()) {
+        try {
+          await App.exitApp();
+        } catch (e) {
+          console.error("App.exitApp failed", e);
+        }
+      } else {
+        // Web Environment
+        try {
+          window.close();
+        } catch (e) {
+          console.log("window.close failed", e);
+        }
+        
+        // Most browsers block window.close() if not opened by script.
+        // Show guidance if we are still running.
+        setTimeout(() => {
+           alert(language === 'ar' 
+             ? "يرجى إغلاق المتصفح يدوياً. سياسة المتصفح تمنع الإغلاق التلقائي." 
+             : "Please close the browser tab manually. Browser security prevents auto-close."
+           );
+        }, 300);
       }
     }
   };
