@@ -89,16 +89,16 @@ const Sidebar: React.FC<SidebarProps> = ({
     <>
       {isMobileOpen && (
         <div 
-          className="fixed inset-0 bg-black/50 z-20 md:hidden backdrop-blur-sm"
+          className="fixed inset-0 bg-black/50 z-20 backdrop-blur-sm"
           onClick={() => setIsMobileOpen(false)}
         />
       )}
 
       <aside className={`
-        fixed md:static inset-y-0 left-0 z-30 w-72
+        fixed inset-y-0 left-0 z-30 w-72
         bg-white/80 backdrop-blur-xl border-r-4 border-white shadow-2xl
         transform transition-transform duration-300 ease-in-out flex flex-col
-        ${isMobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+        ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
         
         {/* Header - Matching Login Page Design */}

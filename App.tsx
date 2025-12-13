@@ -504,7 +504,7 @@ const AppContent: React.FC = () => {
           <div className="flex items-center gap-4">
             <button 
               onClick={() => setIsMobileOpen(true)}
-              className="md:hidden p-2 text-gray-500 hover:bg-white/50 rounded-lg"
+              className="p-2 text-gray-500 hover:bg-white/50 rounded-lg"
             >
               <Menu size={24} />
             </button>
