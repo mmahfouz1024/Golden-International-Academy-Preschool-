@@ -77,6 +77,13 @@ export interface DailyReport {
   notes: string;
 }
 
+export interface DailyMenu {
+  date: string;
+  breakfast: string;
+  lunch: string;
+  snack: string;
+}
+
 export type UserRole = 'admin' | 'manager' | 'teacher' | 'parent';
 
 export interface User {

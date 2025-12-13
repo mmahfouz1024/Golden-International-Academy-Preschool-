@@ -1,6 +1,6 @@
 
 import { MOCK_USERS, MOCK_STUDENTS, MOCK_CLASSES, MOCK_REPORTS } from '../constants';
-import { User, Student, ClassGroup, DailyReport, DatabaseConfig, AppNotification, ChatMessage, Post, ScheduleItem, AttendanceStatus } from '../types';
+import { User, Student, ClassGroup, DailyReport, DatabaseConfig, AppNotification, ChatMessage, Post, ScheduleItem, AttendanceStatus, DailyMenu } from '../types';
 import { initSupabase, syncDataToCloud, fetchDataFromCloud } from './supabaseClient';
 
 const KEYS = {
@@ -13,7 +13,8 @@ const KEYS = {
   MESSAGES: 'golden_academy_messages',
   POSTS: 'golden_academy_posts',
   SCHEDULE: 'golden_academy_schedule',
-  ATTENDANCE: 'golden_academy_attendance_history'
+  ATTENDANCE: 'golden_academy_attendance_history',
+  DAILY_MENU: 'golden_academy_daily_menu'
 };
 
 // Initialize DB
@@ -149,7 +150,7 @@ const saveAndSync = async (key: string, data: any) => {
 
 const syncAllFromCloud = async () => {
   try {
-    const keys = [KEYS.USERS, KEYS.STUDENTS, KEYS.CLASSES, KEYS.REPORTS, KEYS.NOTIFICATIONS, KEYS.MESSAGES, KEYS.POSTS, KEYS.SCHEDULE, KEYS.ATTENDANCE];
+    const keys = [KEYS.USERS, KEYS.STUDENTS, KEYS.CLASSES, KEYS.REPORTS, KEYS.NOTIFICATIONS, KEYS.MESSAGES, KEYS.POSTS, KEYS.SCHEDULE, KEYS.ATTENDANCE, KEYS.DAILY_MENU];
     let syncedCount = 0;
     for (const key of keys) {
       const { data } = await fetchDataFromCloud(key);
@@ -185,6 +186,7 @@ export const forceSyncToCloud = async () => {
      await syncDataToCloud(KEYS.POSTS, JSON.parse(localStorage.getItem(KEYS.POSTS) || '[]'));
      await syncDataToCloud(KEYS.SCHEDULE, JSON.parse(localStorage.getItem(KEYS.SCHEDULE) || JSON.stringify(DEFAULT_SCHEDULE)));
      await syncDataToCloud(KEYS.ATTENDANCE, JSON.parse(localStorage.getItem(KEYS.ATTENDANCE) || '{}'));
+     await syncDataToCloud(KEYS.DAILY_MENU, JSON.parse(localStorage.getItem(KEYS.DAILY_MENU) || '{}'));
      
      const config = getDatabaseConfig();
      config.lastSync = new Date().toISOString();
@@ -204,22 +206,18 @@ export const forceSyncFromCloud = async () => {
 
 /**
  * Specifically sync messages for real-time chat.
- * Checks cloud if enabled, updates local storage, then returns latest messages.
  */
 export const syncMessages = async (): Promise<ChatMessage[]> => {
   if (isCloudEnabled) {
     try {
-      // 1. Fetch from cloud
       const { data } = await fetchDataFromCloud(KEYS.MESSAGES);
       if (data) {
-        // 2. Update local cache
         localStorage.setItem(KEYS.MESSAGES, JSON.stringify(data));
       }
     } catch (e) {
       console.error("Background message sync failed", e);
     }
   }
-  // 3. Return local data (which is now fresh)
   return getMessages();
 };
 
@@ -229,17 +227,14 @@ export const syncMessages = async (): Promise<ChatMessage[]> => {
 export const syncPosts = async (): Promise<Post[]> => {
   if (isCloudEnabled) {
     try {
-      // 1. Fetch from cloud
       const { data } = await fetchDataFromCloud(KEYS.POSTS);
       if (data) {
-        // 2. Update local cache
         localStorage.setItem(KEYS.POSTS, JSON.stringify(data));
       }
     } catch (e) {
       console.error("Background post sync failed", e);
     }
   }
-  // 3. Return local data
   return getPosts();
 };
 
@@ -258,7 +253,7 @@ export const createBackupData = () => {
     posts: getPosts(),
     schedule: getSchedule(),
     attendance: getAttendanceHistory(),
-    // We do NOT include DB_CONFIG to allow restoring data across different environments without breaking auth
+    dailyMenu: getDailyMenu(),
   };
   return backup;
 };
@@ -268,7 +263,7 @@ export const restoreBackupData = (data: any) => {
     // Basic validation
     if (!data || typeof data !== 'object') return false;
     
-    // Restore logic - only restore if data exists in the file to avoid wiping with nulls
+    // Restore logic
     if (data.users) localStorage.setItem(KEYS.USERS, JSON.stringify(data.users));
     if (data.students) localStorage.setItem(KEYS.STUDENTS, JSON.stringify(data.students));
     if (data.classes) localStorage.setItem(KEYS.CLASSES, JSON.stringify(data.classes));
@@ -278,8 +273,8 @@ export const restoreBackupData = (data: any) => {
     if (data.posts) localStorage.setItem(KEYS.POSTS, JSON.stringify(data.posts));
     if (data.schedule) localStorage.setItem(KEYS.SCHEDULE, JSON.stringify(data.schedule));
     if (data.attendance) localStorage.setItem(KEYS.ATTENDANCE, JSON.stringify(data.attendance));
+    if (data.dailyMenu) localStorage.setItem(KEYS.DAILY_MENU, JSON.stringify(data.dailyMenu));
 
-    // If cloud is enabled, we should push this restored data to cloud immediately
     if (isCloudEnabled) {
        forceSyncToCloud().catch(err => console.error("Auto-sync after restore failed", err));
     }
@@ -396,7 +391,6 @@ export const saveSchedule = (schedule: ScheduleItem[]) => {
 };
 
 // Attendance History
-// Data Structure: { "2023-10-01": { "studentId1": "present", "studentId2": "absent" }, ... }
 export const getAttendanceHistory = (): Record<string, Record<string, AttendanceStatus>> => {
   const stored = localStorage.getItem(KEYS.ATTENDANCE);
   if (!stored) {
@@ -407,4 +401,24 @@ export const getAttendanceHistory = (): Record<string, Record<string, Attendance
 
 export const saveAttendanceHistory = (history: Record<string, Record<string, AttendanceStatus>>) => {
   saveAndSync(KEYS.ATTENDANCE, history);
+};
+
+// Daily Menu
+export const getDailyMenu = (): DailyMenu => {
+  const stored = localStorage.getItem(KEYS.DAILY_MENU);
+  const today = new Date().toISOString().split('T')[0];
+  const emptyMenu: DailyMenu = { date: today, breakfast: '', lunch: '', snack: '' };
+
+  if (!stored) return emptyMenu;
+  
+  const menu = JSON.parse(stored);
+  // Reset if it's a new day
+  if (menu.date !== today) {
+      return emptyMenu;
+  }
+  return menu;
+};
+
+export const saveDailyMenu = (menu: DailyMenu) => {
+  saveAndSync(KEYS.DAILY_MENU, menu);
 };

@@ -1,10 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
-import { Megaphone, Send, Trash2, Bell, Calendar, Pin, PinOff, FileText, ArrowRight, ArrowLeft, Sparkles, Clock } from 'lucide-react';
+import { Megaphone, Send, Trash2, Bell, Calendar, Pin, PinOff, FileText, ArrowRight, ArrowLeft, Sparkles, Clock, Utensils, Coffee, Apple, Pizza, Plus, Check } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useNotification } from '../contexts/NotificationContext';
-import { getUsers, savePosts, getSchedule, syncPosts, getPosts } from '../services/storageService';
-import { Post, User, ScheduleItem } from '../types';
+import { getUsers, savePosts, getSchedule, syncPosts, getPosts, getDailyMenu, saveDailyMenu } from '../services/storageService';
+import { Post, User, ScheduleItem, DailyMenu } from '../types';
 
 interface DashboardProps {
   setCurrentView?: (view: string) => void;
@@ -21,6 +21,19 @@ const sortPosts = (postsToSort: Post[]) => {
   });
 };
 
+// Food Suggestions Constants
+const FOOD_SUGGESTIONS = {
+  breakfast: [
+    'Cheese Sandwich', 'Egg Sandwich', 'Jam Sandwich', 'Cereal & Milk', 'Pancakes', 'Falafel', 'Beans'
+  ],
+  lunch: [
+    'Rice & Chicken', 'Pasta', 'Nuggets & Fries', 'Koshary', 'Burger', 'Pizza', 'Vegetables & Rice', 'Fish'
+  ],
+  snack: [
+    'Apple', 'Banana', 'Yogurt', 'Biscuits', 'Juice', 'Cake', 'Popcorn', 'Orange'
+  ]
+};
+
 const Dashboard: React.FC<DashboardProps> = ({ setCurrentView }) => {
   const { t, language } = useLanguage();
   const { requestPermission, permissionStatus } = useNotification();
@@ -32,6 +45,7 @@ const Dashboard: React.FC<DashboardProps> = ({ setCurrentView }) => {
   });
 
   const [schedule, setSchedule] = useState<ScheduleItem[]>([]);
+  const [dailyMenu, setDailyMenu] = useState<DailyMenu>({ date: '', breakfast: '', lunch: '', snack: '' });
   const [newPostContent, setNewPostContent] = useState('');
   
   // Initialize user synchronously to avoid content flicker
@@ -42,6 +56,13 @@ const Dashboard: React.FC<DashboardProps> = ({ setCurrentView }) => {
       return users.find(u => u.id === userId) || null;
     }
     return null;
+  });
+
+  // State to track custom input mode per meal type
+  const [customInputMode, setCustomInputMode] = useState<{ [key: string]: boolean }>({
+    breakfast: false,
+    lunch: false,
+    snack: false
   });
 
   useEffect(() => {
@@ -56,6 +77,9 @@ const Dashboard: React.FC<DashboardProps> = ({ setCurrentView }) => {
     const loadedSchedule = getSchedule();
     loadedSchedule.sort((a, b) => a.time.localeCompare(b.time));
     setSchedule(loadedSchedule);
+
+    // Fetch Daily Menu
+    setDailyMenu(getDailyMenu());
 
     // POLL FOR NEW POSTS (Real-time updates)
     const interval = setInterval(async () => {
@@ -119,7 +143,19 @@ const Dashboard: React.FC<DashboardProps> = ({ setCurrentView }) => {
       setIsRequestingPermission(false);
   };
 
+  // Menu Handling
+  const handleMenuUpdate = (meal: keyof DailyMenu, value: string) => {
+    const updatedMenu = { ...dailyMenu, [meal]: value, date: new Date().toISOString().split('T')[0] };
+    setDailyMenu(updatedMenu);
+    saveDailyMenu(updatedMenu);
+  };
+
+  const toggleCustomInput = (meal: string) => {
+    setCustomInputMode(prev => ({ ...prev, [meal]: !prev[meal] }));
+  };
+
   const canCreatePost = currentUser && (currentUser.role === 'admin' || currentUser.role === 'manager');
+  const canEditMenu = currentUser && (currentUser.role === 'admin' || currentUser.role === 'manager' || currentUser.role === 'teacher');
 
   const getRelativeTime = (dateString: string) => {
     const date = new Date(dateString);
@@ -140,6 +176,62 @@ const Dashboard: React.FC<DashboardProps> = ({ setCurrentView }) => {
       case 'red': return 'bg-rose-50 border-rose-200 text-rose-700';
       default: return 'bg-slate-50 border-slate-200 text-slate-700';
     }
+  };
+
+  // Menu Component Helper
+  const renderMenuItem = (label: string, mealKey: 'breakfast' | 'lunch' | 'snack', icon: React.ElementType, colorClass: string) => {
+    const isCustom = customInputMode[mealKey];
+    
+    return (
+      <div className={`p-4 rounded-2xl border flex flex-col gap-2 ${colorClass}`}>
+         <div className="flex items-center justify-between mb-1">
+            <div className="flex items-center gap-2">
+                <div className="p-1.5 bg-white/50 rounded-lg">
+                   {React.createElement(icon, { size: 18 })}
+                </div>
+                <h4 className="font-bold text-sm opacity-90">{label}</h4>
+            </div>
+            {canEditMenu && (
+               <button 
+                 onClick={() => toggleCustomInput(mealKey)}
+                 className="p-1 hover:bg-white/50 rounded transition-colors text-xs"
+                 title={isCustom ? "Select from list" : t('addCustomDish')}
+               >
+                 {isCustom ? <ArrowLeft size={14} /> : <Plus size={14} />}
+               </button>
+            )}
+         </div>
+         
+         {canEditMenu ? (
+            isCustom ? (
+                <div className="flex gap-2">
+                   <input 
+                     type="text" 
+                     className="w-full bg-white/60 border-none rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-black/10 focus:bg-white transition-all placeholder:text-gray-400"
+                     placeholder={t('addCustomDish')}
+                     value={dailyMenu[mealKey]}
+                     onChange={(e) => handleMenuUpdate(mealKey, e.target.value)}
+                   />
+                </div>
+            ) : (
+                <select
+                  className="w-full bg-white/60 border-none rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-black/10 cursor-pointer appearance-none focus:bg-white transition-all"
+                  value={dailyMenu[mealKey]}
+                  onChange={(e) => handleMenuUpdate(mealKey, e.target.value)}
+                >
+                   <option value="">{t('selectDish')}</option>
+                   {FOOD_SUGGESTIONS[mealKey].map((item: string) => (
+                      <option key={item} value={item}>{item}</option>
+                   ))}
+                </select>
+            )
+         ) : (
+            <p className="text-lg font-bold truncate">
+               {dailyMenu[mealKey] || <span className="text-sm opacity-50 italic">--</span>}
+            </p>
+         )}
+      </div>
+    );
   };
 
   return (
@@ -219,6 +311,22 @@ const Dashboard: React.FC<DashboardProps> = ({ setCurrentView }) => {
             </div>
          </div>
       )}
+
+      {/* TODAY'S MENU SECTION */}
+      <div className="bg-white/70 backdrop-blur-xl rounded-[2rem] p-6 shadow-sm border border-white/50">
+         <div className="flex items-center gap-3 mb-6">
+            <div className="p-2.5 bg-yellow-100 text-yellow-600 rounded-xl">
+               <Utensils size={24} />
+            </div>
+            <h3 className="text-xl font-bold text-slate-800">{t('todaysMenu')}</h3>
+         </div>
+         
+         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {renderMenuItem(t('breakfast'), 'breakfast', Coffee, 'bg-orange-50 border-orange-100 text-orange-800')}
+            {renderMenuItem(t('lunch'), 'lunch', Pizza, 'bg-red-50 border-red-100 text-red-800')}
+            {renderMenuItem(t('snack'), 'snack', Apple, 'bg-green-50 border-green-100 text-green-800')}
+         </div>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         

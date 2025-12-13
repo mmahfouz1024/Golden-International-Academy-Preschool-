@@ -96,6 +96,9 @@ export const translations = {
     checkDailyReport: "Check Daily Report",
     dailyReportPrompt: "See photos, meals, and activities for your child today!",
     viewChildReport: "View Report",
+    todaysMenu: "Today's Main Dish",
+    selectDish: "Select Dish...",
+    addCustomDish: "Add Custom...",
 
     // Schedule Management
     scheduleManagement: "Daily Schedule Management",
@@ -504,6 +507,9 @@ export const translations = {
     checkDailyReport: "شاهد التقرير اليومي",
     dailyReportPrompt: "اطلع على صور، وجبات، وأنشطة طفلك لهذا اليوم!",
     viewChildReport: "عرض التقرير",
+    todaysMenu: "الطبق الرئيسي اليوم",
+    selectDish: "اختر الصنف...",
+    addCustomDish: "إضافة صنف...",
 
     // Schedule Management
     scheduleManagement: "إدارة الجدول اليومي",
