@@ -1,12 +1,12 @@
 
 import React, { useState, useEffect } from 'react';
-import { Calendar as CalIcon, Plus, Trash2, Clock, MapPin } from 'lucide-react';
+import { Calendar as CalIcon, Plus, Trash2 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { getEvents, saveEvents } from '../services/storageService';
 import { SchoolEvent } from '../types';
 
 const SchoolCalendar: React.FC = () => {
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
   const [events, setEvents] = useState<SchoolEvent[]>([]);
   const [isAdding, setIsAdding] = useState(false);
   const [newEvent, setNewEvent] = useState<Partial<SchoolEvent>>({

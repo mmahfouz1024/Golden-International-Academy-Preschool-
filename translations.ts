@@ -23,6 +23,49 @@ export const translations = {
     noChildRecord: "No child record linked to this account",
     contactAdmin: "Please contact school administration",
 
+    // New Modules (Restored)
+    transport: "Transport",
+    schoolCalendar: "Calendar",
+    staffAffairs: "Staff & HR",
+    
+    // Transport (Restored)
+    transportTitle: "Bus & Transport Tracking",
+    manageRoutes: "Manage Bus Routes",
+    addRoute: "Add Route",
+    routeName: "Route Name",
+    driverName: "Driver Name",
+    supervisorName: "Supervisor",
+    assignedStudents: "Assigned Students",
+    noRoutes: "No bus routes defined",
+    deleteRouteConfirm: "Delete this bus route?",
+    
+    // Calendar (Restored)
+    calendarTitle: "School Events Calendar",
+    calendarSubtitle: "Holidays, Exams, and Activities",
+    addEvent: "Add Event",
+    eventTitle: "Event Title",
+    eventType: "Type",
+    eventDate: "Date",
+    typeHoliday: "Holiday",
+    typeActivity: "Activity",
+    typeMeeting: "Meeting",
+    typeExam: "Exam",
+    deleteEventConfirm: "Delete this event?",
+    noEvents: "No upcoming events",
+    
+    // HR & Payroll (Restored)
+    hrTitle: "Staff Payroll",
+    hrSubtitle: "Manage salaries and payments",
+    recordSalary: "Record Payment",
+    staffMember: "Staff Member",
+    salaryAmount: "Amount",
+    paymentMonth: "Month",
+    paymentStatus: "Status",
+    salaryPaid: "Paid",
+    baseSalary: "Base Salary",
+    updateSalary: "Update Base Salary",
+    paymentHistory: "Payment History",
+
     // Auth
     loginTitle: "Login to Continue",
     username: "Username",
@@ -107,7 +150,6 @@ export const translations = {
     totalFees: "Total Fees",
     paidAmount: "Paid Amount",
     remainingAmount: "Balance",
-    paymentHistory: "Payment History",
     recordPayment: "Record Payment",
     feeStatus: "Status",
     statusPaid: "Paid",
@@ -465,6 +507,49 @@ export const translations = {
     noChildRecord: "لا يوجد سجل طفل مرتبط بهذا الحساب",
     contactAdmin: "يرجى التواصل مع إدارة الروضة",
 
+    // New Modules (Restored)
+    transport: "النقل المدرسي",
+    schoolCalendar: "التقويم",
+    staffAffairs: "شؤون الموظفين",
+
+    // Transport (Restored)
+    transportTitle: "تتبع النقل المدرسي",
+    manageRoutes: "إدارة خطوط الباصات",
+    addRoute: "إضافة خط",
+    routeName: "اسم الخط/المنطقة",
+    driverName: "اسم السائق",
+    supervisorName: "المشرفة",
+    assignedStudents: "الطلاب المسجلين",
+    noRoutes: "لم يتم تعريف خطوط نقل بعد",
+    deleteRouteConfirm: "هل أنت متأكد من حذف هذا الخط؟",
+
+    // Calendar (Restored)
+    calendarTitle: "التقويم المدرسي",
+    calendarSubtitle: "الإجازات، الاختبارات، والأنشطة",
+    addEvent: "إضافة فعالية",
+    eventTitle: "عنوان الفعالية",
+    eventType: "النوع",
+    eventDate: "التاريخ",
+    typeHoliday: "إجازة",
+    typeActivity: "نشاط",
+    typeMeeting: "اجتماع",
+    typeExam: "اختبار",
+    deleteEventConfirm: "حذف هذه الفعالية؟",
+    noEvents: "لا توجد فعاليات قادمة",
+
+    // HR & Payroll (Restored)
+    hrTitle: "رواتب الموظفين",
+    hrSubtitle: "إدارة الرواتب والمدفوعات",
+    recordSalary: "تسجيل دفعة",
+    staffMember: "الموظف",
+    salaryAmount: "المبلغ",
+    paymentMonth: "عن شهر",
+    paymentStatus: "الحالة",
+    salaryPaid: "تم الدفع",
+    baseSalary: "الراتب الأساسي",
+    updateSalary: "تحديث الراتب الأساسي",
+    paymentHistory: "سجل المدفوعات",
+
     // Auth
     loginTitle: "تسجيل الدخول للمتابعة",
     username: "اسم المستخدم",
@@ -549,7 +634,6 @@ export const translations = {
     totalFees: "إجمالي الرسوم",
     paidAmount: "المبلغ المدفوع",
     remainingAmount: "المتبقي",
-    paymentHistory: "سجل المدفوعات",
     recordPayment: "تسجيل دفعة",
     feeStatus: "الحالة",
     statusPaid: "خالص",

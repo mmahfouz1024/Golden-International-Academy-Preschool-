@@ -6,7 +6,7 @@ import { getTransportRoutes, saveTransportRoutes, getStudents } from '../service
 import { BusRoute, Student } from '../types';
 
 const TransportTracker: React.FC = () => {
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
   const [routes, setRoutes] = useState<BusRoute[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);

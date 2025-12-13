@@ -1,12 +1,12 @@
 
 import React, { useState, useEffect } from 'react';
-import { DollarSign, User as UserIcon, Plus, Save, History, Check } from 'lucide-react';
+import { DollarSign, Plus, History, Check } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { getUsers, saveUsers, getPayroll, savePayroll } from '../services/storageService';
 import { User, StaffSalary } from '../types';
 
 const StaffAffairs: React.FC = () => {
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
   const [staff, setStaff] = useState<User[]>([]);
   const [history, setHistory] = useState<StaffSalary[]>([]);
   
