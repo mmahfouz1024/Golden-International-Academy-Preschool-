@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, Search, MessageCircle, X, ChevronLeft, ChevronRight, User as UserIcon } from 'lucide-react';
+import { Send, Search, MessageCircle, X, ChevronLeft, ChevronRight, User as UserIcon, Minus } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { getUsers, getMessages, saveMessages, syncMessages } from '../services/storageService';
 import { User, ChatMessage } from '../types';
@@ -257,9 +257,20 @@ const Chat: React.FC = () => {
                  )}
                </div>
              </div>
-             {selectedUser && (
-                <div className="w-2.5 h-2.5 bg-green-400 rounded-full animate-pulse border-2 border-indigo-600"></div>
-             )}
+             
+             {/* Right Controls */}
+             <div className="flex items-center gap-3">
+                {selectedUser && (
+                    <div className="w-2.5 h-2.5 bg-green-400 rounded-full animate-pulse border-2 border-indigo-600"></div>
+                )}
+                <button 
+                    onClick={() => setIsOpen(false)}
+                    className="hover:bg-white/20 p-1 rounded-lg transition-colors"
+                    title={t('minimize')}
+                >
+                    <Minus size={20} />
+                </button>
+             </div>
           </div>
 
           {/* Content Area */}
