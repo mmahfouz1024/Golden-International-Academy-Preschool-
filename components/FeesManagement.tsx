@@ -1,10 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
-import { Wallet, DollarSign, CheckCircle, AlertCircle, Clock, Search, Filter, Send, X, Save, Edit2 } from 'lucide-react';
+import { Wallet, DollarSign, CheckCircle, AlertCircle, Clock, Search, Filter, Send, X, Save, Edit2, Printer, Receipt } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useNotification } from '../contexts/NotificationContext';
 import { getUsers, getStudents, getFees, saveFees } from '../services/storageService';
-import { User, Student, FeeRecord } from '../types';
+import { User, Student, FeeRecord, PaymentTransaction } from '../types';
 
 const FeesManagement: React.FC = () => {
   const { t, language } = useLanguage();
@@ -124,7 +124,7 @@ const FeesManagement: React.FC = () => {
         record.paidAmount += val;
         record.lastPaymentDate = date;
         record.history.push({
-            id: `pay-${Date.now()}`,
+            id: `${Date.now()}`, // Simple numeric ID for receipt
             date: date,
             amount: val,
             note: note,
@@ -147,6 +147,84 @@ const FeesManagement: React.FC = () => {
   const handleSendReminder = (student: Student) => {
     // In a real app, this would trigger an email or push notification to the parent's device
     alert(`${t('reminderSent')} to parent of ${student.name}`);
+  };
+
+  // --- PRINT RECEIPT LOGIC ---
+  const handlePrintReceipt = (transaction: PaymentTransaction, student: Student) => {
+      const receiptWindow = window.open('', '', 'width=600,height=600');
+      if (!receiptWindow) return;
+
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html dir="${language === 'ar' ? 'rtl' : 'ltr'}">
+        <head>
+            <title>${t('paymentReceipt')}</title>
+            <style>
+                body { font-family: sans-serif; padding: 40px; border: 2px dashed #ccc; margin: 20px; }
+                .header { text-align: center; margin-bottom: 30px; }
+                .logo { font-size: 24px; font-weight: bold; color: #4f46e5; margin-bottom: 5px; }
+                .title { font-size: 20px; font-weight: bold; text-decoration: underline; margin-bottom: 20px; }
+                .row { display: flex; justify-content: space-between; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+                .label { font-weight: bold; color: #555; }
+                .value { font-weight: bold; font-size: 16px; }
+                .footer { margin-top: 40px; text-align: center; font-size: 12px; color: #777; }
+                .signature { margin-top: 50px; display: flex; justify-content: space-between; }
+                .sig-line { border-top: 1px solid #000; width: 150px; text-align: center; padding-top: 5px; }
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <div class="logo">${t('appTitle')}</div>
+                <div>${new Date().toLocaleDateString()}</div>
+            </div>
+            
+            <div style="text-align: center;">
+                <div class="title">${t('paymentReceipt')}</div>
+            </div>
+
+            <div class="row">
+                <span class="label">${t('receiptNo')}</span>
+                <span class="value">#${transaction.id}</span>
+            </div>
+            <div class="row">
+                <span class="label">${t('paymentDate')}</span>
+                <span class="value">${transaction.date}</span>
+            </div>
+            <div class="row">
+                <span class="label">${t('receivedFrom')}</span>
+                <span class="value">${student.parentName}</span>
+            </div>
+            <div class="row">
+                <span class="label">${t('forStudent')}</span>
+                <span class="value">${student.name} (${student.classGroup})</span>
+            </div>
+            <div class="row">
+                <span class="label">${t('amount')}</span>
+                <span class="value" style="font-size: 20px; color: #4f46e5;">${transaction.amount} ${t('currency')}</span>
+            </div>
+            ${transaction.note ? `
+            <div class="row">
+                <span class="label">${t('note')}</span>
+                <span class="value">${transaction.note}</span>
+            </div>` : ''}
+
+            <div class="signature">
+                <div class="sig-line">${t('recordedBy')}: ${transaction.recordedBy}</div>
+                <div class="sig-line">${t('schoolSeal')}</div>
+            </div>
+
+            <div class="footer">
+                Thank you for your payment.
+            </div>
+            <script>
+                window.print();
+            </script>
+        </body>
+        </html>
+      `;
+
+      receiptWindow.document.write(htmlContent);
+      receiptWindow.document.close();
   };
 
   const filteredList = students.filter(s => {
@@ -309,20 +387,37 @@ const FeesManagement: React.FC = () => {
                             </div>
                         </div>
 
-                        {/* Payment History Accordion - Simple List */}
+                        {/* Payment History Accordion - Enhanced List */}
                         {record.history.length > 0 && (
                             <div className="mt-6 pt-4 border-t border-gray-50">
-                                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-3">{t('paymentHistory')}</h4>
+                                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-3 flex items-center gap-2">
+                                    <Receipt size={14} />
+                                    {t('paymentHistory')}
+                                </h4>
                                 <div className="space-y-2">
                                     {record.history.map(pay => (
-                                        <div key={pay.id} className="flex justify-between items-center text-sm bg-gray-50 p-2 rounded-lg">
-                                            <div className="flex items-center gap-2">
-                                                <Clock size={14} className="text-gray-400" />
-                                                <span className="font-medium text-gray-700" dir="ltr">{pay.date}</span>
+                                        <div key={pay.id} className="flex justify-between items-center text-sm bg-gray-50 p-3 rounded-lg border border-gray-100 hover:bg-white hover:shadow-sm transition-all group">
+                                            <div className="flex items-center gap-3">
+                                                <div className="bg-white p-1.5 rounded-md text-gray-400 border border-gray-200">
+                                                    <Clock size={14} />
+                                                </div>
+                                                <div>
+                                                    <span className="font-bold text-gray-700 block" dir="ltr">{pay.date}</span>
+                                                    <span className="text-[10px] text-gray-400">{pay.recordedBy}</span>
+                                                </div>
                                             </div>
+                                            
                                             <div className="flex items-center gap-4">
-                                                <span className="text-gray-500 text-xs truncate max-w-[100px]">{pay.note}</span>
-                                                <span className="font-bold text-emerald-600">+{pay.amount} {t('currency')}</span>
+                                                {pay.note && <span className="text-gray-500 text-xs italic truncate max-w-[100px] hidden sm:block">{pay.note}</span>}
+                                                <span className="font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded">+{pay.amount} {t('currency')}</span>
+                                                
+                                                <button 
+                                                    onClick={() => handlePrintReceipt(pay, student)}
+                                                    className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                                                    title={t('printReceipt')}
+                                                >
+                                                    <Printer size={16} />
+                                                </button>
                                             </div>
                                         </div>
                                     ))}

@@ -167,6 +167,12 @@ export const translations = {
     outstandingBalance: "Outstanding",
     tuitionFeeMsg: "Tuition Fee Reminder",
     tuitionFeeBody: "Dear parent, this is a reminder regarding the outstanding tuition fees for your child. Please contact the administration.",
+    printReceipt: "Print Receipt",
+    paymentReceipt: "Payment Receipt",
+    receiptNo: "Receipt No",
+    receivedFrom: "Received From",
+    forStudent: "For Student",
+    schoolSeal: "School Seal & Signature",
 
     // Schedule Management
     scheduleManagement: "Daily Schedule Management",
@@ -651,6 +657,12 @@ export const translations = {
     outstandingBalance: "المتبقي",
     tuitionFeeMsg: "تذكير بالرسوم الدراسية",
     tuitionFeeBody: "عزيزي ولي الأمر، هذا تذكير بخصوص الرسوم الدراسية المتبقية لطفلكم. يرجى مراجعة الإدارة.",
+    printReceipt: "طباعة الإيصال",
+    paymentReceipt: "إيصال استلام نقدية",
+    receiptNo: "رقم الإيصال",
+    receivedFrom: "استلمنا من",
+    forStudent: "عن الطالب",
+    schoolSeal: "ختم وتوقيع الروضة",
 
     // Schedule Management
     scheduleManagement: "إدارة الجدول اليومي",
