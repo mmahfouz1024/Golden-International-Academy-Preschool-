@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { 
   Smile, Frown, Meh, Sun, Cloud, Moon, 
   Utensils, Droplets, Clock, Plus, Trash2, 
-  Gamepad2, Pencil, Check, Lock, Image, Save, Calendar, Cake, FileText, ChevronDown, BookOpen, X, Baby, Download, AlertTriangle, Share2
+  Gamepad2, Pencil, Check, Lock, Image, Save, Calendar, Cake, FileText, ChevronDown, BookOpen, X, Baby, Download, AlertTriangle, Share2, Info
 } from 'lucide-react';
 import { Student, DailyReport, Mood, MealStatus, BathroomType } from '../types';
 import { getReports, saveReports } from '../services/storageService';
@@ -356,65 +356,40 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
     
     const { data: photoData, index } = downloadPreview;
     
-    // Close modal first so it doesn't block view
-    setDownloadPreview(null);
-
-    // SCENARIO 1: Remote URL (Cloud)
-    if (photoData.startsWith('http')) {
-        window.open(photoData, '_system');
-        return;
-    }
-
-    // SCENARIO 2: Base64 String (Local)
+    // Attempt 1: Native Share (If supported)
     try {
-        // Prepare filename
-        let ext = 'jpg';
-        if (photoData.startsWith('data:image/png')) ext = 'png';
-        const fileName = `photo_${student.name.replace(/\s+/g, '_')}_${index + 1}.${ext}`;
-
-        // Strategy A: Web Share API (Best for Android WebView)
-        if (navigator.share && navigator.canShare) {
-            const file = dataURItoFile(photoData, fileName);
-            if (file && navigator.canShare({ files: [file] })) {
-                try {
-                    await navigator.share({
-                        files: [file],
-                        title: 'Save Photo',
-                        text: `Photo of ${student.name}`,
-                    });
-                    return; // Success!
-                } catch (err) {
-                    console.log("Share failed or cancelled", err);
-                    // Continue to fallbacks if share fails
-                }
-            }
+        const fileName = `photo_${student.name.replace(/\s+/g, '_')}_${index + 1}.jpg`;
+        // Try to construct file sync or async
+        let file = dataURItoFile(photoData, fileName);
+        if (!file) {
+             const blob = await (await fetch(photoData)).blob();
+             file = new File([blob], fileName, { type: blob.type });
         }
 
-        // Strategy B: Anchor Tag Download (HTML5 Standard)
-        // Note: Some WebViews block 'data:' hrefs, but it's the standard fallback.
+        if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
+            await navigator.share({
+                files: [file],
+                title: 'Save Photo',
+            });
+            return; // Success, user sees native sheet
+        }
+    } catch (e) {
+        console.log("Share failed, trying legacy", e);
+    }
+
+    // Attempt 2: Anchor Download (Often blocked in simple WebViews)
+    try {
         const link = document.createElement('a');
-        link.href = photoData; // Use Data URI directly
-        link.download = fileName;
-        link.target = "_blank"; // Helpful for some mobile browsers
+        link.href = photoData;
+        link.download = `photo_${student.name}_${index + 1}.jpg`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-
-    } catch (e: any) {
-        console.error("Download error:", e);
-        alert("Download failed. Please try opening the image in a new tab.");
+    } catch (e) {
+        console.error("Anchor failed", e);
     }
-  };
-
-  // Fallback: Open in new window directly
-  const openInNewWindow = () => {
-      if (!downloadPreview) return;
-      const win = window.open();
-      if (win) {
-          win.document.write(`<img src="${downloadPreview.data}" style="width:100%"/>`);
-      } else {
-          alert("Pop-up blocked. Please allow pop-ups.");
-      }
+    
+    // Note: If both fail, the user is already looking at the modal with instructions to Long Press.
   };
 
   const removePhoto = (index: number) => {
@@ -1060,7 +1035,7 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
 
       {/* DOWNLOAD PREVIEW MODAL */}
       {downloadPreview && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-fade-in">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-fade-in">
             <div className="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden flex flex-col relative border-4 border-white transform transition-all scale-100">
                {/* Close Button */}
                <button 
@@ -1071,12 +1046,17 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
                </button>
 
                {/* Image Preview */}
-               <div className="w-full bg-gray-100 flex items-center justify-center p-2">
+               <div className="w-full bg-gray-100 flex items-center justify-center p-2 relative">
                   <img 
                     src={downloadPreview.data} 
                     alt="Preview" 
                     className="max-h-[50vh] w-auto object-contain rounded-lg shadow-sm"
                   />
+                  {/* Long Press Hint Overlay */}
+                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/60 text-white text-xs px-3 py-1.5 rounded-full backdrop-blur-sm pointer-events-none whitespace-nowrap flex items-center gap-1">
+                     <Info size={12} />
+                     {language === 'ar' ? 'اضغط مطولاً للحفظ' : 'Long press to save'}
+                  </div>
                </div>
 
                {/* Confirmation Footer */}
@@ -1084,9 +1064,17 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
                   <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-2">
                      <Share2 size={24} />
                   </div>
-                  <h3 className="text-xl font-bold text-gray-800">
-                    {language === 'ar' ? 'هل تريد تنزيل/مشاركة الصورة؟' : 'Download/Share Photo?'}
-                  </h3>
+                  
+                  <div className="space-y-1">
+                    <h3 className="text-xl font-bold text-gray-800">
+                        {language === 'ar' ? 'حفظ الصورة' : 'Save Photo'}
+                    </h3>
+                    <p className="text-sm text-gray-500 px-4">
+                        {language === 'ar' 
+                            ? 'اضغط مطولاً على الصورة أعلاه واختر "حفظ"، أو جرب زر المشاركة بالأسفل.' 
+                            : 'Long press the image above and select "Save Image", or try the share button below.'}
+                    </p>
+                  </div>
                   
                   <div className="flex gap-3 pt-2">
                      <button 
@@ -1102,14 +1090,6 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
                         {t('yes')}
                      </button>
                   </div>
-                  
-                  {/* Robust Fallback for WebViews */}
-                  <button 
-                    onClick={openInNewWindow}
-                    className="block w-full text-xs text-gray-400 hover:text-indigo-500 mt-2 underline"
-                  >
-                    If download fails, open image in new tab
-                  </button>
                </div>
             </div>
         </div>
