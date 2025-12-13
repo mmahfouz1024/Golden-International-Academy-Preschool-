@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { 
   Smile, Frown, Meh, Sun, Cloud, Moon, 
   Utensils, Droplets, Clock, Plus, Trash2, 
-  Gamepad2, Pencil, Check, Lock, Image, Save, Calendar, Cake, FileText, ChevronDown, BookOpen, X, Baby, Download, AlertTriangle
+  Gamepad2, Pencil, Check, Lock, Image, Save, Calendar, Cake, FileText, ChevronDown, BookOpen, X, Baby, Download, AlertTriangle, Coffee, Pizza, Apple
 } from 'lucide-react';
 import { Student, DailyReport, Mood, MealStatus, BathroomType } from '../types';
 import { getReports, saveReports } from '../services/storageService';
@@ -342,12 +342,12 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
   };
 
   const moods: { value: Mood; label: string; icon: React.ElementType; color: string }[] = [
-    { value: 'excited', label: t('excited'), icon: Sun, color: 'text-yellow-500 bg-yellow-50' },
-    { value: 'happy', label: t('happy'), icon: Smile, color: 'text-green-500 bg-green-50' },
-    { value: 'neutral', label: t('neutral'), icon: Meh, color: 'text-gray-500 bg-gray-50' },
-    { value: 'tired', label: t('tired'), icon: Moon, color: 'text-purple-500 bg-purple-50' },
-    { value: 'sad', label: t('sad'), icon: Frown, color: 'text-blue-500 bg-blue-50' },
-    { value: 'sick', label: t('sick'), icon: Cloud, color: 'text-red-500 bg-red-50' },
+    { value: 'excited', label: t('excited'), icon: Sun, color: 'text-amber-500 bg-amber-50 border-amber-200' },
+    { value: 'happy', label: t('happy'), icon: Smile, color: 'text-emerald-500 bg-emerald-50 border-emerald-200' },
+    { value: 'neutral', label: t('neutral'), icon: Meh, color: 'text-slate-500 bg-slate-50 border-slate-200' },
+    { value: 'tired', label: t('tired'), icon: Moon, color: 'text-violet-500 bg-violet-50 border-violet-200' },
+    { value: 'sad', label: t('sad'), icon: Frown, color: 'text-sky-500 bg-sky-50 border-sky-200' },
+    { value: 'sick', label: t('sick'), icon: Cloud, color: 'text-rose-500 bg-rose-50 border-rose-200' },
   ];
 
   const mealOptions: { value: MealStatus; label: string }[] = [
@@ -456,12 +456,12 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
     
     return (
       <div className="space-y-2">
-        <label className="text-xs font-bold text-gray-500 block">{title}</label>
+        <label className="text-xs font-bold text-slate-500 block uppercase tracking-wide">{title}</label>
         {!readOnly && (
           <div className="flex gap-2">
             <input 
               type="text"
-              className={`flex-1 p-3 bg-gray-50 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 text-sm ${isLtr ? 'text-left font-sans' : ''}`}
+              className={`flex-1 p-2.5 bg-slate-50 rounded-lg border border-transparent focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 text-sm ${isLtr ? 'text-left font-sans' : ''} transition-all`}
               dir={isLtr ? 'ltr' : undefined}
               value={academicInputs[subjectKey]}
               onChange={e => setAcademicInputs({...academicInputs, [subjectKey]: e.target.value})}
@@ -476,21 +476,21 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
             <button 
               onClick={() => handleAddAcademicItem(subjectKey)}
               disabled={!academicInputs[subjectKey].trim()}
-              className="bg-indigo-600 text-white p-3 rounded-xl hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+              className="bg-indigo-600 text-white p-2.5 rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition-colors shadow-sm"
             >
-              <Plus size={20} />
+              <Plus size={18} />
             </button>
           </div>
         )}
         
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 pt-1">
           {items.map((item, idx) => (
-             <div key={idx} className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm border font-medium ${isLtr ? 'font-sans' : ''} bg-white border-gray-200 text-gray-700 shadow-sm`}>
+             <div key={idx} className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm border font-medium ${isLtr ? 'font-sans' : ''} bg-white border-slate-200 text-slate-700 shadow-sm`}>
                <span dir={isLtr ? 'ltr' : undefined}>{item}</span>
                {!readOnly && (
                  <button 
                    onClick={() => handleRemoveAcademicItem(subjectKey, idx)}
-                   className="text-gray-400 hover:text-red-500 rounded-full p-0.5 hover:bg-red-50 transition-colors"
+                   className="text-slate-400 hover:text-rose-500 rounded-full p-0.5 hover:bg-rose-50 transition-colors"
                  >
                    <X size={14} />
                  </button>
@@ -498,7 +498,7 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
              </div>
           ))}
           {items.length === 0 && readOnly && (
-             <span className="text-sm text-gray-400 italic">--</span>
+             <span className="text-sm text-slate-400 italic">--</span>
           )}
         </div>
       </div>
@@ -507,19 +507,24 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
 
   return (
     <div className="space-y-6 animate-fade-in pb-24">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
-        <div className="flex items-center gap-4">
-          <img src={student.avatar} alt={student.name} className="w-16 h-16 rounded-full border-4 border-indigo-50 shadow-sm" />
+      {/* Student Header Card */}
+      <div className="relative overflow-hidden bg-white rounded-[2rem] shadow-sm border border-slate-100 p-6 flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="flex items-center gap-5 z-10">
+          <div className="relative">
+             <img src={student.avatar} alt={student.name} className="w-20 h-20 rounded-full border-4 border-indigo-50 shadow-md object-cover" />
+             <div className="absolute -bottom-1 -right-1 bg-white p-1 rounded-full shadow-sm">
+                <div className={`w-3 h-3 rounded-full ${student.attendanceToday ? 'bg-emerald-500' : 'bg-slate-300'}`}></div>
+             </div>
+          </div>
           <div>
-            <h2 className="text-2xl font-bold text-gray-800">{student.name}</h2>
-            {/* Display Age under name */}
-            <p className="text-sm font-bold text-indigo-600 mb-1 flex items-center gap-1" dir="ltr">
-               <Baby size={14} /> {getDetailedAge()}
-            </p>
-            <div className="flex items-center gap-2 text-sm text-gray-500">
-              <span className="bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-md font-medium">{student.classGroup}</span>
-              {student.birthday && (
-                <span className="flex items-center gap-1">
+            <h2 className="text-2xl font-bold text-slate-800 font-display">{student.name}</h2>
+            <div className="flex flex-wrap items-center gap-3 mt-1.5">
+               <span className="bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full text-xs font-bold border border-indigo-100">{student.classGroup}</span>
+               <span className="text-xs font-bold text-slate-500 flex items-center gap-1" dir="ltr">
+                  <Baby size={14} /> {getDetailedAge()}
+               </span>
+               {student.birthday && (
+                <span className="flex items-center gap-1 text-xs text-slate-400">
                   <Cake size={12} className="text-pink-400" /> {student.birthday}
                 </span>
               )}
@@ -527,15 +532,15 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
           </div>
         </div>
 
-        <div className="flex flex-col items-end">
-           <label className="text-xs font-bold text-gray-400 mb-1">{t('reportDate')}</label>
+        <div className="flex flex-col items-end z-10">
+           <label className="text-xs font-bold text-slate-400 mb-1 uppercase tracking-wide">{t('reportDate')}</label>
            <div className="relative group">
-              <div className="flex items-center gap-3 bg-gray-50 hover:bg-white border border-gray-200 hover:border-indigo-300 rounded-xl px-4 py-2 transition-all cursor-pointer shadow-sm">
+              <div className="flex items-center gap-3 bg-slate-50 hover:bg-white border border-slate-200 hover:border-indigo-300 rounded-xl px-5 py-2.5 transition-all cursor-pointer shadow-sm">
                 <Calendar size={20} className="text-indigo-500" />
-                <span className="font-bold text-gray-700 min-w-[140px] text-center" dir="ltr">
+                <span className="font-bold text-slate-700 min-w-[140px] text-center" dir="ltr">
                   {getFormattedDate(selectedDate)}
                 </span>
-                <ChevronDown size={16} className="text-gray-400 group-hover:text-indigo-500" />
+                <ChevronDown size={16} className="text-slate-400 group-hover:text-indigo-500" />
               </div>
               <input 
                 type="date" 
@@ -545,20 +550,23 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
               />
            </div>
         </div>
+        
+        {/* Decorative Background Blob */}
+        <div className="absolute -top-10 -right-10 w-40 h-40 bg-indigo-50 rounded-full blur-3xl opacity-50"></div>
       </div>
 
       {readOnly && !doesReportExist ? (
-        <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-dashed border-gray-200 text-center animate-fade-in">
-           <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-4">
-               <FileText className="text-gray-300" size={36} />
+        <div className="flex flex-col items-center justify-center py-20 bg-white/60 backdrop-blur-sm rounded-[2rem] border-2 border-dashed border-slate-200 text-center animate-fade-in">
+           <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-4">
+               <FileText className="text-slate-300" size={36} />
            </div>
-           <h3 className="text-lg font-bold text-gray-600">{t('noReportForDate')}</h3>
-           <p className="text-sm text-gray-400 mt-1" dir="ltr">{getFormattedDate(selectedDate)}</p>
+           <h3 className="text-xl font-bold text-slate-600">{t('noReportForDate')}</h3>
+           <p className="text-sm text-slate-400 mt-1" dir="ltr">{getFormattedDate(selectedDate)}</p>
         </div>
       ) : (
         <>
           {readOnly && (
-            <div className="bg-blue-50 border border-blue-100 text-blue-700 px-4 py-3 rounded-xl flex items-center gap-2">
+            <div className="bg-sky-50 border border-sky-100 text-sky-700 px-5 py-3 rounded-2xl flex items-center gap-3 font-medium">
               <Lock size={18} />
               <span>{t('readOnlyReport')}</span>
             </div>
@@ -566,12 +574,15 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-              <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
-                <Smile className="text-indigo-500" />
+            {/* Mood Card */}
+            <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
+              <h3 className="font-bold text-slate-800 mb-5 flex items-center gap-2 text-lg">
+                <div className="p-2 bg-purple-100 rounded-lg text-purple-600">
+                   <Smile size={20} />
+                </div>
                 {t('mood')}
               </h3>
-              <div className="grid grid-cols-3 gap-3 mb-4">
+              <div className="grid grid-cols-3 gap-3 mb-5">
                 {moods.map((m) => {
                   const Icon = m.icon;
                   const isSelected = report.mood === m.value;
@@ -580,23 +591,23 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
                       key={m.value}
                       disabled={readOnly}
                       onClick={() => setReport({ ...report, mood: m.value })}
-                      className={`flex flex-col items-center gap-2 p-3 rounded-xl transition-all ${
+                      className={`flex flex-col items-center gap-2 p-3 rounded-2xl transition-all border ${
                         isSelected 
-                          ? `${m.color} ring-2 ring-offset-1 ring-indigo-500 shadow-sm transform scale-105` 
-                          : 'bg-gray-50 text-gray-400 hover:bg-gray-100'
+                          ? `${m.color} shadow-sm transform scale-105` 
+                          : 'bg-slate-50 border-transparent text-slate-400 hover:bg-slate-100'
                       }`}
                     >
-                      <Icon size={24} />
-                      <span className="text-xs font-medium">{m.label}</span>
+                      <Icon size={28} strokeWidth={1.5} />
+                      <span className="text-xs font-bold">{m.label}</span>
                     </button>
                   );
                 })}
               </div>
               <div>
-                <label className="text-xs font-bold text-gray-400 mb-1 block">{t('moodDetails')}</label>
+                <label className="text-xs font-bold text-slate-400 mb-1.5 block uppercase tracking-wide">{t('moodDetails')}</label>
                 <textarea 
                   disabled={readOnly}
-                  className="w-full p-3 bg-gray-50 rounded-xl border border-gray-100 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:opacity-70"
+                  className="w-full p-4 bg-slate-50 rounded-2xl border border-transparent focus:bg-white focus:border-indigo-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 disabled:opacity-70 transition-all resize-none"
                   rows={2}
                   placeholder="..."
                   value={report.moodNotes}
@@ -605,38 +616,41 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
               </div>
             </div>
 
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-              <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
-                <Utensils className="text-indigo-500" />
+            {/* Meals Card */}
+            <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
+              <h3 className="font-bold text-slate-800 mb-5 flex items-center gap-2 text-lg">
+                <div className="p-2 bg-orange-100 rounded-lg text-orange-600">
+                   <Utensils size={20} />
+                </div>
                 {t('meals')}
               </h3>
-              <div className="space-y-4">
+              <div className="space-y-5">
                 {[
-                  { key: 'breakfast', label: t('breakfast'), icon: Sun },
-                  { key: 'lunch', label: t('lunch'), icon: Utensils },
-                  { key: 'snack', label: t('snack'), icon: Check },
+                  { key: 'breakfast', label: t('breakfast'), icon: Coffee },
+                  { key: 'lunch', label: t('lunch'), icon: Pizza },
+                  { key: 'snack', label: t('snack'), icon: Apple },
                 ].map((meal) => {
                   const mealKey = meal.key as 'breakfast' | 'lunch' | 'snack';
                   const detailsKey = `${mealKey}Details` as MealDetailsKey;
                   const detailsList = report.meals[detailsKey] || [];
 
                   return (
-                    <div key={meal.key} className="space-y-2 pb-2 border-b border-gray-50 last:border-0 last:pb-0">
+                    <div key={meal.key} className="space-y-3 pb-3 border-b border-slate-50 last:border-0 last:pb-0">
                       <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2 text-gray-600">
-                          <meal.icon size={16} />
-                          <span className="text-sm font-medium">{meal.label}</span>
+                          <div className="flex items-center gap-2 text-slate-600">
+                          <meal.icon size={18} className="text-orange-400" />
+                          <span className="text-sm font-bold">{meal.label}</span>
                           </div>
-                          <div className="flex bg-gray-100 rounded-lg p-1">
+                          <div className="flex bg-slate-100 rounded-lg p-1 gap-1">
                           {mealOptions.map((opt) => (
                               <button
                               key={opt.value}
                               disabled={readOnly}
                               onClick={() => setReport({ ...report, meals: { ...report.meals, [meal.key]: opt.value } })}
-                              className={`px-3 py-1 rounded-md text-xs font-medium transition-all ${
+                              className={`px-3 py-1 rounded-md text-[10px] font-bold transition-all uppercase tracking-wide ${
                                   (report.meals as any)[meal.key] === opt.value
-                                  ? 'bg-white text-indigo-600 shadow-sm'
-                                  : 'text-gray-500 hover:text-gray-700'
+                                  ? 'bg-white text-orange-600 shadow-sm'
+                                  : 'text-slate-400 hover:text-slate-600'
                               }`}
                               >
                               {opt.label}
@@ -651,7 +665,7 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
                             <input
                                 type="text"
                                 placeholder={t('mealItemPlaceholder')}
-                                className="flex-1 px-3 py-2 bg-gray-50 rounded-lg border border-gray-100 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                className="flex-1 px-3 py-2 bg-slate-50 rounded-xl border border-transparent focus:bg-white focus:border-indigo-200 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
                                 value={mealInputs[mealKey]}
                                 onChange={(e) => setMealInputs({ ...mealInputs, [mealKey]: e.target.value })}
                                 onKeyDown={(e) => {
@@ -664,7 +678,7 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
                             <button 
                                 onClick={() => handleAddMealItem(mealKey)}
                                 disabled={!mealInputs[mealKey].trim()}
-                                className="bg-indigo-600 text-white p-2 rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+                                className="bg-indigo-600 text-white p-2 rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition-colors shadow-sm"
                             >
                                 <Plus size={16} />
                             </button>
@@ -672,14 +686,14 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
                       )}
 
                       {/* Display Meal Items */}
-                      <div className="flex flex-wrap gap-1.5 mt-1">
+                      <div className="flex flex-wrap gap-2">
                           {detailsList.map((item, idx) => (
-                              <div key={idx} className="flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium bg-orange-50 text-orange-700 border border-orange-100 shadow-sm">
+                              <div key={idx} className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-white text-orange-700 border border-orange-100 shadow-sm">
                                   <span>{item}</span>
                                   {!readOnly && (
                                       <button 
                                           onClick={() => handleRemoveMealItem(mealKey, idx)}
-                                          className="text-orange-400 hover:text-red-500 transition-colors"
+                                          className="text-orange-300 hover:text-rose-500 transition-colors"
                                       >
                                           <X size={12} />
                                       </button>
@@ -687,7 +701,7 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
                               </div>
                           ))}
                           {detailsList.length === 0 && readOnly && (
-                              <span className="text-xs text-gray-400 italic">--</span>
+                              <span className="text-xs text-slate-300 italic px-2">--</span>
                           )}
                       </div>
                     </div>
@@ -695,10 +709,10 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
                 })}
                 
                 <div className="pt-2">
-                  <label className="text-xs font-bold text-gray-400 mb-1 block">{t('mealNotes')}</label>
+                  <label className="text-xs font-bold text-slate-400 mb-1.5 block uppercase tracking-wide">{t('mealNotes')}</label>
                   <textarea 
                     disabled={readOnly}
-                    className="w-full p-3 bg-gray-50 rounded-xl border border-gray-100 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:opacity-70"
+                    className="w-full p-4 bg-slate-50 rounded-2xl border border-transparent focus:bg-white focus:border-indigo-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 disabled:opacity-70 transition-all resize-none"
                     rows={2}
                     placeholder="..."
                     value={report.meals.notes}
@@ -708,29 +722,33 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
               </div>
             </div>
 
-            {/* Bathroom Card (Separated) */}
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-              <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
-                <Droplets className="text-indigo-500" />
+            {/* Bathroom Card */}
+            <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
+              <h3 className="font-bold text-slate-800 mb-5 flex items-center gap-2 text-lg">
+                <div className="p-2 bg-sky-100 rounded-lg text-sky-600">
+                   <Droplets size={20} />
+                </div>
                 {t('bathroomLog')}
               </h3>
               
               <div className="mb-2">
                 <div className="flex justify-between items-center mb-3">
-                  <span className="text-sm font-medium text-gray-500">{t('details')}</span>
+                  <span className="text-sm font-bold text-slate-500">{t('details')}</span>
                   {!readOnly && (
-                    <button onClick={addBathroomEntry} className="text-indigo-600 hover:bg-indigo-50 p-1 rounded transition-colors" title={t('add')}>
-                      <Plus size={20} />
+                    <button onClick={addBathroomEntry} className="text-indigo-600 bg-indigo-50 hover:bg-indigo-100 p-2 rounded-lg transition-colors shadow-sm" title={t('add')}>
+                      <Plus size={18} />
                     </button>
                   )}
                 </div>
-                {report.bathroom.length === 0 && <p className="text-xs text-gray-400 italic mb-2 py-4 text-center bg-gray-50 rounded-lg">--</p>}
+                {report.bathroom.length === 0 && <p className="text-xs text-slate-400 italic mb-2 py-6 text-center bg-slate-50 rounded-xl border border-dashed border-slate-200">No records today</p>}
                 <div className="space-y-2">
                   {report.bathroom.map((entry, idx) => (
-                    <div key={idx} className="flex items-center gap-2 bg-gray-50 p-2 rounded-lg border border-gray-100">
-                      <Clock size={14} className="text-gray-400" />
-                      <span className="text-xs font-bold text-gray-600 min-w-[50px]">{entry.time}</span>
-                      <div className="flex-1 flex gap-1">
+                    <div key={idx} className="flex items-center gap-3 bg-white p-3 rounded-xl border border-slate-100 shadow-sm">
+                      <div className="bg-slate-100 p-1.5 rounded-md text-slate-500">
+                         <Clock size={14} />
+                      </div>
+                      <span className="text-xs font-bold text-slate-600 min-w-[50px]">{entry.time}</span>
+                      <div className="flex-1 flex gap-2">
                         {(['urine', 'stool'] as BathroomType[]).map(type => (
                           <button
                             key={type}
@@ -740,8 +758,8 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
                               newBathroom[idx].type = type;
                               setReport({ ...report, bathroom: newBathroom });
                             }}
-                            className={`text-[10px] px-3 py-1 rounded-full transition-all ${
-                              entry.type === type ? 'bg-indigo-100 text-indigo-700 font-bold shadow-sm' : 'text-gray-400 bg-white border border-gray-200 hover:bg-gray-100'
+                            className={`text-[10px] px-3 py-1.5 rounded-lg transition-all font-bold uppercase tracking-wide ${
+                              entry.type === type ? 'bg-sky-100 text-sky-700 shadow-sm ring-1 ring-sky-200' : 'text-slate-400 bg-slate-50 hover:bg-slate-100'
                             }`}
                           >
                             {t(type as any)}
@@ -749,7 +767,7 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
                         ))}
                       </div>
                       {!readOnly && (
-                        <button onClick={() => removeBathroomEntry(idx)} className="text-gray-400 hover:text-red-500 p-1 rounded-md hover:bg-red-50 transition-colors">
+                        <button onClick={() => removeBathroomEntry(idx)} className="text-slate-300 hover:text-rose-500 p-1.5 rounded-lg hover:bg-rose-50 transition-colors">
                           <Trash2 size={16} />
                         </button>
                       )}
@@ -759,11 +777,13 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
               </div>
             </div>
 
-            {/* Nap Card (Separated) */}
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+            {/* Nap Card */}
+            <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
                 <div className="flex justify-between items-center mb-4">
-                    <h3 className="font-bold text-gray-800 flex items-center gap-2">
-                      <Moon className="text-purple-500" size={20} />
+                    <h3 className="font-bold text-slate-800 flex items-center gap-2 text-lg">
+                      <div className="p-2 bg-violet-100 rounded-lg text-violet-600">
+                         <Moon size={20} />
+                      </div>
                       {t('nap')}
                     </h3>
                     <label className="relative inline-flex items-center cursor-pointer">
@@ -774,28 +794,28 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
                         disabled={readOnly}
                         onChange={(e) => setReport({...report, nap: { ...report.nap, slept: e.target.checked }})}
                       />
-                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-500"></div>
+                      <div className="w-12 h-7 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-violet-500"></div>
                     </label>
                 </div>
                 
                 {report.nap.slept ? (
                   <div className="mt-4 animate-fade-in space-y-4">
                     <div>
-                        <label className="text-xs text-gray-500 font-bold mb-1 block uppercase tracking-wider">{t('napDuration')}</label>
+                        <label className="text-xs text-slate-400 font-bold mb-1.5 block uppercase tracking-wide">{t('napDuration')}</label>
                         <input 
                         type="text" 
                         disabled={readOnly}
                         placeholder="e.g. 1h 30m"
-                        className="w-full p-3 text-sm bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
+                        className="w-full p-4 text-sm bg-violet-50/50 border border-violet-100 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-all font-medium"
                         value={report.nap.duration || ''}
                         onChange={e => setReport({...report, nap: { ...report.nap, duration: e.target.value }})}
                         />
                     </div>
                     <div>
-                        <label className="text-xs text-gray-500 font-bold mb-1 block uppercase tracking-wider">{t('napNotes')}</label>
+                        <label className="text-xs text-slate-400 font-bold mb-1.5 block uppercase tracking-wide">{t('napNotes')}</label>
                         <textarea 
                         disabled={readOnly}
-                        className="w-full p-3 text-sm bg-gray-50 border border-gray-200 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
+                        className="w-full p-4 text-sm bg-violet-50/50 border border-violet-100 rounded-xl resize-none focus:bg-white focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-all"
                         rows={2}
                         placeholder="..."
                         value={report.nap.notes || ''}
@@ -804,17 +824,19 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
                     </div>
                   </div>
                 ) : (
-                    <div className="flex flex-col items-center justify-center py-6 text-gray-300 bg-gray-50/50 rounded-xl border border-dashed border-gray-200">
-                        <Moon size={32} className="mb-2 opacity-50" />
-                        <p className="text-sm italic">{t('no')}</p>
+                    <div className="flex flex-col items-center justify-center py-8 text-slate-300 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
+                        <Moon size={32} className="mb-2 opacity-30" />
+                        <p className="text-sm font-medium italic">{t('no')}</p>
                     </div>
                 )}
             </div>
 
-            {/* Academic Card (Updated to allow list of items) */}
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-              <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
-                <BookOpen className="text-indigo-500" />
+            {/* Academic Card */}
+            <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
+              <h3 className="font-bold text-slate-800 mb-5 flex items-center gap-2 text-lg">
+                <div className="p-2 bg-teal-100 rounded-lg text-teal-600">
+                   <BookOpen size={20} />
+                </div>
                 {t('academic')}
               </h3>
               
@@ -826,10 +848,12 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
               </div>
             </div>
 
-            {/* Activities Card (Updated with Checkboxes) */}
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-              <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
-                <Gamepad2 className="text-indigo-500" />
+            {/* Activities Card */}
+            <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
+              <h3 className="font-bold text-slate-800 mb-5 flex items-center gap-2 text-lg">
+                <div className="p-2 bg-pink-100 rounded-lg text-pink-600">
+                   <Gamepad2 size={20} />
+                </div>
                 {t('activities')}
               </h3>
               
@@ -841,20 +865,20 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
                       key={act}
                       onClick={() => toggleActivity(act)}
                       className={`
-                        cursor-pointer flex items-center gap-3 p-3 rounded-xl border-2 transition-all select-none
+                        cursor-pointer flex items-center gap-3 p-3 rounded-2xl border-2 transition-all select-none
                         ${isSelected
-                          ? 'border-indigo-500 bg-indigo-50' 
-                          : 'border-transparent bg-gray-50 hover:bg-gray-100'}
-                        ${readOnly ? 'cursor-default opacity-80' : ''}
+                          ? 'border-pink-200 bg-pink-50' 
+                          : 'border-transparent bg-slate-50 hover:bg-slate-100'}
+                        ${readOnly ? 'cursor-default opacity-90' : ''}
                       `}
                     >
                       <div className={`
-                        w-5 h-5 rounded border flex items-center justify-center transition-colors
-                        ${isSelected ? 'bg-indigo-600 border-indigo-600' : 'bg-white border-gray-300'}
+                        w-6 h-6 rounded-lg flex items-center justify-center transition-colors shadow-sm
+                        ${isSelected ? 'bg-pink-500 text-white' : 'bg-white border border-slate-200'}
                       `}>
-                        {isSelected && <Check size={14} className="text-white" />}
+                        {isSelected && <Check size={14} strokeWidth={3} />}
                       </div>
-                      <span className={`text-sm font-medium ${isSelected ? 'text-indigo-700' : 'text-gray-600'}`}>
+                      <span className={`text-sm font-bold ${isSelected ? 'text-pink-700' : 'text-slate-500'}`}>
                         {t(act as any)}
                       </span>
                     </div>
@@ -863,10 +887,12 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
               </div>
             </div>
 
-            <div className="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-bold text-gray-800 flex items-center gap-2">
-                  <Image className="text-indigo-500" />
+            <div className="lg:col-span-2 bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="font-bold text-slate-800 flex items-center gap-2 text-lg">
+                  <div className="p-2 bg-blue-100 rounded-lg text-blue-600">
+                     <Image size={20} />
+                  </div>
                   {t('dailyPhotos')}
                 </h3>
                 {!readOnly && (
@@ -881,10 +907,10 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
                     />
                     <button 
                       onClick={() => fileInputRef.current?.click()}
-                      className="text-sm text-indigo-600 hover:bg-indigo-50 px-3 py-1.5 rounded-lg flex items-center gap-1 transition-colors"
+                      className="text-sm font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-4 py-2 rounded-xl flex items-center gap-2 transition-colors"
                       disabled={isCompressing}
                     >
-                      {isCompressing ? <div className="w-4 h-4 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"/> : <Plus size={16} />}
+                      {isCompressing ? <div className="w-4 h-4 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"/> : <Plus size={18} />}
                       {isCompressing ? "Compressing..." : t('addPhoto')}
                     </button>
                   </>
@@ -894,46 +920,51 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {report.photos && report.photos.length > 0 ? (
                   report.photos.map((photo, idx) => (
-                    <div key={idx} className="relative group aspect-video rounded-xl overflow-hidden bg-gray-100">
-                      <img src={photo} alt="Daily activity" className="w-full h-full object-cover" />
+                    <div key={idx} className="relative group aspect-square rounded-2xl overflow-hidden bg-slate-100 shadow-sm border border-slate-100">
+                      <img src={photo} alt="Daily activity" className="w-full h-full object-cover transition-transform group-hover:scale-110" />
                       
+                      {/* Gradient Overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+
                       {/* Download Button - Direct Download */}
                       <button 
                         onClick={() => handleDirectDownload(photo, idx)}
-                        className="absolute top-2 left-2 p-1.5 bg-black/40 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/60"
+                        className="absolute bottom-3 left-3 p-2 bg-white/20 backdrop-blur-md text-white rounded-xl opacity-0 group-hover:opacity-100 transition-all hover:bg-white/40"
                         title={t('save')}
                       >
-                        <Download size={14} />
+                        <Download size={16} />
                       </button>
 
                       {/* Delete Button - Only if editing */}
                       {!readOnly && (
                         <button 
                           onClick={() => removePhoto(idx)}
-                          className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="absolute top-3 right-3 p-2 bg-rose-500/80 backdrop-blur-md text-white rounded-xl opacity-0 group-hover:opacity-100 transition-all hover:bg-rose-600"
                         >
-                          <Trash2 size={14} />
+                          <Trash2 size={16} />
                         </button>
                       )}
                     </div>
                   ))
                 ) : (
-                  <div className="col-span-full py-8 text-center text-gray-400 bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                    <Image className="mx-auto mb-2 opacity-30" size={32} />
-                    <p className="text-sm">{t('noPhotos')}</p>
+                  <div className="col-span-full py-12 text-center text-slate-400 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
+                    <Image className="mx-auto mb-3 opacity-30" size={40} />
+                    <p className="text-sm font-medium">{t('noPhotos')}</p>
                   </div>
                 )}
               </div>
             </div>
 
-            <div className="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-              <h3 className="font-bold text-gray-800 mb-2 flex items-center gap-2">
-                <Pencil className="text-indigo-500" />
+            <div className="lg:col-span-2 bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 hover:shadow-md transition-shadow mb-8">
+              <h3 className="font-bold text-slate-800 mb-3 flex items-center gap-2 text-lg">
+                <div className="p-2 bg-emerald-100 rounded-lg text-emerald-600">
+                   <Pencil size={20} />
+                </div>
                 {t('teacherNotes')}
               </h3>
               <textarea 
                 disabled={readOnly}
-                className="w-full p-4 bg-gray-50 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 text-gray-700 disabled:opacity-80"
+                className="w-full p-5 bg-emerald-50/30 rounded-2xl border border-emerald-100/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-slate-700 disabled:opacity-80 transition-all leading-relaxed"
                 rows={3}
                 value={report.notes}
                 onChange={(e) => setReport({ ...report, notes: e.target.value })}
@@ -944,29 +975,29 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
           </div>
 
           {!readOnly && (
-            <div className={`fixed bottom-6 ${language === 'ar' ? 'left-6' : 'right-6'} z-10 flex flex-col items-end gap-2`}>
+            <div className={`fixed bottom-6 ${language === 'ar' ? 'left-6' : 'right-6'} z-30 flex flex-col items-end gap-3`}>
               {saveError && (
-                 <div className="bg-red-500 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-lg animate-bounce flex items-center gap-2">
-                    <AlertTriangle size={16} />
+                 <div className="bg-rose-500 text-white px-5 py-3 rounded-2xl text-sm font-bold shadow-xl shadow-rose-200 animate-bounce flex items-center gap-2">
+                    <AlertTriangle size={18} />
                     {saveError}
                  </div>
               )}
               <button 
                 onClick={handleSave}
                 disabled={isCompressing}
-                className={`flex items-center gap-2 px-6 py-3 rounded-xl shadow-lg font-bold text-white transition-all transform hover:-translate-y-1 ${
-                  isSaved ? 'bg-green-600' : 'bg-indigo-600 hover:bg-indigo-700'
+                className={`flex items-center gap-2 px-8 py-4 rounded-full shadow-2xl font-bold text-white transition-all transform hover:-translate-y-1 hover:scale-105 active:scale-95 ${
+                  isSaved ? 'bg-emerald-500 shadow-emerald-200' : 'bg-gradient-to-r from-indigo-600 to-purple-600 shadow-indigo-300'
                 } ${isCompressing ? 'opacity-70 cursor-not-allowed' : ''}`}
               >
                 {isSaved ? (
                   <>
-                    <Check size={20} />
+                    <Check size={24} />
                     {t('savedSuccessfully')}
                   </>
                 ) : (
                   <>
-                    <Save size={20} />
-                    <span>{t('saveReport')}</span>
+                    <Save size={24} />
+                    <span className="text-lg">{t('saveReport')}</span>
                   </>
                 )}
               </button>
