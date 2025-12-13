@@ -2,10 +2,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   Smile, Frown, Meh, Sun, Cloud, Moon, 
-  Utensils, Droplets, Clock, Plus, Trash2, 
+  Utensils, Droplets, Plus, Trash2, 
   Gamepad2, Pencil, Check, Lock, Image, Save, Calendar, Cake, FileText, ChevronDown, BookOpen, X, Baby, Download, AlertTriangle, Coffee, Pizza, Apple, Minus
 } from 'lucide-react';
-import { Student, DailyReport, Mood, MealStatus, BathroomType } from '../types';
+import { Student, DailyReport, Mood, MealStatus } from '../types';
 import { getReports, saveReports } from '../services/storageService';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useNotification } from '../contexts/NotificationContext';
