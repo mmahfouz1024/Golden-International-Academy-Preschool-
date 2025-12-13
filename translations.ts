@@ -56,6 +56,7 @@ export const translations = {
     logout: "Logout",
     logoutConfirm: "Are you sure you want to logout?",
     installApp: "Install App",
+    pressBackAgainToExit: "Press back again to exit",
     
     // SWAPPED ROLES HERE
     roleAdmin: "General Manager",
@@ -449,6 +450,7 @@ export const translations = {
     logout: "تسجيل خروج",
     logoutConfirm: "هل أنت متأكد من تسجيل الخروج؟",
     installApp: "تثبيت التطبيق",
+    pressBackAgainToExit: "اضغط مرة أخرى للخروج",
     
     // SWAPPED ROLES ARABIC
     roleAdmin: "المدير العام",
@@ -696,7 +698,7 @@ export const translations = {
     directoryTitle: "دليل الروضة",
     directorySubtitle: "نظرة عامة على جميع الطلاب والمعلمات وأولياء الأمور",
     allStudents: "الطلاب",
-    allTeachers: "المعلمات",
+    allTeachers: "الطلاب",
     allParents: "أولياء الأمور",
     contactInfo: "معلومات الاتصال",
     callNow: "اتصال",

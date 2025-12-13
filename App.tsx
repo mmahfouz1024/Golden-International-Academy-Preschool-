@@ -25,6 +25,7 @@ import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import { NotificationProvider, useNotification } from './contexts/NotificationContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { initStorage, getStudents, getUsers } from './services/storageService';
+import { App as CapacitorApp } from '@capacitor/app';
 
 const AppContent: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -43,7 +44,7 @@ const AppContent: React.FC = () => {
   const [initError, setInitError] = useState<string | null>(null);
   
   const { t, dir, language } = useLanguage();
-  const { unreadCount } = useNotification();
+  const { unreadCount, addNotification } = useNotification();
   const notificationRef = useRef<HTMLDivElement>(null);
 
   // Initialize DB Strict Check
@@ -269,6 +270,52 @@ const AppContent: React.FC = () => {
       }
     }
   };
+
+  // Back Button Hardware Logic
+  useEffect(() => {
+    let lastBackTime = 0;
+
+    const handleHardwareBack = async () => {
+        // Check if we can go back internally
+        const canGoBackInternally = 
+            currentView === 'profile' || 
+            !!selectedReportDate || 
+            (!!selectedStudent && (user?.role !== 'parent' || parentChildren.length > 1)) || 
+            (currentView !== 'dashboard' && currentView !== 'parent-view' && user?.role !== 'parent') ||
+            (user?.role === 'parent' && currentView !== 'dashboard');
+
+        if (canGoBackInternally) {
+            handleBack();
+        } else {
+            // We are at root (Login or Dashboard), handle double tap to exit
+            const now = Date.now();
+            if (now - lastBackTime < 2000) {
+                // Exit app
+                try {
+                    await CapacitorApp.exitApp();
+                } catch (e) {
+                    console.log("App exit failed (web mode)", e);
+                }
+            } else {
+                lastBackTime = now;
+                addNotification('System', t('pressBackAgainToExit'), 'info');
+            }
+        }
+    };
+
+    // Attach listener
+    try {
+        CapacitorApp.addListener('backButton', handleHardwareBack);
+    } catch (e) {
+        console.warn("Capacitor App listener failed", e);
+    }
+
+    return () => {
+        try {
+            CapacitorApp.removeAllListeners();
+        } catch (e) {}
+    };
+  }, [currentView, selectedStudent, selectedReportDate, user, parentChildren, addNotification]); // Depend on state to decide logic
 
   // Logic to show/hide Back Button
   const showBackButton = 
