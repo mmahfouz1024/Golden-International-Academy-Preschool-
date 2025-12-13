@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { 
   Smile, Frown, Meh, Sun, Cloud, Moon, 
   Utensils, Droplets, Clock, Plus, Trash2, 
-  Gamepad2, Pencil, Check, Lock, Image, Save, Calendar, Cake, FileText, ChevronDown, BookOpen, X, Baby, Download, AlertTriangle, Share2
+  Gamepad2, Pencil, Check, Lock, Image, Save, Calendar, Cake, FileText, ChevronDown, BookOpen, X, Baby, Download, AlertTriangle, Share2, Eye
 } from 'lucide-react';
 import { Student, DailyReport, Mood, MealStatus, BathroomType } from '../types';
 import { getReports, saveReports } from '../services/storageService';
@@ -70,6 +70,9 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
   const [isSaved, setIsSaved] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [isCompressing, setIsCompressing] = useState(false);
+  
+  // State for Download Preview Modal
+  const [downloadPreview, setDownloadPreview] = useState<{data: string, index: number} | null>(null);
 
   // Predefined Activities List
   const activitiesList = [
@@ -321,7 +324,20 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
     if (e.target) e.target.value = '';
   };
 
-  const handleDownloadPhoto = async (photoData: string, index: number) => {
+  // STEP 1: Initiate Download (Open Modal)
+  const initiateDownload = (photoData: string, index: number) => {
+    setDownloadPreview({ data: photoData, index });
+  };
+
+  // STEP 2: Execute Download (After Confirmation)
+  const processDownload = async () => {
+    if (!downloadPreview) return;
+    
+    const { data: photoData, index } = downloadPreview;
+    
+    // Close modal first
+    setDownloadPreview(null);
+
     // CASE A: REMOTE URL (HTTP/HTTPS)
     // Open in system browser to allow standard download/view
     if (photoData.startsWith('http')) {
@@ -953,9 +969,9 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
                     <div key={idx} className="relative group aspect-video rounded-xl overflow-hidden bg-gray-100">
                       <img src={photo} alt="Daily activity" className="w-full h-full object-cover" />
                       
-                      {/* Download Button - Visible for everyone */}
+                      {/* Download Button - Visible for everyone - Triggers Preview */}
                       <button 
-                        onClick={() => handleDownloadPhoto(photo, idx)}
+                        onClick={() => initiateDownload(photo, idx)}
                         className="absolute top-2 left-2 p-1.5 bg-black/40 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/60"
                         title={Capacitor.isNativePlatform() ? "Share/Save" : "Download"}
                       >
@@ -1029,6 +1045,55 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
             </div>
           )}
         </>
+      )}
+
+      {/* DOWNLOAD PREVIEW MODAL */}
+      {downloadPreview && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-fade-in">
+            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden flex flex-col relative border-4 border-white transform transition-all scale-100">
+               {/* Close Button */}
+               <button 
+                 onClick={() => setDownloadPreview(null)}
+                 className="absolute top-4 right-4 z-10 p-2 bg-black/20 hover:bg-black/40 rounded-full text-white transition-colors"
+               >
+                 <X size={20} />
+               </button>
+
+               {/* Image Preview */}
+               <div className="w-full bg-gray-100 flex items-center justify-center p-2">
+                  <img 
+                    src={downloadPreview.data} 
+                    alt="Preview" 
+                    className="max-h-[50vh] w-auto object-contain rounded-lg shadow-sm"
+                  />
+               </div>
+
+               {/* Confirmation Footer */}
+               <div className="p-6 text-center space-y-4">
+                  <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-2">
+                     <Download size={24} />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-800">
+                    {language === 'ar' ? 'هل تريد تنزيل الصورة؟' : 'Download Photo?'}
+                  </h3>
+                  
+                  <div className="flex gap-3 pt-2">
+                     <button 
+                        onClick={() => setDownloadPreview(null)}
+                        className="flex-1 py-3 bg-gray-100 text-gray-600 font-bold rounded-xl hover:bg-gray-200 transition-colors"
+                     >
+                        {t('cancel')}
+                     </button>
+                     <button 
+                        onClick={processDownload}
+                        className="flex-1 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 shadow-lg shadow-indigo-200 transition-colors flex items-center justify-center gap-2"
+                     >
+                        {t('yes')}
+                     </button>
+                  </div>
+               </div>
+            </div>
+        </div>
       )}
     </div>
   );
