@@ -5,6 +5,9 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { getUsers, getMessages, saveMessages, syncMessages } from '../services/storageService';
 import { User, ChatMessage } from '../types';
 
+// Sound effect for sending messages
+const SEND_SOUND_URL = "https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3";
+
 const Chat: React.FC = () => {
   const { t, language } = useLanguage();
   
@@ -129,6 +132,16 @@ const Chat: React.FC = () => {
     }
   }, [messages.length, selectedUser, isOpen]);
 
+  const playSendSound = () => {
+    try {
+      const audio = new Audio(SEND_SOUND_URL);
+      audio.volume = 0.5;
+      audio.play().catch(e => console.warn("Audio play prevented:", e));
+    } catch (e) {
+      console.error("Audio error", e);
+    }
+  };
+
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMessage.trim() || !selectedUser || !currentUser) return;
@@ -145,6 +158,9 @@ const Chat: React.FC = () => {
     // Update state immediately for UX
     const updatedMessages = [...messages, newMsg];
     setMessages(updatedMessages);
+    
+    // Play Sound
+    playSendSound();
     
     // Persist to storage (and sync to cloud)
     saveMessages(updatedMessages);
