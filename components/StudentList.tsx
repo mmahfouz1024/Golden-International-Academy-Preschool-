@@ -433,13 +433,13 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
                   onClick={() => onStudentSelect(student)}
                 >
                   <td className="px-6 py-4">
-                    <div className="flex items-center gap-4">
-                      <img src={student.avatar} alt={student.name} className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-sm" />
+                    <div className="flex items-center gap-3">
+                      <img src={student.avatar} alt={student.name} className="w-9 h-9 rounded-full object-cover border-2 border-white shadow-sm" />
                       <div className="flex flex-col">
-                         {/* CHANGED: Font size reduced from text-sm/text-base to text-xs/text-sm */}
-                         <span className="font-bold text-slate-800 text-xs sm:text-sm group-hover:text-indigo-600 transition-colors">{student.name}</span>
+                         {/* CHANGED: Smaller image and text size as requested */}
+                         <span className="font-bold text-slate-800 text-xs group-hover:text-indigo-600 transition-colors">{student.name}</span>
                          {/* Show Parent Name on Mobile only */}
-                         <span className="sm:hidden text-xs text-slate-400">{student.parentName}</span>
+                         <span className="sm:hidden text-[10px] text-slate-400">{student.parentName}</span>
                       </div>
                     </div>
                   </td>

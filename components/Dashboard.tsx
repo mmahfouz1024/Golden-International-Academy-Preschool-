@@ -3,19 +3,34 @@ import React, { useState, useEffect } from 'react';
 import { Megaphone, Send, Trash2, Bell, Calendar, Pin, PinOff, FileText, ArrowRight, ArrowLeft, Sparkles, Clock } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useNotification } from '../contexts/NotificationContext';
-import { getUsers, savePosts, getSchedule, syncPosts } from '../services/storageService';
+import { getUsers, savePosts, getSchedule, syncPosts, getPosts } from '../services/storageService';
 import { Post, User, ScheduleItem } from '../types';
 
 interface DashboardProps {
   setCurrentView?: (view: string) => void;
 }
 
+// Helper function moved outside component to be used in initial state
+const sortPosts = (postsToSort: Post[]) => {
+  return postsToSort.sort((a, b) => {
+    // 1. Sort by Pinned status first
+    if (a.isPinned && !b.isPinned) return -1;
+    if (!a.isPinned && b.isPinned) return 1;
+    // 2. Sort by Date descending
+    return new Date(b.date).getTime() - new Date(a.date).getTime();
+  });
+};
+
 const Dashboard: React.FC<DashboardProps> = ({ setCurrentView }) => {
   const { t, language } = useLanguage();
   const { requestPermission, permissionStatus } = useNotification();
   const [isRequestingPermission, setIsRequestingPermission] = useState(false);
   
-  const [posts, setPosts] = useState<Post[]>([]);
+  // Initialize from LocalStorage immediately
+  const [posts, setPosts] = useState<Post[]>(() => {
+    return sortPosts(getPosts());
+  });
+
   const [schedule, setSchedule] = useState<ScheduleItem[]>([]);
   const [newPostContent, setNewPostContent] = useState('');
   
@@ -28,16 +43,6 @@ const Dashboard: React.FC<DashboardProps> = ({ setCurrentView }) => {
     }
     return null;
   });
-
-  const sortPosts = (postsToSort: Post[]) => {
-    return postsToSort.sort((a, b) => {
-      // 1. Sort by Pinned status first
-      if (a.isPinned && !b.isPinned) return -1;
-      if (!a.isPinned && b.isPinned) return 1;
-      // 2. Sort by Date descending
-      return new Date(b.date).getTime() - new Date(a.date).getTime();
-    });
-  };
 
   useEffect(() => {
     // Initial Load - Try to fetch fresh from cloud immediately
