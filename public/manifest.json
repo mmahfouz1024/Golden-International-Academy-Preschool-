@@ -2,6 +2,7 @@
 {
   "name": "Golden Academy",
   "short_name": "Golden Academy",
+  "description": "تطبيق روضة Golden Academy: تقارير يومية، متابعة لحظية، وتواصل ذكي مع الأهل.",
   "start_url": ".",
   "display": "standalone",
   "background_color": "#f8fafc",
