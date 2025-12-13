@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, Plus, Phone, Star, ChevronLeft, ChevronRight, X, Save, Filter, Camera, ShieldCheck, Edit2, Trash2, AlertCircle, Mail, Calendar, UserCheck, UserPlus, CheckCircle, ChevronDown, MoreHorizontal } from 'lucide-react';
+import { Search, Plus, Phone, Star, ChevronLeft, ChevronRight, X, Save, Filter, Camera, ShieldCheck, Edit2, Trash2, AlertCircle, Mail, Calendar, UserCheck, UserPlus, CheckCircle, ChevronDown } from 'lucide-react';
 import { Student, StudentStatus, User, ClassGroup } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
 import { getStudents, saveStudents, getUsers, saveUsers, getClasses } from '../services/storageService';

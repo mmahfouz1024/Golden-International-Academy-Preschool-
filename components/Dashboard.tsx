@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Megaphone, Send, Trash2, Bell, Calendar, Pin, PinOff, FileText, ArrowRight, ArrowLeft, Sparkles, Clock, CheckCircle2 } from 'lucide-react';
+import { Megaphone, Send, Trash2, Bell, Calendar, Pin, PinOff, FileText, ArrowRight, ArrowLeft, Sparkles, Clock } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useNotification } from '../contexts/NotificationContext';
 import { getUsers, savePosts, getSchedule, syncPosts } from '../services/storageService';
@@ -330,7 +330,7 @@ const Dashboard: React.FC<DashboardProps> = ({ setCurrentView }) => {
 
             <div className="bg-white/70 backdrop-blur-xl rounded-[2rem] p-6 shadow-sm border border-white/50 h-fit min-h-[400px]">
                 <div className="relative space-y-0 before:absolute before:inset-0 before:ml-5 before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-indigo-100 before:via-slate-200 before:to-transparent before:z-0">
-                  {schedule.map((item, idx) => (
+                  {schedule.map((item) => (
                     <div key={item.id} className="relative flex items-center mb-6 last:mb-0 group z-10">
                        <div className="absolute left-0 ml-5 -translate-x-1/2 w-4 h-4 rounded-full border-4 border-white bg-indigo-500 shadow-md group-hover:scale-125 transition-transform"></div>
                        
