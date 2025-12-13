@@ -322,17 +322,25 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
   };
 
   const handleDownloadPhoto = async (photoData: string, index: number) => {
-    // Determine extension based on mime type, default to jpg
+    // CASE A: REMOTE URL (HTTP/HTTPS)
+    // Open in system browser to allow standard download/view
+    if (photoData.startsWith('http')) {
+        window.open(photoData, '_system');
+        return;
+    }
+
+    // CASE B: BASE64 DATA (Local)
     let ext = 'jpg';
     if (photoData.startsWith('data:image/png')) ext = 'png';
     
-    const fileName = `photo_${student.name}_${selectedDate}_${index + 1}.${ext}`;
-
-    // Extract Base64 Data cleanly
-    const base64Data = photoData.includes(',') ? photoData.split(',')[1] : photoData;
+    const fileName = `photo_${student.name.replace(/\s+/g, '_')}_${selectedDate}_${index + 1}.${ext}`;
 
     if (Capacitor.isNativePlatform()) {
+      setIsCompressing(true); // Reuse loading state for feedback
       try {
+        // Extract Base64 Data cleanly
+        const base64Data = photoData.includes(',') ? photoData.split(',')[1] : photoData;
+
         // 1. Write to Cache (Safe Zone)
         const result = await Filesystem.writeFile({
           path: fileName,
@@ -344,18 +352,22 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
         // Use 'files' array which is better for binary sharing on Android than 'url'
         await Share.share({
             title: 'Download Photo',
+            text: `Photo of ${student.name}`,
             files: [result.uri],
-            dialogTitle: 'Save/Share Photo' 
+            dialogTitle: 'Save Photo' 
         });
         
       } catch (e) {
         console.error("Native download/share failed", e);
         // Fallback error message
         addNotification("Download Failed", "Could not open share menu.", 'alert');
+      } finally {
+        setIsCompressing(false);
       }
     } else {
       // Browser Fallback (Blob) to prevent opening in new tab on mobile browsers
       try {
+        const base64Data = photoData.includes(',') ? photoData.split(',')[1] : photoData;
         const byteCharacters = atob(base64Data);
         const byteNumbers = new Array(byteCharacters.length);
         for (let i = 0; i < byteCharacters.length; i++) {
@@ -374,13 +386,6 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
         setTimeout(() => URL.revokeObjectURL(url), 100);
       } catch (e) {
         console.error("Web download failed", e);
-        // Ancient Browser Fallback
-        const link = document.createElement('a');
-        link.href = photoData;
-        link.download = fileName;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
       }
     }
   };
