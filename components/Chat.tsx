@@ -50,14 +50,14 @@ const Chat: React.FC = () => {
     // 3. Filter Users for the Contact List
     let filteredUsers = allUsers.filter(u => u.id !== myUser.id);
 
-    // HIDE MANAGER from chat contact list as requested
-    filteredUsers = filteredUsers.filter(u => u.role !== 'manager');
+    // HIDE GENERAL MANAGER (role 'admin') from chat contact list
+    filteredUsers = filteredUsers.filter(u => u.role !== 'admin');
 
     if (myUser.role === 'parent') {
-      // Parent sees ONLY Admin (General Manager)
-      filteredUsers = filteredUsers.filter(u => u.role === 'admin');
+      // Parent sees ONLY Manager (displayed as "Admin" in UI)
+      filteredUsers = filteredUsers.filter(u => u.role === 'manager');
     } 
-    // Admin/Manager/Teacher see everyone (except themselves and managers)
+    // Admin/Manager/Teacher see everyone (except themselves and General Manager)
     
     setUsers(filteredUsers);
   };
