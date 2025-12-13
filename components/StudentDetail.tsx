@@ -326,67 +326,95 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
     setDownloadPreview({ data: photoData, index });
   };
 
+  // Helper to convert Base64 to File object SYNCHRONOUSLY
+  // This is crucial for `navigator.share` to work in some WebViews
+  const dataURItoFile = (dataURI: string, filename: string): File | null => {
+    try {
+        const arr = dataURI.split(',');
+        if (arr.length < 2) return null;
+        
+        const mimeMatch = arr[0].match(/:(.*?);/);
+        const mime = mimeMatch ? mimeMatch[1] : 'image/jpeg';
+        
+        const bstr = atob(arr[1]);
+        let n = bstr.length;
+        const u8arr = new Uint8Array(n);
+        while(n--){
+            u8arr[n] = bstr.charCodeAt(n);
+        }
+        return new File([u8arr], filename, {type:mime});
+    } catch (e) {
+        console.error("Conversion failed", e);
+        return null;
+    }
+  };
+
   // STEP 2: Execute Download (After Confirmation)
-  // UPDATED for WebView/Appilix compatibility
+  // UPDATED for WebView/Appilix robustness
   const processDownload = async () => {
     if (!downloadPreview) return;
     
     const { data: photoData, index } = downloadPreview;
     
-    // Close modal first
+    // Close modal first so it doesn't block view
     setDownloadPreview(null);
 
+    // SCENARIO 1: Remote URL (Cloud)
+    if (photoData.startsWith('http')) {
+        window.open(photoData, '_system');
+        return;
+    }
+
+    // SCENARIO 2: Base64 String (Local)
     try {
-        // SCENARIO 1: It's a Remote URL (Cloud)
-        if (photoData.startsWith('http')) {
-            // Open in external system browser (Chrome/Safari) to ensure download works
-            window.open(photoData, '_system');
-            return;
-        }
-
-        // SCENARIO 2: It's a Base64 String (Local)
-        // Convert Base64 to Blob/File
-        const response = await fetch(photoData);
-        const blob = await response.blob();
-        
-        // Determine mime type and extension
+        // Prepare filename
         let ext = 'jpg';
-        let type = 'image/jpeg';
-        if (photoData.startsWith('data:image/png')) {
-            ext = 'png';
-            type = 'image/png';
-        }
-        
+        if (photoData.startsWith('data:image/png')) ext = 'png';
         const fileName = `photo_${student.name.replace(/\s+/g, '_')}_${index + 1}.${ext}`;
-        const file = new File([blob], fileName, { type: type });
 
-        // Try the modern Web Share API Level 2 (Supported in Android WebView / Chrome)
-        // This is the best way to get a file "out" of a wrapper app into the phone's gallery/files
-        if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-            await navigator.share({
-                files: [file],
-                title: 'Download Photo',
-                text: `Photo of ${student.name}`,
-            });
-        } else {
-            // Fallback: Standard HTML5 Anchor download
-            // Note: In some strict WebViews, this might be blocked for Base64, 
-            // but it is the only fallback if Share API fails.
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = fileName;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            setTimeout(() => URL.revokeObjectURL(url), 1000);
+        // Strategy A: Web Share API (Best for Android WebView)
+        if (navigator.share && navigator.canShare) {
+            const file = dataURItoFile(photoData, fileName);
+            if (file && navigator.canShare({ files: [file] })) {
+                try {
+                    await navigator.share({
+                        files: [file],
+                        title: 'Save Photo',
+                        text: `Photo of ${student.name}`,
+                    });
+                    return; // Success!
+                } catch (err) {
+                    console.log("Share failed or cancelled", err);
+                    // Continue to fallbacks if share fails
+                }
+            }
         }
+
+        // Strategy B: Anchor Tag Download (HTML5 Standard)
+        // Note: Some WebViews block 'data:' hrefs, but it's the standard fallback.
+        const link = document.createElement('a');
+        link.href = photoData; // Use Data URI directly
+        link.download = fileName;
+        link.target = "_blank"; // Helpful for some mobile browsers
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
 
     } catch (e: any) {
         console.error("Download error:", e);
-        // Fallback error alert so user knows something went wrong
-        alert("Download failed. Please ensure the app has storage permissions.");
+        alert("Download failed. Please try opening the image in a new tab.");
     }
+  };
+
+  // Fallback: Open in new window directly
+  const openInNewWindow = () => {
+      if (!downloadPreview) return;
+      const win = window.open();
+      if (win) {
+          win.document.write(`<img src="${downloadPreview.data}" style="width:100%"/>`);
+      } else {
+          alert("Pop-up blocked. Please allow pop-ups.");
+      }
   };
 
   const removePhoto = (index: number) => {
@@ -1074,6 +1102,14 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
                         {t('yes')}
                      </button>
                   </div>
+                  
+                  {/* Robust Fallback for WebViews */}
+                  <button 
+                    onClick={openInNewWindow}
+                    className="block w-full text-xs text-gray-400 hover:text-indigo-500 mt-2 underline"
+                  >
+                    If download fails, open image in new tab
+                  </button>
                </div>
             </div>
         </div>
