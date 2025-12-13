@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { 
   Smile, Frown, Meh, Sun, Cloud, Moon, 
   Utensils, Droplets, Clock, Plus, Trash2, 
-  Gamepad2, Pencil, Check, Lock, Image, Save, Calendar, Cake, FileText, ChevronDown, BookOpen, X, Baby, Download, AlertTriangle, Coffee, Pizza, Apple
+  Gamepad2, Pencil, Check, Lock, Image, Save, Calendar, Cake, FileText, ChevronDown, BookOpen, X, Baby, Download, AlertTriangle, Coffee, Pizza, Apple, Minus
 } from 'lucide-react';
 import { Student, DailyReport, Mood, MealStatus, BathroomType } from '../types';
 import { getReports, saveReports } from '../services/storageService';
@@ -43,7 +43,7 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
     mood: 'neutral',
     moodNotes: '',
     meals: { breakfast: 'none', breakfastDetails: [], lunch: 'none', lunchDetails: [], snack: 'none', snackDetails: [], waterCups: 0, notes: '' },
-    bathroom: [],
+    bathroom: { urine: 0, stool: 0, notes: '' },
     nap: { slept: false, notes: '' },
     academic: { religion: [], arabic: [], english: [], math: [] },
     activities: [],
@@ -152,6 +152,18 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
       if (!Array.isArray(loadedReport.activities)) {
         loadedReport.activities = [];
       }
+
+      // Legacy Migration for Bathroom (Array -> Object)
+      if (Array.isArray(loadedReport.bathroom)) {
+         const oldArray = loadedReport.bathroom as any[];
+         const urineCount = oldArray.filter(b => b.type === 'urine').length;
+         const stoolCount = oldArray.filter(b => b.type === 'stool').length;
+         loadedReport.bathroom = {
+             urine: urineCount,
+             stool: stoolCount,
+             notes: ''
+         };
+      }
       
       setReport(loadedReport);
       setDoesReportExist(true);
@@ -164,7 +176,7 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
         mood: 'neutral',
         moodNotes: '',
         meals: { breakfast: 'none', breakfastDetails: [], lunch: 'none', lunchDetails: [], snack: 'none', snackDetails: [], waterCups: 0, notes: '' },
-        bathroom: [],
+        bathroom: { urine: 0, stool: 0, notes: '' },
         nap: { slept: false, notes: '' },
         academic: { religion: [], arabic: [], english: [], math: [] },
         activities: [], 
@@ -356,17 +368,14 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
     { value: 'none', label: t('mealNone') },
   ];
 
-  const addBathroomEntry = () => {
+  const updateBathroomCount = (type: 'urine' | 'stool', delta: number) => {
+    if (readOnly) return;
     setReport(prev => ({
       ...prev,
-      bathroom: [...prev.bathroom, { time: new Date().toLocaleTimeString(language === 'ar' ? 'ar-SA' : 'en-US', { hour: '2-digit', minute: '2-digit' }), type: 'urine' }]
-    }));
-  };
-
-  const removeBathroomEntry = (index: number) => {
-    setReport(prev => ({
-      ...prev,
-      bathroom: prev.bathroom.filter((_, i) => i !== index)
+      bathroom: {
+        ...prev.bathroom,
+        [type]: Math.max(0, (prev.bathroom[type] || 0) + delta)
+      }
     }));
   };
 
@@ -722,58 +731,74 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
               </div>
             </div>
 
-            {/* Bathroom Card */}
+            {/* Bathroom Card (Updated with Counters) */}
             <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
-              <h3 className="font-bold text-slate-800 mb-5 flex items-center gap-2 text-lg">
+              <h3 className="font-bold text-slate-800 mb-6 flex items-center gap-2 text-lg">
                 <div className="p-2 bg-sky-100 rounded-lg text-sky-600">
                    <Droplets size={20} />
                 </div>
                 {t('bathroomLog')}
               </h3>
               
-              <div className="mb-2">
-                <div className="flex justify-between items-center mb-3">
-                  <span className="text-sm font-bold text-slate-500">{t('details')}</span>
-                  {!readOnly && (
-                    <button onClick={addBathroomEntry} className="text-indigo-600 bg-indigo-50 hover:bg-indigo-100 p-2 rounded-lg transition-colors shadow-sm" title={t('add')}>
-                      <Plus size={18} />
-                    </button>
-                  )}
-                </div>
-                {report.bathroom.length === 0 && <p className="text-xs text-slate-400 italic mb-2 py-6 text-center bg-slate-50 rounded-xl border border-dashed border-slate-200">No records today</p>}
-                <div className="space-y-2">
-                  {report.bathroom.map((entry, idx) => (
-                    <div key={idx} className="flex items-center gap-3 bg-white p-3 rounded-xl border border-slate-100 shadow-sm">
-                      <div className="bg-slate-100 p-1.5 rounded-md text-slate-500">
-                         <Clock size={14} />
-                      </div>
-                      <span className="text-xs font-bold text-slate-600 min-w-[50px]">{entry.time}</span>
-                      <div className="flex-1 flex gap-2">
-                        {(['urine', 'stool'] as BathroomType[]).map(type => (
-                          <button
-                            key={type}
-                            disabled={readOnly}
-                            onClick={() => {
-                              const newBathroom = [...report.bathroom];
-                              newBathroom[idx].type = type;
-                              setReport({ ...report, bathroom: newBathroom });
-                            }}
-                            className={`text-[10px] px-3 py-1.5 rounded-lg transition-all font-bold uppercase tracking-wide ${
-                              entry.type === type ? 'bg-sky-100 text-sky-700 shadow-sm ring-1 ring-sky-200' : 'text-slate-400 bg-slate-50 hover:bg-slate-100'
-                            }`}
-                          >
-                            {t(type as any)}
-                          </button>
-                        ))}
-                      </div>
-                      {!readOnly && (
-                        <button onClick={() => removeBathroomEntry(idx)} className="text-slate-300 hover:text-rose-500 p-1.5 rounded-lg hover:bg-rose-50 transition-colors">
-                          <Trash2 size={16} />
+              <div className="flex items-center justify-around mb-6">
+                 {/* Urine Counter */}
+                 <div className="flex flex-col items-center gap-3">
+                    <span className="text-sm font-bold text-slate-500 uppercase tracking-wide">{t('urine')}</span>
+                    <div className="flex items-center gap-4 bg-slate-50 rounded-2xl p-2 border border-slate-100">
+                        <button 
+                           onClick={() => updateBathroomCount('urine', -1)} 
+                           disabled={readOnly || report.bathroom.urine === 0}
+                           className="w-10 h-10 rounded-xl bg-white text-slate-400 hover:text-rose-500 hover:bg-rose-50 shadow-sm flex items-center justify-center transition-all disabled:opacity-50"
+                        >
+                           <Minus size={20} />
                         </button>
-                      )}
+                        <span className="text-2xl font-bold text-sky-600 w-8 text-center">{report.bathroom.urine}</span>
+                        <button 
+                           onClick={() => updateBathroomCount('urine', 1)} 
+                           disabled={readOnly}
+                           className="w-10 h-10 rounded-xl bg-indigo-600 text-white shadow-md hover:bg-indigo-700 hover:shadow-lg flex items-center justify-center transition-all disabled:opacity-50"
+                        >
+                           <Plus size={20} />
+                        </button>
                     </div>
-                  ))}
-                </div>
+                 </div>
+
+                 {/* Divider */}
+                 <div className="w-px h-16 bg-slate-100"></div>
+
+                 {/* Stool Counter */}
+                 <div className="flex flex-col items-center gap-3">
+                    <span className="text-sm font-bold text-slate-500 uppercase tracking-wide">{t('stool')}</span>
+                    <div className="flex items-center gap-4 bg-slate-50 rounded-2xl p-2 border border-slate-100">
+                        <button 
+                           onClick={() => updateBathroomCount('stool', -1)} 
+                           disabled={readOnly || report.bathroom.stool === 0}
+                           className="w-10 h-10 rounded-xl bg-white text-slate-400 hover:text-rose-500 hover:bg-rose-50 shadow-sm flex items-center justify-center transition-all disabled:opacity-50"
+                        >
+                           <Minus size={20} />
+                        </button>
+                        <span className="text-2xl font-bold text-amber-600 w-8 text-center">{report.bathroom.stool}</span>
+                        <button 
+                           onClick={() => updateBathroomCount('stool', 1)} 
+                           disabled={readOnly}
+                           className="w-10 h-10 rounded-xl bg-indigo-600 text-white shadow-md hover:bg-indigo-700 hover:shadow-lg flex items-center justify-center transition-all disabled:opacity-50"
+                        >
+                           <Plus size={20} />
+                        </button>
+                    </div>
+                 </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-400 mb-1.5 block uppercase tracking-wide">{t('notes') || 'Notes'}</label>
+                <textarea 
+                  disabled={readOnly}
+                  className="w-full p-4 bg-slate-50 rounded-2xl border border-transparent focus:bg-white focus:border-indigo-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 disabled:opacity-70 transition-all resize-none"
+                  rows={2}
+                  placeholder="..."
+                  value={report.bathroom.notes || ''}
+                  onChange={e => setReport({...report, bathroom: { ...report.bathroom, notes: e.target.value }})}
+                />
               </div>
             </div>
 

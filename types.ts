@@ -57,10 +57,10 @@ export interface DailyReport {
     notes?: string;
   };
   bathroom: {
-    time: string;
-    type: BathroomType;
+    urine: number;
+    stool: number;
     notes?: string;
-  }[];
+  };
   nap: {
     slept: boolean;
     duration?: string; // e.g. "1h 30m"

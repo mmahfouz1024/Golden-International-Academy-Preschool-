@@ -94,10 +94,11 @@ export const MOCK_REPORTS: Record<string, DailyReport> = {
       waterCups: 4,
       notes: ''
     },
-    bathroom: [
-      { time: '09:30', type: 'urine' },
-      { time: '11:15', type: 'stool', notes: 'Normal' }
-    ],
+    bathroom: {
+      urine: 2,
+      stool: 1,
+      notes: 'Normal'
+    },
     nap: {
       slept: true,
       duration: '45 mins',
@@ -123,9 +124,11 @@ export const MOCK_REPORTS: Record<string, DailyReport> = {
       waterCups: 3,
       notes: ''
     },
-    bathroom: [
-      { time: '10:00', type: 'urine' }
-    ],
+    bathroom: {
+      urine: 1,
+      stool: 0,
+      notes: ''
+    },
     nap: {
       slept: false,
       notes: ''
@@ -151,9 +154,11 @@ export const MOCK_REPORTS: Record<string, DailyReport> = {
       waterCups: 2,
       notes: 'No appetite'
     },
-    bathroom: [
-      { time: '10:30', type: 'urine' }
-    ],
+    bathroom: {
+      urine: 3,
+      stool: 0,
+      notes: ''
+    },
     nap: {
       slept: true,
       duration: '1h 30m',
