@@ -257,11 +257,13 @@ const AppContent: React.FC = () => {
       return;
     }
     
-    // 4. Navigate to Dashboard/Home
-    if (currentView !== 'dashboard' && currentView !== 'parent-view') {
+    // 4. Navigate to Dashboard/Home (General Back navigation)
+    if (currentView !== 'dashboard') {
       if (user?.role === 'parent') {
+        // Parents always go back to dashboard from any view
         setCurrentView('dashboard');
       } else {
+         // Admin/Teacher go to dashboard if allowed, or their first permission
          if (user?.permissions && user.permissions.includes('dashboard')) {
              setCurrentView('dashboard');
          } else if (user?.permissions && user.permissions.length > 0) {
@@ -281,7 +283,7 @@ const AppContent: React.FC = () => {
             currentView === 'profile' || 
             !!selectedReportDate || 
             (!!selectedStudent && (user?.role !== 'parent' || parentChildren.length > 1)) || 
-            (currentView !== 'dashboard' && currentView !== 'parent-view' && user?.role !== 'parent') ||
+            (currentView !== 'dashboard' && user?.role !== 'parent') ||
             (user?.role === 'parent' && currentView !== 'dashboard');
 
         if (canGoBackInternally) {
@@ -322,7 +324,7 @@ const AppContent: React.FC = () => {
     currentView === 'profile' || 
     !!selectedReportDate || 
     (!!selectedStudent && (user?.role !== 'parent' || parentChildren.length > 1)) || 
-    (currentView !== 'dashboard' && currentView !== 'parent-view' && user?.role !== 'parent') ||
+    (currentView !== 'dashboard' && user?.role !== 'parent') ||
     (user?.role === 'parent' && currentView !== 'dashboard');
 
   const renderContent = () => {
