@@ -33,6 +33,23 @@ const Directory: React.FC = () => {
   const filteredTeachers = filterList(teachers);
   const filteredParents = filterList(parents);
 
+  const handleCall = (phoneNumber?: string) => {
+    if (phoneNumber) {
+        // Remove spaces and special chars for the dialer link
+        window.location.href = `tel:${phoneNumber.replace(/\s+/g, '')}`;
+    } else {
+        alert("No phone number available");
+    }
+  };
+
+  const handleEmail = (email?: string) => {
+    if (email) {
+        window.location.href = `mailto:${email}`;
+    } else {
+        alert("No email address available");
+    }
+  };
+
   const TabButton = ({ id, label, icon: Icon, count }: { id: string, label: string, icon: any, count: number }) => (
     <button
       onClick={() => setActiveTab(id as any)}
@@ -100,7 +117,10 @@ const Directory: React.FC = () => {
                 <span dir="ltr">{student.phone}</span>
               </div>
               <div className="flex gap-2 mt-4">
-                <button className="flex-1 py-2 bg-indigo-50 text-indigo-600 rounded-lg text-sm font-bold hover:bg-indigo-100 transition-colors">
+                <button 
+                  onClick={() => handleCall(student.phone)}
+                  className="flex-1 py-2 bg-indigo-50 text-indigo-600 rounded-lg text-sm font-bold hover:bg-indigo-100 transition-colors"
+                >
                   {t('callNow')}
                 </button>
               </div>
@@ -131,9 +151,20 @@ const Directory: React.FC = () => {
                 </div>
               )}
               <div className="flex gap-2 mt-4">
-                 <button className="flex-1 py-2 bg-purple-50 text-purple-600 rounded-lg text-sm font-bold hover:bg-purple-100 transition-colors">
+                 <button 
+                   onClick={() => handleEmail(teacher.email)}
+                   className="flex-1 py-2 bg-purple-50 text-purple-600 rounded-lg text-sm font-bold hover:bg-purple-100 transition-colors"
+                 >
                    {t('sendEmail')}
                  </button>
+                 {teacher.phone && (
+                    <button 
+                      onClick={() => handleCall(teacher.phone)}
+                      className="flex-1 py-2 bg-indigo-50 text-indigo-600 rounded-lg text-sm font-bold hover:bg-indigo-100 transition-colors"
+                    >
+                      {t('callNow')}
+                    </button>
+                 )}
               </div>
             </div>
           </div>
@@ -166,7 +197,10 @@ const Directory: React.FC = () => {
                 </div>
               )}
               <div className="flex gap-2 mt-4">
-                 <button className="flex-1 py-2 bg-green-50 text-green-600 rounded-lg text-sm font-bold hover:bg-green-100 transition-colors">
+                 <button 
+                   onClick={() => handleCall(parent.phone)}
+                   className="flex-1 py-2 bg-green-50 text-green-600 rounded-lg text-sm font-bold hover:bg-green-100 transition-colors"
+                 >
                    {t('callNow')}
                  </button>
               </div>
