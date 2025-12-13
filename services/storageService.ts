@@ -63,7 +63,7 @@ export const initStorage = async (): Promise<{ success: boolean; message?: strin
       const { data, error } = await fetchDataFromCloud(KEYS.USERS);
       
       if (error) {
-        console.error("⚠️ Database connection error:", error);
+        console.error("⚠️ Database connection error:", JSON.stringify(error));
         // Allow app to continue in "Offline/Local Mode" if DB fails, instead of blocking
         // This ensures notifications stay read if internet is down
         return { success: true, message: 'Offline Mode (Connection Failed)' };

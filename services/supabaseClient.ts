@@ -44,7 +44,7 @@ export const fetchDataFromCloud = async (key: string) => {
     .from('app_data')
     .select('value')
     .eq('key', key)
-    .single();
+    .maybeSingle();
 
   if (error) return { data: null, error };
   return { data: data?.value, error: null };
