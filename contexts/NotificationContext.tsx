@@ -3,6 +3,8 @@ import React, { createContext, useContext, useState, useEffect, useRef } from 'r
 import { AppNotification } from '../types';
 import { getNotifications, saveNotifications, getMessages, getPosts, syncPosts } from '../services/storageService';
 import { useLanguage } from './LanguageContext';
+import { Capacitor } from '@capacitor/core';
+import { LocalNotifications } from '@capacitor/local-notifications';
 
 interface NotificationContextType {
   notifications: AppNotification[];
@@ -45,7 +47,7 @@ export const NotificationProvider: React.FC<{children: React.ReactNode}> = ({ ch
 
   // Simple support check
   const [isSupported] = useState<boolean>(() => {
-    return typeof window !== 'undefined' && 'Notification' in window;
+    return (typeof window !== 'undefined' && 'Notification' in window) || Capacitor.isNativePlatform();
   });
   
   // Refs to track counts for polling
@@ -65,7 +67,24 @@ export const NotificationProvider: React.FC<{children: React.ReactNode}> = ({ ch
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
   const requestPermission = async (): Promise<boolean> => {
-    // 1. Basic Support Check - If API is missing (common in simple APK WebViews)
+    // 1. Handle Capacitor Native Permission (Android)
+    if (Capacitor.isNativePlatform()) {
+        try {
+            const result = await LocalNotifications.requestPermissions();
+            if (result.display === 'granted') {
+                setPermissionStatus('granted');
+                return true;
+            } else {
+                setPermissionStatus('denied');
+                return false;
+            }
+        } catch (e) {
+            console.error("Capacitor Permission Error:", e);
+            // Fallthrough to web logic or default
+        }
+    }
+
+    // 2. Handle Web Permission
     if (typeof Notification === 'undefined') {
       console.log("Notification API not found - Enabling virtual mode for APK/WebView");
       localStorage.setItem('golden_notifications_override', 'granted');
@@ -74,7 +93,6 @@ export const NotificationProvider: React.FC<{children: React.ReactNode}> = ({ ch
     }
 
     try {
-      // 2. Wrap Promise/Callback logic for wide compatibility (Android WebView fix)
       const permission = await new Promise<NotificationPermission>((resolve) => {
         try {
             const result = Notification.requestPermission((status) => {
@@ -111,7 +129,6 @@ export const NotificationProvider: React.FC<{children: React.ReactNode}> = ({ ch
       return false;
     } catch (e) {
       console.error("Error requesting notification permission", e);
-      // In case of any weird error, force enable virtually to unblock UI
       localStorage.setItem('golden_notifications_override', 'granted');
       setPermissionStatus('granted');
       return true;
@@ -121,6 +138,12 @@ export const NotificationProvider: React.FC<{children: React.ReactNode}> = ({ ch
   useEffect(() => {
     if (typeof Notification !== 'undefined') {
       setPermissionStatus(Notification.permission);
+    }
+    // Check capacitor permissions on mount
+    if (Capacitor.isNativePlatform()) {
+        LocalNotifications.checkPermissions().then(res => {
+            if (res.display === 'granted') setPermissionStatus('granted');
+        });
     }
   }, []);
 
@@ -141,7 +164,7 @@ export const NotificationProvider: React.FC<{children: React.ReactNode}> = ({ ch
     }
   };
 
-  const addNotification = (title: string, message: string, type: AppNotification['type'] = 'info') => {
+  const addNotification = async (title: string, message: string, type: AppNotification['type'] = 'info') => {
     // 1. Add to In-App List
     const newNotification: AppNotification = {
       id: Date.now().toString(),
@@ -154,17 +177,34 @@ export const NotificationProvider: React.FC<{children: React.ReactNode}> = ({ ch
     setNotifications(prev => [newNotification, ...prev]);
     playNotificationSound();
 
-    // 2. Trigger System Notification via Service Worker (Best for persistence)
-    if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
-        
-        // Try to delegate to Service Worker first
+    // 2. Trigger System Notification (Native vs Web)
+    if (Capacitor.isNativePlatform()) {
+        // Native Android Notification (Works when app is closed/backgrounded)
+        try {
+            await LocalNotifications.schedule({
+                notifications: [{
+                    title: title,
+                    body: message,
+                    id: Math.floor(Date.now() / 1000), // Integer ID required
+                    schedule: { at: new Date(Date.now() + 100) }, // Fire immediately
+                    sound: 'beep.wav',
+                    smallIcon: 'ic_stat_icon_config_sample', // Default resource name often used
+                    actionTypeId: "",
+                    extra: null
+                }]
+            });
+        } catch (e) {
+            console.error("Failed to schedule local notification:", e);
+        }
+    } else if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+        // Web Notification (Service Worker preferred for persistence)
         if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
             navigator.serviceWorker.controller.postMessage({
                 type: 'SHOW_NOTIFICATION',
                 payload: { title, body: message }
             });
         } else {
-            // Fallback: Create locally if SW is not ready (though SW is preferred)
+            // Fallback: Create locally if SW is not ready
             try {
                 new Notification(title, {
                     body: message,
