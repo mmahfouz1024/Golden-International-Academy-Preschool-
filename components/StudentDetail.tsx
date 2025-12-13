@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { 
   Smile, Frown, Meh, Sun, Cloud, Moon, 
   Utensils, Droplets, Clock, Plus, Trash2, 
-  Gamepad2, Pencil, Check, Lock, Image, Save, Calendar, Cake, FileText, ChevronDown, BookOpen, X, Baby, Download, AlertTriangle, Share2, Info
+  Gamepad2, Pencil, Check, Lock, Image, Save, Calendar, Cake, FileText, ChevronDown, BookOpen, X, Baby, Download, AlertTriangle, Share2, ExternalLink, Camera
 } from 'lucide-react';
 import { Student, DailyReport, Mood, MealStatus, BathroomType } from '../types';
 import { getReports, saveReports } from '../services/storageService';
@@ -321,21 +321,18 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
     if (e.target) e.target.value = '';
   };
 
-  // STEP 1: Initiate Download (Open Modal)
+  // Initiate Download (Open Modal)
   const initiateDownload = (photoData: string, index: number) => {
     setDownloadPreview({ data: photoData, index });
   };
 
-  // Helper to convert Base64 to File object SYNCHRONOUSLY
-  // This is crucial for `navigator.share` to work in some WebViews
+  // Helper to convert Base64 to File
   const dataURItoFile = (dataURI: string, filename: string): File | null => {
     try {
         const arr = dataURI.split(',');
         if (arr.length < 2) return null;
-        
         const mimeMatch = arr[0].match(/:(.*?);/);
         const mime = mimeMatch ? mimeMatch[1] : 'image/jpeg';
-        
         const bstr = atob(arr[1]);
         let n = bstr.length;
         const u8arr = new Uint8Array(n);
@@ -349,47 +346,37 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
     }
   };
 
-  // STEP 2: Execute Download (After Confirmation)
-  // UPDATED for WebView/Appilix robustness
-  const processDownload = async () => {
+  // 1. Share Strategy (Native Android Sheet)
+  const handleShare = async () => {
     if (!downloadPreview) return;
-    
-    const { data: photoData, index } = downloadPreview;
-    
-    // Attempt 1: Native Share (If supported)
     try {
-        const fileName = `photo_${student.name.replace(/\s+/g, '_')}_${index + 1}.jpg`;
-        // Try to construct file sync or async
-        let file = dataURItoFile(photoData, fileName);
-        if (!file) {
-             const blob = await (await fetch(photoData)).blob();
-             file = new File([blob], fileName, { type: blob.type });
-        }
-
+        const fileName = `photo_${student.name.replace(/\s+/g, '_')}.jpg`;
+        const file = dataURItoFile(downloadPreview.data, fileName);
+        
         if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
             await navigator.share({
                 files: [file],
-                title: 'Save Photo',
+                title: 'Share Photo',
             });
-            return; // Success, user sees native sheet
+        } else {
+            alert(language === 'ar' ? 'المشاركة غير مدعومة، جرب زر فتح في المتصفح' : 'Sharing not supported, try Open in Browser');
         }
     } catch (e) {
-        console.log("Share failed, trying legacy", e);
+        console.error("Share failed", e);
+        alert("Share failed. Please try Open in Browser.");
     }
+  };
 
-    // Attempt 2: Anchor Download (Often blocked in simple WebViews)
-    try {
-        const link = document.createElement('a');
-        link.href = photoData;
-        link.download = `photo_${student.name}_${index + 1}.jpg`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    } catch (e) {
-        console.error("Anchor failed", e);
-    }
-    
-    // Note: If both fail, the user is already looking at the modal with instructions to Long Press.
+  // 2. Open in New Tab Strategy (Forces System Browser usually)
+  const handleOpenInBrowser = () => {
+      if (!downloadPreview) return;
+      const win = window.open();
+      if (win) {
+          win.document.write(`<img src="${downloadPreview.data}" style="max-width:100%; height:auto;" />`);
+          win.document.title = "View Photo";
+      } else {
+          alert("Pop-up blocked. Please allow pop-ups.");
+      }
   };
 
   const removePhoto = (index: number) => {
@@ -1052,42 +1039,40 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
                     alt="Preview" 
                     className="max-h-[50vh] w-auto object-contain rounded-lg shadow-sm"
                   />
-                  {/* Long Press Hint Overlay */}
+                  {/* Screenshot Hint */}
                   <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/60 text-white text-xs px-3 py-1.5 rounded-full backdrop-blur-sm pointer-events-none whitespace-nowrap flex items-center gap-1">
-                     <Info size={12} />
-                     {language === 'ar' ? 'اضغط مطولاً للحفظ' : 'Long press to save'}
+                     <Camera size={12} />
+                     {language === 'ar' ? 'خذ لقطة شاشة للحفظ' : 'Take a screenshot to save'}
                   </div>
                </div>
 
                {/* Confirmation Footer */}
                <div className="p-6 text-center space-y-4">
-                  <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-2">
-                     <Share2 size={24} />
-                  </div>
-                  
                   <div className="space-y-1">
-                    <h3 className="text-xl font-bold text-gray-800">
+                    <h3 className="text-lg font-bold text-gray-800">
                         {language === 'ar' ? 'حفظ الصورة' : 'Save Photo'}
                     </h3>
-                    <p className="text-sm text-gray-500 px-4">
+                    <p className="text-xs text-gray-500 px-4 leading-relaxed">
                         {language === 'ar' 
-                            ? 'اضغط مطولاً على الصورة أعلاه واختر "حفظ"، أو جرب زر المشاركة بالأسفل.' 
-                            : 'Long press the image above and select "Save Image", or try the share button below.'}
+                            ? 'بسبب قيود التطبيق، يرجى تجربة الأزرار أدناه أو أخذ لقطة شاشة.' 
+                            : 'Due to app restrictions, try buttons below or take a screenshot.'}
                     </p>
                   </div>
                   
-                  <div className="flex gap-3 pt-2">
+                  <div className="flex gap-2 justify-center pt-2">
                      <button 
-                        onClick={() => setDownloadPreview(null)}
-                        className="flex-1 py-3 bg-gray-100 text-gray-600 font-bold rounded-xl hover:bg-gray-200 transition-colors"
+                        onClick={handleShare}
+                        className="flex-1 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 shadow-lg shadow-indigo-200 transition-colors flex flex-col items-center justify-center gap-1"
                      >
-                        {t('cancel')}
+                        <Share2 size={18} />
+                        <span className="text-xs">{t('yes')} (Share)</span>
                      </button>
                      <button 
-                        onClick={processDownload}
-                        className="flex-1 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 shadow-lg shadow-indigo-200 transition-colors flex items-center justify-center gap-2"
+                        onClick={handleOpenInBrowser}
+                        className="flex-1 py-3 bg-white text-gray-600 border-2 border-gray-100 font-bold rounded-xl hover:bg-gray-50 transition-colors flex flex-col items-center justify-center gap-1"
                      >
-                        {t('yes')}
+                        <ExternalLink size={18} />
+                        <span className="text-xs">Browser</span>
                      </button>
                   </div>
                </div>
