@@ -1,12 +1,16 @@
 
 import React, { useState, useEffect } from 'react';
-import { Megaphone, Send, Trash2, Bell, Calendar, Pin, PinOff } from 'lucide-react';
+import { Megaphone, Send, Trash2, Bell, Calendar, Pin, PinOff, FileText, ArrowRight, ArrowLeft, Sparkles } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useNotification } from '../contexts/NotificationContext';
 import { getUsers, savePosts, getSchedule, syncPosts } from '../services/storageService';
 import { Post, User, ScheduleItem } from '../types';
 
-const Dashboard: React.FC = () => {
+interface DashboardProps {
+  setCurrentView?: (view: string) => void;
+}
+
+const Dashboard: React.FC<DashboardProps> = ({ setCurrentView }) => {
   const { t, language } = useLanguage();
   const { requestPermission, permissionStatus } = useNotification();
   const [isRequestingPermission, setIsRequestingPermission] = useState(false);
@@ -176,6 +180,29 @@ const Dashboard: React.FC = () => {
                    <div className="w-4 h-4 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
                )}
                {t('allow')}
+            </button>
+         </div>
+      )}
+
+      {/* PARENT PROMPT CARD: View Daily Report */}
+      {currentUser?.role === 'parent' && (
+         <div className="bg-gradient-to-r from-pink-500 to-rose-500 rounded-2xl p-6 text-white shadow-lg shadow-pink-200 flex flex-col sm:flex-row items-center justify-between gap-4 transform transition-transform hover:scale-[1.01] animate-fade-in">
+            <div className="flex items-center gap-4">
+                <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm shrink-0">
+                   <Sparkles size={28} className="text-yellow-300 animate-spin-slow" fill="currentColor" />
+                </div>
+                <div>
+                   <h3 className="text-xl font-bold mb-1">{t('checkDailyReport')}</h3>
+                   <p className="text-pink-100 text-sm opacity-90">{t('dailyReportPrompt')}</p>
+                </div>
+            </div>
+            <button 
+               onClick={() => setCurrentView?.('parent-view')}
+               className="bg-white text-rose-600 px-6 py-3 rounded-xl font-bold shadow-md hover:bg-rose-50 transition-colors flex items-center gap-2 whitespace-nowrap group w-full sm:w-auto justify-center"
+            >
+               <FileText size={18} />
+               {t('viewChildReport')}
+               {language === 'ar' ? <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" /> : <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />}
             </button>
          </div>
       )}

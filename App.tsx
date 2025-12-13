@@ -333,7 +333,7 @@ const AppContent: React.FC = () => {
 
     // Fix for Parents: Ensure they can navigate to Dashboard
     if (user?.role === 'parent' && currentView === 'dashboard') {
-        return <Dashboard />;
+        return <Dashboard setCurrentView={handleSetView} />;
     }
 
     // 2. Student Detail (If selected)
@@ -421,7 +421,7 @@ const AppContent: React.FC = () => {
     }
 
     switch (currentView) {
-      case 'dashboard': return <Dashboard />;
+      case 'dashboard': return <Dashboard setCurrentView={handleSetView} />;
       case 'daily-report': return <DailyReportManagement />;
       case 'students': return <StudentList onStudentSelect={(student) => setSelectedStudent(student)} />;
       case 'ai-planner': return <AIPlanner />;
@@ -433,7 +433,7 @@ const AppContent: React.FC = () => {
       case 'classes': return <ClassManagement />;
       case 'schedule-manage': return <DailyScheduleManagement />;
       case 'database': return <DatabaseControl />;
-      default: return <Dashboard />;
+      default: return <Dashboard setCurrentView={handleSetView} />;
     }
   };
 

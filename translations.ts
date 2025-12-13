@@ -93,6 +93,9 @@ export const translations = {
     deletePost: "Delete Post",
     pinPost: "Pin to Top",
     unpinPost: "Unpin",
+    checkDailyReport: "Check Daily Report",
+    dailyReportPrompt: "See photos, meals, and activities for your child today!",
+    viewChildReport: "View Report",
 
     // Schedule Management
     scheduleManagement: "Daily Schedule Management",
@@ -496,6 +499,9 @@ export const translations = {
     deletePost: "حذف المنشور",
     pinPost: "تثبيت في الأعلى",
     unpinPost: "إلغاء التثبيت",
+    checkDailyReport: "شاهد التقرير اليومي",
+    dailyReportPrompt: "اطلع على صور، وجبات، وأنشطة طفلك لهذا اليوم!",
+    viewChildReport: "عرض التقرير",
 
     // Schedule Management
     scheduleManagement: "إدارة الجدول اليومي",
