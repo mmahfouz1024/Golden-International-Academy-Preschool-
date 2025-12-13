@@ -38,7 +38,7 @@ export const translations = {
     noGalleryPosts: "No photos added to the album yet.",
     deletePostConfirm: "Delete this entire album post?",
     
-    // Transport (Restored)
+    // Transport
     transportTitle: "Bus & Transport Tracking",
     manageRoutes: "Manage Bus Routes",
     addRoute: "Add Route",
@@ -49,7 +49,7 @@ export const translations = {
     noRoutes: "No bus routes defined",
     deleteRouteConfirm: "Delete this bus route?",
     
-    // Calendar (Restored)
+    // Calendar
     calendarTitle: "School Events Calendar",
     calendarSubtitle: "Holidays, Exams, and Activities",
     addEvent: "Add Event",
@@ -63,7 +63,7 @@ export const translations = {
     deleteEventConfirm: "Delete this event?",
     noEvents: "No upcoming events",
     
-    // HR & Payroll (Restored)
+    // HR & Payroll
     hrTitle: "Staff Payroll",
     hrSubtitle: "Manage salaries and payments",
     recordSalary: "Record Payment",
@@ -116,12 +116,13 @@ export const translations = {
     pressBackAgainToExit: "Press back again to exit",
     feesManagement: "Financial Management",
     
-    // SWAPPED ROLES HERE
+    // Roles
     roleAdmin: "General Manager",
     roleManager: "Admin",
-    
     roleTeacher: "Teacher",
     roleParent: "Parent",
+    
+    // Settings
     profile: "Profile",
     colorPalette: "Theme",
     themeSmart: "Smart (Blue)",
@@ -538,7 +539,7 @@ export const translations = {
     noGalleryPosts: "لم يتم إضافة صور للألبوم بعد.",
     deletePostConfirm: "هل أنت متأكد من حذف هذا الألبوم؟",
 
-    // Transport (Restored)
+    // Transport
     transportTitle: "تتبع النقل المدرسي",
     manageRoutes: "إدارة خطوط الباصات",
     addRoute: "إضافة خط",
@@ -549,7 +550,7 @@ export const translations = {
     noRoutes: "لم يتم تعريف خطوط نقل بعد",
     deleteRouteConfirm: "هل أنت متأكد من حذف هذا الخط؟",
 
-    // Calendar (Restored)
+    // Calendar
     calendarTitle: "التقويم المدرسي",
     calendarSubtitle: "الإجازات، الاختبارات، والأنشطة",
     addEvent: "إضافة فعالية",
@@ -563,7 +564,7 @@ export const translations = {
     deleteEventConfirm: "حذف هذه الفعالية؟",
     noEvents: "لا توجد فعاليات قادمة",
 
-    // HR & Payroll (Restored)
+    // HR & Payroll
     hrTitle: "رواتب الموظفين",
     hrSubtitle: "إدارة الرواتب والمدفوعات",
     recordSalary: "تسجيل دفعة",
@@ -616,12 +617,13 @@ export const translations = {
     pressBackAgainToExit: "اضغط مرة أخرى للخروج",
     feesManagement: "الإدارة المالية",
     
-    // SWAPPED ROLES ARABIC
+    // Roles
     roleAdmin: "المدير العام",
     roleManager: "أدمن",
-    
     roleTeacher: "المعلم",
     roleParent: "ولي الأمر",
+    
+    // Settings
     profile: "الملف الشخصي",
     colorPalette: "المظهر",
     themeSmart: "ذكي (أزرق)",
@@ -905,7 +907,7 @@ export const translations = {
     directoryTitle: "دليل الروضة",
     directorySubtitle: "نظرة عامة على جميع الطلاب والمعلمات وأولياء الأمور",
     allStudents: "الطلاب",
-    allTeachers: "الطلاب",
+    allTeachers: "المعلمات",
     allParents: "أولياء الأمور",
     contactInfo: "معلومات الاتصال",
     callNow: "اتصال",

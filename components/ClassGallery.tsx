@@ -6,7 +6,7 @@ import { getUsers, getClasses, getStudents, getGalleryPosts, saveGalleryPosts } 
 import { User, ClassGroup, GalleryPost } from '../types';
 
 const ClassGallery: React.FC = () => {
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
   const [user, setUser] = useState<User | null>(null);
   const [classes, setClasses] = useState<ClassGroup[]>([]);
   const [posts, setPosts] = useState<GalleryPost[]>([]);
