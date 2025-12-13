@@ -366,6 +366,7 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
     { value: 'all', label: t('mealAll') },
     { value: 'some', label: t('mealSome') },
     { value: 'none', label: t('mealNone') },
+    { value: 'more', label: t('mealMore') },
   ];
 
   const updateBathroomCount = (type: 'urine' | 'stool', delta: number) => {

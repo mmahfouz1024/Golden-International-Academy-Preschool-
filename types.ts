@@ -37,7 +37,7 @@ export interface DashboardStats {
 }
 
 export type Mood = 'happy' | 'sad' | 'neutral' | 'excited' | 'tired' | 'sick';
-export type MealStatus = 'all' | 'some' | 'none';
+export type MealStatus = 'all' | 'some' | 'none' | 'more';
 export type BathroomType = 'urine' | 'stool';
 
 export interface DailyReport {

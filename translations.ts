@@ -217,6 +217,7 @@ export const translations = {
     mealAll: "All",
     mealSome: "Some",
     mealNone: "None",
+    mealMore: "More",
     urine: "Urine",
     stool: "Stool",
 
@@ -624,6 +625,7 @@ export const translations = {
     mealAll: "الكل",
     mealSome: "البعض",
     mealNone: "لم يأكل",
+    mealMore: "طلب زيادة",
     urine: "بول",
     stool: "براز",
 
