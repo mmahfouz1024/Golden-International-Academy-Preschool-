@@ -322,43 +322,66 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
   };
 
   const handleDownloadPhoto = async (photoData: string, index: number) => {
-    const fileName = `photo_${student.name}_${selectedDate}_${index + 1}.png`;
+    // Determine extension based on mime type, default to jpg
+    let ext = 'jpg';
+    if (photoData.startsWith('data:image/png')) ext = 'png';
+    
+    const fileName = `photo_${student.name}_${selectedDate}_${index + 1}.${ext}`;
+
+    // Extract Base64 Data cleanly
+    const base64Data = photoData.includes(',') ? photoData.split(',')[1] : photoData;
 
     if (Capacitor.isNativePlatform()) {
       try {
-        // Prepare base64 string (remove data:image/png;base64, prefix if present)
-        const base64Data = photoData.includes(',') ? photoData.split(',')[1] : photoData;
-
         // 1. Write to Cache (Safe Zone)
         const result = await Filesystem.writeFile({
           path: fileName,
           data: base64Data,
-          directory: Directory.Cache, // Use cache instead of documents for better sharing support
+          directory: Directory.Cache, 
         });
         
         // 2. Share the file using System Share Sheet
-        // This is the "Magic" step - it opens the Android/iOS share menu
-        // giving the user options like "Save to Gallery", "Save to Files", "WhatsApp", etc.
+        // Use 'files' array which is better for binary sharing on Android than 'url'
         await Share.share({
             title: 'Download Photo',
-            text: `Photo of ${student.name} - ${selectedDate}`,
-            url: result.uri,
-            dialogTitle: 'Save Photo' // Title for the share dialog on Android
+            files: [result.uri],
+            dialogTitle: 'Save/Share Photo' 
         });
         
       } catch (e) {
         console.error("Native download/share failed", e);
         // Fallback error message
-        addNotification("Save Failed", "Could not open share menu.", 'alert');
+        addNotification("Download Failed", "Could not open share menu.", 'alert');
       }
     } else {
-      // Browser Fallback
-      const link = document.createElement('a');
-      link.href = photoData;
-      link.download = fileName;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      // Browser Fallback (Blob) to prevent opening in new tab on mobile browsers
+      try {
+        const byteCharacters = atob(base64Data);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: `image/${ext}` });
+        
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setTimeout(() => URL.revokeObjectURL(url), 100);
+      } catch (e) {
+        console.error("Web download failed", e);
+        // Ancient Browser Fallback
+        const link = document.createElement('a');
+        link.href = photoData;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
     }
   };
 
