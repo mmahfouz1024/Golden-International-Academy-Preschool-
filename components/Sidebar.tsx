@@ -1,11 +1,9 @@
 
 import React, { useState } from 'react';
-import { LayoutDashboard, Users, CalendarCheck, Sparkles, LogOut, Home, Download, UserCog, School, ChevronRight, Contact, FileClock, Palette, Database, FileText, GraduationCap, CalendarDays, Power } from 'lucide-react';
+import { LayoutDashboard, Users, CalendarCheck, Sparkles, LogOut, Home, Download, UserCog, School, ChevronRight, Contact, FileClock, Palette, Database, FileText, GraduationCap, CalendarDays } from 'lucide-react';
 import { User, Theme } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
-import { App } from '@capacitor/app';
-import { Capacitor } from '@capacitor/core';
 
 interface SidebarProps {
   currentView: string;
@@ -28,7 +26,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   showInstallButton,
   onInstall
 }) => {
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
   const { theme, setTheme } = useTheme();
   const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
 
@@ -86,34 +84,6 @@ const Sidebar: React.FC<SidebarProps> = ({
     { id: 'garden', label: t('themeGarden'), color: '#16a34a' },
     { id: 'sunshine', label: t('themeSunshine'), color: '#d97706' },
   ];
-
-  const handleExitApp = async () => {
-    if (window.confirm(t('exitConfirm'))) {
-      if (Capacitor.isNativePlatform()) {
-        try {
-          await App.exitApp();
-        } catch (e) {
-          console.error("App.exitApp failed", e);
-        }
-      } else {
-        // Web Environment
-        try {
-          window.close();
-        } catch (e) {
-          console.log("window.close failed", e);
-        }
-        
-        // Most browsers block window.close() if not opened by script.
-        // Show guidance if we are still running.
-        setTimeout(() => {
-           alert(language === 'ar' 
-             ? "يرجى إغلاق المتصفح يدوياً. سياسة المتصفح تمنع الإغلاق التلقائي." 
-             : "Please close the browser tab manually. Browser security prevents auto-close."
-           );
-        }, 300);
-      }
-    }
-  };
 
   return (
     <>
@@ -200,16 +170,6 @@ const Sidebar: React.FC<SidebarProps> = ({
                 </div>
                 <span>{t('logout')}</span>
             </button>
-
-            <button
-                onClick={handleExitApp}
-                className="w-full flex items-center gap-3 px-5 py-3.5 rounded-2xl transition-all duration-300 font-bold text-sm bg-gray-50 text-gray-600 hover:bg-gray-100 hover:shadow-md border border-transparent"
-            >
-                <div className="bg-white/50 p-1.5 rounded-lg">
-                    <Power size={18} className="text-gray-500" />
-                </div>
-                <span>{t('exitApp')}</span>
-            </button>
           </div>
 
           {showInstallButton && (
@@ -291,3 +251,4 @@ const Sidebar: React.FC<SidebarProps> = ({
 };
 
 export default Sidebar;
+    
