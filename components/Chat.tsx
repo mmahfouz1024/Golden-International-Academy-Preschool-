@@ -214,10 +214,10 @@ const Chat: React.FC = () => {
 
   return (
     <>
-      {/* Floating Action Button */}
+      {/* Floating Action Button - Moved up to avoid overlapping with Save buttons */}
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className={`fixed bottom-6 ${language === 'ar' ? 'left-6' : 'right-6'} z-50 p-4 rounded-full shadow-2xl transition-all transform hover:scale-110 active:scale-95 flex items-center justify-center ${
+        className={`fixed bottom-28 ${language === 'ar' ? 'left-6' : 'right-6'} z-50 p-4 rounded-full shadow-2xl transition-all transform hover:scale-110 active:scale-95 flex items-center justify-center ${
           isOpen ? 'bg-red-500 rotate-90' : 'bg-gradient-to-r from-indigo-600 to-purple-600'
         } text-white border-4 border-white`}
       >
@@ -231,9 +231,9 @@ const Chat: React.FC = () => {
         )}
       </button>
 
-      {/* Chat Widget Popup */}
+      {/* Chat Widget Popup - Moved up correspondingly */}
       {isOpen && currentUser && (
-        <div className={`fixed bottom-24 ${language === 'ar' ? 'left-6' : 'right-6'} w-[90vw] md:w-96 h-[600px] max-h-[80vh] bg-white rounded-2xl shadow-2xl border border-gray-100 flex flex-col overflow-hidden z-40 animate-fade-in`}>
+        <div className={`fixed bottom-48 ${language === 'ar' ? 'left-6' : 'right-6'} w-[90vw] md:w-96 h-[600px] max-h-[70vh] bg-white rounded-2xl shadow-2xl border border-gray-100 flex flex-col overflow-hidden z-40 animate-fade-in`}>
           
           {/* Header */}
           <div className="bg-indigo-600 p-4 text-white flex items-center justify-between shrink-0 shadow-md z-10">
