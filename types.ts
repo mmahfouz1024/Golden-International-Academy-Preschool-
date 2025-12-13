@@ -154,3 +154,20 @@ export interface ScheduleItem {
   title: string;
   color: 'green' | 'blue' | 'orange' | 'purple' | 'red';
 }
+
+export interface PaymentTransaction {
+  id: string;
+  date: string;
+  amount: number;
+  note?: string;
+  recordedBy: string; // User ID
+}
+
+export interface FeeRecord {
+  id: string;
+  studentId: string;
+  totalAmount: number;
+  paidAmount: number;
+  lastPaymentDate?: string;
+  history: PaymentTransaction[];
+}

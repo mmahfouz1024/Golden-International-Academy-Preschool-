@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { LayoutDashboard, Users, CalendarCheck, Sparkles, LogOut, Home, Download, UserCog, School, ChevronRight, Contact, FileClock, Palette, Database, FileText, GraduationCap, CalendarDays } from 'lucide-react';
+import { LayoutDashboard, Users, CalendarCheck, Sparkles, LogOut, Home, Download, UserCog, School, ChevronRight, Contact, FileClock, Palette, Database, FileText, GraduationCap, CalendarDays, Wallet } from 'lucide-react';
 import { User, Theme } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -34,6 +34,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     { id: 'dashboard', label: t('dashboard'), icon: LayoutDashboard, defaultRoles: ['admin', 'manager', 'teacher', 'parent'] },
     { id: 'daily-report', label: t('dailyReportMenu'), icon: FileText, defaultRoles: ['admin', 'manager', 'teacher'] },
     { id: 'students', label: t('students'), icon: Users, defaultRoles: ['admin', 'manager', 'teacher'] },
+    { id: 'fees-management', label: t('feesManagement'), icon: Wallet, defaultRoles: ['admin', 'manager', 'parent'] },
     { id: 'teachers', label: t('teachers'), icon: GraduationCap, defaultRoles: ['admin', 'manager'] },
     { id: 'attendance', label: t('attendance'), icon: CalendarCheck, defaultRoles: ['admin', 'manager', 'teacher'] },
     { id: 'reports-archive', label: t('reportsArchive'), icon: FileClock, defaultRoles: ['admin', 'manager', 'teacher'] },
@@ -54,7 +55,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
     // Parent Logic
     if (user.role === 'parent') {
-      if (item.id === 'parent-view' || item.id === 'dashboard') return true;
+      if (item.id === 'parent-view' || item.id === 'dashboard' || item.id === 'fees-management') return true;
       // If explicit permissions exist for the user, use them
       if (user.permissions && user.permissions.includes(item.id)) return true;
       return false;

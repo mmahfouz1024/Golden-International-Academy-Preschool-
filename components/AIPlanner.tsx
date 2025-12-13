@@ -1,15 +1,17 @@
 
-import React, { useState } from 'react';
-import { Sparkles, BookOpen, Send, Loader2, MessageSquare, Pencil, Save, Check, FileText, Library, Search, Clock, ArrowRight } from 'lucide-react';
-import { generateActivityPlan, draftParentMessage } from '../services/geminiService';
-import { ActivityPlan } from '../types';
+import React, { useState, useEffect } from 'react';
+import { Sparkles, BookOpen, Send, Loader2, MessageSquare, Pencil, Save, Check, FileText, Library, Search, Clock, ArrowRight, User, Calendar, BarChart } from 'lucide-react';
+import { generateActivityPlan, draftParentMessage, generateMonthlyProgress } from '../services/geminiService';
+import { ActivityPlan, Student } from '../types';
 import { AGE_GROUPS } from '../constants';
 import { useLanguage } from '../contexts/LanguageContext';
+import { getStudents, getReports } from '../services/storageService';
 
 const AIPlanner: React.FC = () => {
   const { t, language } = useLanguage();
-  const [activeTab, setActiveTab] = useState<'activity' | 'message' | 'library'>('activity');
+  const [activeTab, setActiveTab] = useState<'activity' | 'message' | 'library' | 'progress'>('activity');
   
+  // Activity Plan State
   const [ageGroup, setAgeGroup] = useState(AGE_GROUPS[0]);
   const [topic, setTopic] = useState('');
   const [isLoadingPlan, setIsLoadingPlan] = useState(false);
@@ -17,6 +19,7 @@ const AIPlanner: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
 
+  // Library State
   const [librarySearchTerm, setLibrarySearchTerm] = useState('');
   const [savedPlans, setSavedPlans] = useState<ActivityPlan[]>([
     {
@@ -30,11 +33,23 @@ const AIPlanner: React.FC = () => {
     }
   ]);
 
+  // Message Draft State
   const [studentName, setStudentName] = useState('');
   const [messageType, setMessageType] = useState<'praise' | 'issue' | 'announcement'>('praise');
   const [details, setDetails] = useState('');
   const [isLoadingMessage, setIsLoadingMessage] = useState(false);
   const [generatedMessage, setGeneratedMessage] = useState('');
+
+  // Progress Report State
+  const [students, setStudents] = useState<Student[]>([]);
+  const [selectedStudentId, setSelectedStudentId] = useState('');
+  const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7)); // YYYY-MM
+  const [isLoadingProgress, setIsLoadingProgress] = useState(false);
+  const [generatedProgress, setGeneratedProgress] = useState('');
+
+  useEffect(() => {
+    setStudents(getStudents());
+  }, []);
 
   const handleGeneratePlan = async () => {
     if (!topic) return;
@@ -80,6 +95,69 @@ const AIPlanner: React.FC = () => {
       alert("Error drafting message.");
     } finally {
       setIsLoadingMessage(false);
+    }
+  };
+
+  const handleGenerateProgress = async () => {
+    if (!selectedStudentId || !selectedMonth) return;
+    
+    setIsLoadingProgress(true);
+    setGeneratedProgress('');
+
+    try {
+        const student = students.find(s => s.id === selectedStudentId);
+        const studentName = student ? student.name : "Student";
+        
+        // Aggregate Data
+        const allReports = getReports();
+        const monthReports = Object.values(allReports).filter(r => 
+            r.studentId === selectedStudentId && 
+            r.date.startsWith(selectedMonth)
+        );
+
+        if (monthReports.length === 0) {
+            setGeneratedProgress(t('noReportsForMonth'));
+            setIsLoadingProgress(false);
+            return;
+        }
+
+        // Calculate Stats
+        const moodCounts: Record<string, number> = {};
+        const activitiesSet = new Set<string>();
+        const notesList: string[] = [];
+        const skillsList: string[] = [];
+
+        monthReports.forEach(r => {
+            // Moods
+            moodCounts[r.mood] = (moodCounts[r.mood] || 0) + 1;
+            // Activities
+            if (r.activities) r.activities.forEach(a => activitiesSet.add(a));
+            // Notes
+            if (r.notes && r.notes.trim()) notesList.push(r.notes);
+            // Academic Skills (concatenate all subject items)
+            if (r.academic) {
+               Object.values(r.academic).flat().forEach((skill: any) => {
+                   if (typeof skill === 'string' && skill) skillsList.push(skill);
+               });
+            }
+        });
+
+        const reportSummary = {
+            totalDays: monthReports.length,
+            moods: moodCounts,
+            activities: Array.from(activitiesSet),
+            notes: notesList,
+            skills: Array.from(new Set(skillsList)) // Unique skills
+        };
+
+        const result = await generateMonthlyProgress(studentName, selectedMonth, reportSummary, language);
+        setGeneratedProgress(result || "Failed to generate.");
+
+    } catch (e) {
+        console.error(e);
+        setGeneratedProgress("Error generating report.");
+    } finally {
+        setIsLoadingProgress(false);
     }
   };
 
@@ -132,6 +210,15 @@ const AIPlanner: React.FC = () => {
         >
           <MessageSquare size={18} />
           {t('draftMessage')}
+        </button>
+        <button
+          onClick={() => setActiveTab('progress')}
+          className={`px-6 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 ${
+            activeTab === 'progress' ? 'bg-indigo-600 text-white shadow-sm' : 'text-gray-500 hover:text-gray-900'
+          }`}
+        >
+          <BarChart size={18} />
+          {t('progressReport')}
         </button>
       </div>
 
@@ -379,7 +466,7 @@ const AIPlanner: React.FC = () => {
             )}
           </div>
         </div>
-      ) : (
+      ) : activeTab === 'message' ? (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 space-y-6">
             <div>
@@ -471,6 +558,86 @@ const AIPlanner: React.FC = () => {
               </div>
             )}
           </div>
+        </div>
+      ) : (
+        // --- PROGRESS REPORT VIEW ---
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+           <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 space-y-6">
+              <div>
+                 <label className="block text-sm font-medium text-gray-700 mb-2">{t('selectStudent')}</label>
+                 <div className="relative">
+                    <User className={`absolute ${language === 'ar' ? 'right-3' : 'left-3'} top-1/2 -translate-y-1/2 text-gray-400`} size={18} />
+                    <select 
+                      className={`w-full ${language === 'ar' ? 'pr-10' : 'pl-10'} p-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-white`}
+                      value={selectedStudentId}
+                      onChange={(e) => setSelectedStudentId(e.target.value)}
+                    >
+                      <option value="">{t('selectStudent')}...</option>
+                      {students.map(s => (
+                        <option key={s.id} value={s.id}>{s.name}</option>
+                      ))}
+                    </select>
+                 </div>
+              </div>
+
+              <div>
+                 <label className="block text-sm font-medium text-gray-700 mb-2">{t('selectMonth')}</label>
+                 <div className="relative">
+                    <Calendar className={`absolute ${language === 'ar' ? 'right-3' : 'left-3'} top-1/2 -translate-y-1/2 text-gray-400`} size={18} />
+                    <input 
+                      type="month"
+                      className={`w-full ${language === 'ar' ? 'pr-10' : 'pl-10'} p-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500`}
+                      value={selectedMonth}
+                      onChange={(e) => setSelectedMonth(e.target.value)}
+                    />
+                 </div>
+              </div>
+
+              <button 
+                onClick={handleGenerateProgress}
+                disabled={isLoadingProgress || !selectedStudentId || !selectedMonth}
+                className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium shadow-md shadow-indigo-200 disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2 transition-all"
+              >
+                {isLoadingProgress ? <Loader2 className="animate-spin" /> : <BarChart size={20} />}
+                {t('generateReport')}
+              </button>
+           </div>
+
+           <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 min-h-[400px]">
+              {isLoadingProgress ? (
+                <div className="h-full flex flex-col items-center justify-center text-gray-400 space-y-4">
+                  <Loader2 className="animate-spin text-indigo-500" size={40} />
+                  <p>{t('analyzing')}</p>
+                </div>
+              ) : generatedProgress ? (
+                <div className="h-full flex flex-col">
+                  <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    <BarChart size={20} className="text-indigo-500" />
+                    {t('progressReport')}
+                  </h3>
+                  <div className="flex-1 bg-gradient-to-br from-indigo-50/50 to-white p-6 rounded-xl border border-indigo-100 text-gray-700 leading-relaxed whitespace-pre-wrap font-medium text-sm shadow-inner">
+                    {generatedProgress}
+                  </div>
+                  <div className="mt-4 flex gap-3">
+                    <button 
+                      onClick={() => navigator.clipboard.writeText(generatedProgress)}
+                      className="flex-1 py-2.5 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
+                    >
+                      {t('copyText')}
+                    </button>
+                    <button className="flex-1 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex justify-center items-center gap-2 text-sm font-medium shadow-sm">
+                      <Send size={16} />
+                      {t('sendWhatsapp')}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="h-full flex flex-col items-center justify-center text-gray-400 opacity-60">
+                  <BarChart size={48} className="mb-4 text-gray-300" />
+                  <p>{t('progressReport')}</p>
+                </div>
+              )}
+           </div>
         </div>
       )}
     </div>

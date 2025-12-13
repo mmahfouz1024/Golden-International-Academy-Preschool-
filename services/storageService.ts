@@ -1,6 +1,6 @@
 
 import { MOCK_USERS, MOCK_STUDENTS, MOCK_CLASSES, MOCK_REPORTS } from '../constants';
-import { User, Student, ClassGroup, DailyReport, DatabaseConfig, AppNotification, ChatMessage, Post, ScheduleItem, AttendanceStatus, DailyMenu } from '../types';
+import { User, Student, ClassGroup, DailyReport, DatabaseConfig, AppNotification, ChatMessage, Post, ScheduleItem, AttendanceStatus, DailyMenu, FeeRecord } from '../types';
 import { initSupabase, syncDataToCloud, fetchDataFromCloud } from './supabaseClient';
 
 const KEYS = {
@@ -14,7 +14,8 @@ const KEYS = {
   POSTS: 'golden_academy_posts',
   SCHEDULE: 'golden_academy_schedule',
   ATTENDANCE: 'golden_academy_attendance_history',
-  DAILY_MENU: 'golden_academy_daily_menu'
+  DAILY_MENU: 'golden_academy_daily_menu',
+  FEES: 'golden_academy_fees'
 };
 
 // Initialize DB
@@ -82,6 +83,7 @@ export const initStorage = async (): Promise<{ success: boolean; message?: strin
         if (!localStorage.getItem(KEYS.REPORTS)) localStorage.setItem(KEYS.REPORTS, JSON.stringify(MOCK_REPORTS));
         if (!localStorage.getItem(KEYS.SCHEDULE)) localStorage.setItem(KEYS.SCHEDULE, JSON.stringify(DEFAULT_SCHEDULE));
         if (!localStorage.getItem(KEYS.ATTENDANCE)) localStorage.setItem(KEYS.ATTENDANCE, JSON.stringify({}));
+        if (!localStorage.getItem(KEYS.FEES)) localStorage.setItem(KEYS.FEES, JSON.stringify([]));
         
         // Seed default notification only if missing
         if (!localStorage.getItem(KEYS.NOTIFICATIONS)) {
@@ -150,7 +152,7 @@ const saveAndSync = async (key: string, data: any) => {
 
 const syncAllFromCloud = async () => {
   try {
-    const keys = [KEYS.USERS, KEYS.STUDENTS, KEYS.CLASSES, KEYS.REPORTS, KEYS.NOTIFICATIONS, KEYS.MESSAGES, KEYS.POSTS, KEYS.SCHEDULE, KEYS.ATTENDANCE, KEYS.DAILY_MENU];
+    const keys = [KEYS.USERS, KEYS.STUDENTS, KEYS.CLASSES, KEYS.REPORTS, KEYS.NOTIFICATIONS, KEYS.MESSAGES, KEYS.POSTS, KEYS.SCHEDULE, KEYS.ATTENDANCE, KEYS.DAILY_MENU, KEYS.FEES];
     let syncedCount = 0;
     for (const key of keys) {
       const { data } = await fetchDataFromCloud(key);
@@ -187,6 +189,7 @@ export const forceSyncToCloud = async () => {
      await syncDataToCloud(KEYS.SCHEDULE, JSON.parse(localStorage.getItem(KEYS.SCHEDULE) || JSON.stringify(DEFAULT_SCHEDULE)));
      await syncDataToCloud(KEYS.ATTENDANCE, JSON.parse(localStorage.getItem(KEYS.ATTENDANCE) || '{}'));
      await syncDataToCloud(KEYS.DAILY_MENU, JSON.parse(localStorage.getItem(KEYS.DAILY_MENU) || '{}'));
+     await syncDataToCloud(KEYS.FEES, JSON.parse(localStorage.getItem(KEYS.FEES) || '[]'));
      
      const config = getDatabaseConfig();
      config.lastSync = new Date().toISOString();
@@ -254,6 +257,7 @@ export const createBackupData = () => {
     schedule: getSchedule(),
     attendance: getAttendanceHistory(),
     dailyMenu: getDailyMenu(),
+    fees: getFees(),
   };
   return backup;
 };
@@ -274,6 +278,7 @@ export const restoreBackupData = (data: any) => {
     if (data.schedule) localStorage.setItem(KEYS.SCHEDULE, JSON.stringify(data.schedule));
     if (data.attendance) localStorage.setItem(KEYS.ATTENDANCE, JSON.stringify(data.attendance));
     if (data.dailyMenu) localStorage.setItem(KEYS.DAILY_MENU, JSON.stringify(data.dailyMenu));
+    if (data.fees) localStorage.setItem(KEYS.FEES, JSON.stringify(data.fees));
 
     if (isCloudEnabled) {
        forceSyncToCloud().catch(err => console.error("Auto-sync after restore failed", err));
@@ -421,4 +426,17 @@ export const getDailyMenu = (): DailyMenu => {
 
 export const saveDailyMenu = (menu: DailyMenu) => {
   saveAndSync(KEYS.DAILY_MENU, menu);
+};
+
+// Fees
+export const getFees = (): FeeRecord[] => {
+  const stored = localStorage.getItem(KEYS.FEES);
+  if (!stored) {
+    return [];
+  }
+  return JSON.parse(stored);
+};
+
+export const saveFees = (fees: FeeRecord[]) => {
+  saveAndSync(KEYS.FEES, fees);
 };

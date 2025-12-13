@@ -61,6 +61,7 @@ export const translations = {
     exitConfirm: "Are you sure you want to close the application?",
     installApp: "Install App",
     pressBackAgainToExit: "Press back again to exit",
+    feesManagement: "Financial Management",
     
     // SWAPPED ROLES HERE
     roleAdmin: "General Manager",
@@ -99,6 +100,31 @@ export const translations = {
     todaysMenu: "Today's Main Dish",
     selectDish: "Select Dish...",
     addCustomDish: "Add Custom...",
+
+    // Fees Management
+    feesTitle: "Tuition & Fees",
+    feesSubtitle: "Manage student payments and track revenue",
+    totalFees: "Total Fees",
+    paidAmount: "Paid Amount",
+    remainingAmount: "Balance",
+    paymentHistory: "Payment History",
+    recordPayment: "Record Payment",
+    feeStatus: "Status",
+    statusPaid: "Paid",
+    statusPartial: "Partial",
+    statusUnpaid: "Unpaid",
+    sendReminder: "Send Reminder",
+    reminderSent: "Reminder Sent",
+    setTuition: "Set Tuition Fee",
+    paymentDate: "Date",
+    amount: "Amount",
+    note: "Note",
+    recordedBy: "Recorded By",
+    expectedRevenue: "Expected Revenue",
+    collectedRevenue: "Collected",
+    outstandingBalance: "Outstanding",
+    tuitionFeeMsg: "Tuition Fee Reminder",
+    tuitionFeeBody: "Dear parent, this is a reminder regarding the outstanding tuition fees for your child. Please contact the administration.",
 
     // Schedule Management
     scheduleManagement: "Daily Schedule Management",
@@ -228,7 +254,8 @@ export const translations = {
     planActivity: "Plan Activity",
     library: "Library",
     draftMessage: "Draft Message",
-    plannerSubtitle: "Use AI to plan activities and communicate with parents",
+    progressReport: "Progress Report",
+    plannerSubtitle: "Use AI to plan activities, communicate with parents, and analyze progress",
     ageGroup: "Age Group",
     topic: "Activity Topic",
     generatePlan: "Generate Plan",
@@ -250,6 +277,10 @@ export const translations = {
     drafting: "Drafting...",
     copyText: "Copy Text",
     sendWhatsapp: "Send via WhatsApp",
+    selectMonth: "Select Month",
+    generateReport: "Generate Report",
+    noReportsForMonth: "No daily reports found for this student in the selected month.",
+    analyzing: "Analyzing...",
 
     // User Management
     userManagement: "User Management",
@@ -472,6 +503,7 @@ export const translations = {
     exitConfirm: "هل أنت متأكد من إغلاق التطبيق؟",
     installApp: "تثبيت التطبيق",
     pressBackAgainToExit: "اضغط مرة أخرى للخروج",
+    feesManagement: "الإدارة المالية",
     
     // SWAPPED ROLES ARABIC
     roleAdmin: "المدير العام",
@@ -510,6 +542,31 @@ export const translations = {
     todaysMenu: "الطبق الرئيسي اليوم",
     selectDish: "اختر الصنف...",
     addCustomDish: "إضافة صنف...",
+
+    // Fees Management
+    feesTitle: "الرسوم والمصروفات",
+    feesSubtitle: "إدارة مدفوعات الطلاب وتتبع الإيرادات",
+    totalFees: "إجمالي الرسوم",
+    paidAmount: "المبلغ المدفوع",
+    remainingAmount: "المتبقي",
+    paymentHistory: "سجل المدفوعات",
+    recordPayment: "تسجيل دفعة",
+    feeStatus: "الحالة",
+    statusPaid: "خالص",
+    statusPartial: "جزئي",
+    statusUnpaid: "غير مدفوع",
+    sendReminder: "إرسال تذكير",
+    reminderSent: "تم الإرسال",
+    setTuition: "تحديد الرسوم",
+    paymentDate: "التاريخ",
+    amount: "المبلغ",
+    note: "ملاحظة",
+    recordedBy: "سجل بواسطة",
+    expectedRevenue: "المتوقع",
+    collectedRevenue: "المحصل",
+    outstandingBalance: "المتبقي",
+    tuitionFeeMsg: "تذكير بالرسوم الدراسية",
+    tuitionFeeBody: "عزيزي ولي الأمر، هذا تذكير بخصوص الرسوم الدراسية المتبقية لطفلكم. يرجى مراجعة الإدارة.",
 
     // Schedule Management
     scheduleManagement: "إدارة الجدول اليومي",
@@ -639,7 +696,8 @@ export const translations = {
     planActivity: "تخطيط نشاط",
     library: "المكتبة",
     draftMessage: "صياغة رسالة",
-    plannerSubtitle: "استخدم الذكاء الاصطناعي لتخطيط الأنشطة والتواصل مع الأهالي",
+    progressReport: "تقرير التطور",
+    plannerSubtitle: "استخدم الذكاء الاصطناعي لتخطيط الأنشطة وتحليل تطور الطلاب",
     ageGroup: "الفئة العمرية",
     topic: "موضوع النشاط",
     generatePlan: "إنشاء الخطة",
@@ -661,6 +719,10 @@ export const translations = {
     drafting: "جاري الصياغة...",
     copyText: "نسخ النص",
     sendWhatsapp: "إرسال عبر واتساب",
+    selectMonth: "اختر الشهر",
+    generateReport: "إنشاء التقرير",
+    noReportsForMonth: "لا توجد تقارير يومية لهذا الطالب في الشهر المحدد.",
+    analyzing: "جاري التحليل...",
 
     // User Management
     userManagement: "إدارة المستخدمين",

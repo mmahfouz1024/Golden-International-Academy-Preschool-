@@ -86,3 +86,41 @@ export const draftParentMessage = async (studentName: string, type: 'praise' | '
     throw error;
   }
 };
+
+export const generateMonthlyProgress = async (studentName: string, month: string, reportSummary: any, lang: 'en' | 'ar') => {
+  try {
+    const ai = getAiClient();
+    const model = 'gemini-2.5-flash';
+    
+    // Construct the prompt with data
+    const prompt = `
+      You are a professional kindergarten teacher consultant.
+      Please write a "Monthly Progress Report" for a student based on their daily logs for the month of ${month}.
+      
+      Student Name: ${studentName}
+      Language of Report: ${lang === 'ar' ? 'Arabic (Modern Standard, warm and professional)' : 'English (Warm and professional)'}
+      
+      Aggregated Data from Daily Reports:
+      ${JSON.stringify(reportSummary, null, 2)}
+      
+      Structure the report with these sections (use appropriate emojis):
+      1. Social & Emotional Development (based on moods and notes)
+      2. Participation & Activities (based on activities list)
+      3. Skills & Academic Progress (highlight any noted skills)
+      4. General Teacher Observations (summary of notes)
+      5. Recommendations for Parents (encouraging tips)
+      
+      Keep it concise, about 150-200 words. Make it sound encouraging for the parents.
+    `;
+
+    const response = await ai.models.generateContent({
+      model: model,
+      contents: prompt,
+    });
+
+    return response.text;
+  } catch (error) {
+    console.error("Error generating progress report:", error);
+    throw error;
+  }
+};

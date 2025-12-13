@@ -15,6 +15,7 @@ import ReportsArchive from './components/ReportsArchive';
 import Profile from './components/Profile';
 import DatabaseControl from './components/DatabaseControl';
 import DailyReportManagement from './components/DailyReportManagement';
+import FeesManagement from './components/FeesManagement';
 import Login from './components/Login';
 import Chat from './components/Chat';
 import NotificationDropdown from './components/NotificationDropdown';
@@ -371,131 +372,98 @@ const AppContent: React.FC = () => {
        if (parentChildren.length > 0) {
            return (
                <div className="flex flex-col items-center justify-center min-h-[50vh] animate-fade-in">
-                   <div className="text-center mb-8">
-                       <h2 className="text-2xl font-bold text-gray-800 mb-2">{t('selectChildTitle')}</h2>
-                       <p className="text-gray-500">{t('selectChildSubtitle')}</p>
-                   </div>
-                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full max-w-2xl">
-                       {parentChildren.map(child => (
-                           <button 
-                               key={child.id}
-                               onClick={() => setSelectedStudent(child)}
-                               className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md hover:border-indigo-200 transition-all flex flex-col items-center gap-4 group"
-                           >
-                               <img src={child.avatar} alt={child.name} className="w-24 h-24 rounded-full border-4 border-indigo-50 object-cover group-hover:scale-105 transition-transform" />
-                               <div className="text-center">
-                                   <h3 className="text-lg font-bold text-gray-800">{child.name}</h3>
-                                   <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-medium mt-1">
-                                      <Star size={12} /> {child.classGroup}
-                                   </span>
-                               </div>
-                           </button>
-                       ))}
-                   </div>
+                  <h2 className="text-2xl font-bold text-gray-800 mb-6">{t('selectChildTitle')}</h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-2xl">
+                      {parentChildren.map(child => (
+                          <button 
+                            key={child.id}
+                            onClick={() => setSelectedStudent(child)}
+                            className="bg-white p-6 rounded-2xl shadow-sm border-2 border-transparent hover:border-indigo-500 hover:shadow-md transition-all flex flex-col items-center gap-4 group"
+                          >
+                              <img src={child.avatar} alt={child.name} className="w-24 h-24 rounded-full object-cover group-hover:scale-110 transition-transform" />
+                              <div className="text-center">
+                                  <h3 className="font-bold text-lg text-gray-800">{child.name}</h3>
+                                  <p className="text-sm text-gray-500">{child.classGroup}</p>
+                              </div>
+                          </button>
+                      ))}
+                  </div>
                </div>
            );
-       } else {
-           return (
-              <div className="flex flex-col items-center justify-center h-[50vh] text-gray-400">
-                <Users size={48} className="mb-4 opacity-20" />
-                <p className="text-xl font-medium">{t('noChildRecord')}</p>
-                <p className="text-sm mt-2">{t('contactAdmin')}</p>
-              </div>
-            );
        }
     }
 
-    const isAllowed = (view: string) => {
-       if (!user) return false;
-       if (view === 'profile') return true;
-       
-       if (user.role === 'admin') return true;
-       if (user.role === 'parent') {
-          if (view === 'parent-view' || view === 'dashboard') return true;
-          return user.permissions?.includes(view) || false;
-       }
-       
-       if (user.permissions && user.permissions.length > 0) {
-         return user.permissions.includes(view);
-       }
-       return true; 
-    };
-
-    if (!isAllowed(currentView)) {
-      return <div className="p-8 text-center text-gray-500">{t('contactAdmin')} (Access Denied)</div>;
-    }
-
+    // 4. Main Views Switch
     switch (currentView) {
-      case 'dashboard': return <Dashboard setCurrentView={handleSetView} />;
-      case 'daily-report': return <DailyReportManagement />;
-      case 'students': return <StudentList onStudentSelect={(student) => setSelectedStudent(student)} />;
-      case 'ai-planner': return <AIPlanner />;
-      case 'attendance': return <Attendance />;
-      case 'directory': return <Directory />;
-      case 'reports-archive': return <ReportsArchive onViewReport={handleViewHistoricalReport} />;
-      case 'users': return <UserManagement />;
-      case 'teachers': return <TeacherManagement />;
-      case 'classes': return <ClassManagement />;
-      case 'schedule-manage': return <DailyScheduleManagement />;
-      case 'database': return <DatabaseControl />;
-      default: return <Dashboard setCurrentView={handleSetView} />;
+      case 'dashboard':
+        return <Dashboard setCurrentView={handleSetView} />;
+      case 'students':
+        return <StudentList onStudentSelect={(s) => { setSelectedStudent(s); setSelectedReportDate(undefined); }} />;
+      case 'daily-report':
+        return <DailyReportManagement />;
+      case 'fees-management':
+        return <FeesManagement />;
+      case 'attendance':
+        return <Attendance />;
+      case 'ai-planner':
+        return <AIPlanner />;
+      case 'users':
+        return <UserManagement />;
+      case 'teachers':
+        return <TeacherManagement />;
+      case 'classes':
+        return <ClassManagement />;
+      case 'schedule-manage':
+        return <DailyScheduleManagement />;
+      case 'directory':
+        return <Directory />;
+      case 'reports-archive':
+        return <ReportsArchive onViewReport={handleViewHistoricalReport} />;
+      case 'database':
+        return <DatabaseControl />;
+      default:
+        return <Dashboard setCurrentView={handleSetView} />;
     }
   };
 
-  // LOADING STATE
-  if (!isInitialized) {
+  if (initError) {
     return (
-      <div className="h-screen w-screen flex items-center justify-center bg-sky-50">
-        <div className="flex flex-col items-center gap-4">
-           <div className="w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
-           <p className="text-gray-500 font-medium">{t('loading')}</p>
-        </div>
+      <div className="flex flex-col items-center justify-center min-h-screen bg-red-50 p-4 text-center">
+         <WifiOff size={48} className="text-red-500 mb-4" />
+         <h2 className="text-xl font-bold text-gray-800 mb-2">Connection Error</h2>
+         <p className="text-gray-600 mb-6">{initError}</p>
+         <button 
+           onClick={() => window.location.reload()}
+           className="px-6 py-3 bg-red-500 text-white rounded-xl font-bold hover:bg-red-600 flex items-center gap-2"
+         >
+           <RefreshCw size={20} />
+           Retry
+         </button>
       </div>
     );
   }
 
-  // BLOCKING ERROR STATE (DB CONNECTION FAILED)
-  if (initError) {
+  if (!isInitialized) {
     return (
-      <div className="h-screen w-screen flex items-center justify-center bg-sky-50 p-4">
-        <div className="bg-white/80 backdrop-blur-lg p-8 rounded-[2.5rem] shadow-xl max-w-md w-full text-center border-4 border-white">
-           <div className="w-20 h-20 bg-red-100 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
-             <WifiOff size={40} />
-           </div>
-           <h2 className="text-2xl font-bold text-gray-800 mb-2">{t('dbConnectionError')}</h2>
-           <p className="text-gray-500 mb-6">{initError}</p>
-           
-           <div className="bg-gray-50 p-4 rounded-xl text-xs text-gray-400 font-mono mb-6 text-left overflow-auto max-h-32 border border-gray-100">
-             Technical Details: Ensure Supabase URL and Key are correct and you have an internet connection.
-           </div>
-
-           <button 
-             onClick={() => window.location.reload()}
-             className="w-full py-4 bg-gradient-to-r from-orange-400 to-pink-500 text-white rounded-full font-bold hover:scale-105 transition-transform shadow-lg flex items-center justify-center gap-2"
-           >
-             <RefreshCw size={20} />
-             Try Again
-           </button>
-        </div>
+      <div className="flex flex-col items-center justify-center min-h-screen bg-sky-50">
+        <div className="w-16 h-16 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-4"></div>
+        <p className="text-indigo-600 font-bold animate-pulse">{t('loading')}</p>
       </div>
     );
   }
 
   if (!user) {
-    return (
-      <>
-        <BackgroundPattern />
-        <Login onLogin={handleLogin} />
-      </>
-    );
+    return <Login onLogin={handleLogin} />;
   }
 
   return (
-    <div className={`flex h-screen bg-transparent overflow-hidden font-sans ${dir === 'rtl' ? 'text-right' : 'text-left'}`} dir={dir}>
+    <div className={`flex h-screen bg-slate-50 ${dir === 'rtl' ? 'rtl' : 'ltr'}`} dir={dir}>
       <BackgroundPattern />
+      
+      {/* Sidebar */}
       <Sidebar 
-        currentView={currentView} 
-        setCurrentView={handleSetView} 
+        currentView={currentView}
+        setCurrentView={handleSetView}
         isMobileOpen={isMobileOpen}
         setIsMobileOpen={setIsMobileOpen}
         user={user}
@@ -504,97 +472,60 @@ const AppContent: React.FC = () => {
         onInstall={handleInstallClick}
       />
 
-      <div className="flex-1 flex flex-col h-full overflow-hidden relative z-10">
-        <header className="h-20 bg-white/60 backdrop-blur-xl border-b border-white/50 flex items-center justify-between px-4 sm:px-8 z-10 shrink-0 shadow-sm">
-          <div className="flex items-center gap-4">
+      {/* Main Content Area */}
+      <div className={`flex-1 flex flex-col transition-all duration-300 ${language === 'ar' ? 'lg:mr-72' : 'lg:ml-72'} relative z-10 h-full overflow-hidden`}>
+        
+        {/* Top Navbar */}
+        <header className="sticky top-0 z-20 px-4 sm:px-8 py-4 flex items-center justify-between bg-slate-50/80 backdrop-blur-md">
+          <div className="flex items-center gap-3">
             <button 
               onClick={() => setIsMobileOpen(true)}
-              className="p-2 text-gray-500 hover:bg-white/50 rounded-lg"
+              className="lg:hidden p-2 rounded-xl text-gray-600 hover:bg-white/50"
             >
               <Menu size={24} />
             </button>
-
+            
             {showBackButton && (
-               <button 
-                 onClick={handleBack}
-                 className="p-2 text-gray-500 hover:bg-white/50 hover:text-indigo-600 rounded-xl transition-colors hidden md:block"
-                 title={t('backToMain')}
-               >
-                 {language === 'ar' ? <ChevronRight size={24} /> : <ChevronLeft size={24} />}
-               </button>
+              <button 
+                onClick={handleBack}
+                className="p-2 rounded-xl text-gray-600 hover:bg-white/50 transition-colors flex items-center gap-1 group"
+              >
+                <div className="bg-white p-1.5 rounded-lg shadow-sm group-hover:shadow border border-gray-100 group-hover:border-indigo-100 transition-all">
+                   {language === 'ar' ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+                </div>
+                <span className="text-sm font-bold text-gray-500 group-hover:text-indigo-600 hidden sm:block">{t('back')}</span>
+              </button>
             )}
-
-            <h2 className="text-xl font-bold text-gray-800 hidden sm:block">
-              {user.role === 'parent' 
-                ? (currentView === 'dashboard' ? t('dashboard') : (selectedStudent ? t('myChild') : t('myChildren')))
-                : (selectedStudent 
-                    ? t('dailyReport')
-                    : (currentView === 'dashboard' && t('dashboard')) ||
-                      (currentView === 'daily-report' && t('dailyReportMenu')) ||
-                      (currentView === 'chat' && t('chat')) ||
-                      (currentView === 'students' && t('students')) ||
-                      (currentView === 'ai-planner' && t('aiPlanner')) ||
-                      (currentView === 'attendance' && t('attendance')) ||
-                      (currentView === 'directory' && t('directoryTitle')) ||
-                      (currentView === 'reports-archive' && t('reportsArchive')) ||
-                      (currentView === 'users' && t('users')) ||
-                      (currentView === 'teachers' && t('teacherManagement')) ||
-                      (currentView === 'classes' && t('classManagement')) ||
-                      (currentView === 'schedule-manage' && t('scheduleManagement')) ||
-                      (currentView === 'database' && t('dbSettings')) ||
-                      (currentView === 'profile' && t('profile'))
-                  )
-              }
-            </h2>
           </div>
 
           <div className="flex items-center gap-4">
             <div className="relative" ref={notificationRef}>
               <button 
+                className="p-2.5 rounded-xl bg-white shadow-sm border border-gray-100 text-gray-500 hover:text-indigo-600 transition-colors relative"
                 onClick={() => setShowNotifications(!showNotifications)}
-                className="relative p-3 text-gray-400 hover:text-indigo-600 hover:bg-white/50 rounded-xl transition-all"
               >
-                <Bell size={22} />
+                <Bell size={20} />
                 {unreadCount > 0 && (
-                  <span className="absolute top-2 left-2 w-2.5 h-2.5 bg-red-500 rounded-full border border-white animate-pulse"></span>
+                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-sm animate-pulse">
+                    {unreadCount}
+                  </span>
                 )}
               </button>
-              {showNotifications && (
-                <NotificationDropdown onClose={() => setShowNotifications(false)} />
-              )}
+              {showNotifications && <NotificationDropdown onClose={() => setShowNotifications(false)} />}
             </div>
-            
-            <div className="w-px h-8 bg-gray-200/50 mx-1"></div>
-            <button 
-              onClick={() => handleSetView('profile')}
-              className="flex items-center gap-3 hover:bg-white/50 p-2 rounded-xl transition-colors border border-transparent hover:border-white/50"
-              title={t('profile')}
-            >
-               <span className="text-sm font-bold text-gray-700 hidden sm:block">{user.name}</span>
-               <img src={user.avatar} alt="Profile" className="w-9 h-9 rounded-full border-2 border-white shadow-sm" />
-            </button>
           </div>
         </header>
 
-        <main className="flex-1 overflow-auto p-4 sm:p-8">
-          <div className="max-w-6xl mx-auto animate-fade-in pb-12">
-             {showBackButton && (
-               <div className="md:hidden mb-4">
-                 <button 
-                   onClick={handleBack}
-                   className="flex items-center gap-2 text-gray-600 hover:text-indigo-600 font-medium"
-                 >
-                   {language === 'ar' ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
-                   <span>{t('backToMain')}</span>
-                 </button>
-               </div>
-             )}
-            {renderContent()}
+        {/* Scrollable Content */}
+        <main className="flex-1 overflow-y-auto px-4 sm:px-8 pb-8 custom-scrollbar">
+          <div className="max-w-7xl mx-auto pt-2">
+             {renderContent()}
           </div>
         </main>
+
       </div>
-      
-      {/* Global Floating Chat Widget */}
+
+      {/* Floating Chat Widget */}
       <Chat />
     </div>
   );
@@ -602,13 +533,13 @@ const AppContent: React.FC = () => {
 
 const App: React.FC = () => {
   return (
-    <LanguageProvider>
-      <ThemeProvider>
+    <ThemeProvider>
+      <LanguageProvider>
         <NotificationProvider>
           <AppContent />
         </NotificationProvider>
-      </ThemeProvider>
-    </LanguageProvider>
+      </LanguageProvider>
+    </ThemeProvider>
   );
 };
 
