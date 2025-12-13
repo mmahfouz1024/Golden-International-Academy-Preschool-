@@ -237,24 +237,18 @@ const Dashboard: React.FC<DashboardProps> = ({ setCurrentView }) => {
   return (
     <div className="space-y-8 animate-fade-in">
       
-      {/* Header Section with Date */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 pb-2">
-        <div>
+      {/* Header Section: Title + Date Inline */}
+      <div className="flex flex-col gap-2 pb-2">
+        <div className="flex flex-wrap items-center gap-4">
           <h2 className="text-4xl font-display font-bold text-slate-800 tracking-tight">{t('dashboard')}</h2>
-          <p className="text-slate-500 font-medium mt-1">Welcome back, {currentUser?.name}</p>
-        </div>
-        
-        <div className={`flex items-center gap-3 bg-white/60 backdrop-blur-md px-5 py-3 rounded-2xl border border-white/50 shadow-sm`}>
-           <div className="p-2 bg-indigo-100 text-indigo-600 rounded-xl">
-             <Calendar size={22} />
-           </div>
-           <div>
-             <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Today</p>
-             <p className="text-lg font-bold text-slate-800 font-display">
+          <div className="flex items-center gap-2 bg-white/60 backdrop-blur-md px-4 py-2 rounded-full border border-white/50 shadow-sm text-indigo-700">
+             <Calendar size={18} className="text-indigo-500" />
+             <span className="text-sm font-bold" dir="ltr">
                 {new Date().toLocaleDateString(language === 'ar' ? 'ar-EG' : 'en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
-             </p>
-           </div>
+             </span>
+          </div>
         </div>
+        <p className="text-slate-500 font-medium">Welcome back, {currentUser?.name}</p>
       </div>
 
       {/* Permission Banner */}
@@ -312,25 +306,9 @@ const Dashboard: React.FC<DashboardProps> = ({ setCurrentView }) => {
          </div>
       )}
 
-      {/* TODAY'S MENU SECTION */}
-      <div className="bg-white/70 backdrop-blur-xl rounded-[2rem] p-6 shadow-sm border border-white/50">
-         <div className="flex items-center gap-3 mb-6">
-            <div className="p-2.5 bg-yellow-100 text-yellow-600 rounded-xl">
-               <Utensils size={24} />
-            </div>
-            <h3 className="text-xl font-bold text-slate-800">{t('todaysMenu')}</h3>
-         </div>
-         
-         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {renderMenuItem(t('breakfast'), 'breakfast', Coffee, 'bg-orange-50 border-orange-100 text-orange-800')}
-            {renderMenuItem(t('lunch'), 'lunch', Pizza, 'bg-red-50 border-red-100 text-red-800')}
-            {renderMenuItem(t('snack'), 'snack', Apple, 'bg-green-50 border-green-100 text-green-800')}
-         </div>
-      </div>
-
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        {/* School Announcements Section */}
+        {/* LEFT COLUMN: School Announcements (Bulletin Board) */}
         <div className="lg:col-span-2 flex flex-col gap-6">
             <div className="flex items-center justify-between">
                <div className="flex items-center gap-3">
@@ -432,42 +410,61 @@ const Dashboard: React.FC<DashboardProps> = ({ setCurrentView }) => {
             </div>
         </div>
 
-        {/* Daily Schedule - Timeline Style */}
-        <div className="flex flex-col gap-6">
-            <div className="flex items-center gap-3">
-               <div className="p-2.5 bg-blue-100 text-blue-600 rounded-xl">
-                 <Clock size={24} />
-               </div>
-               <h3 className="text-xl font-bold text-slate-800">{t('dailySchedule')}</h3>
+        {/* RIGHT COLUMN: Today's Menu & Schedule */}
+        <div className="flex flex-col gap-8">
+            
+            {/* Today's Menu Section */}
+            <div className="flex flex-col gap-6">
+                <div className="flex items-center gap-3">
+                    <div className="p-2.5 bg-yellow-100 text-yellow-600 rounded-xl">
+                        <Utensils size={24} />
+                    </div>
+                    <h3 className="text-xl font-bold text-slate-800">{t('todaysMenu')}</h3>
+                </div>
+                
+                <div className="bg-white/70 backdrop-blur-xl rounded-[2rem] p-6 shadow-sm border border-white/50 flex flex-col gap-4">
+                    {renderMenuItem(t('breakfast'), 'breakfast', Coffee, 'bg-orange-50 border-orange-100 text-orange-800')}
+                    {renderMenuItem(t('lunch'), 'lunch', Pizza, 'bg-red-50 border-red-100 text-red-800')}
+                    {renderMenuItem(t('snack'), 'snack', Apple, 'bg-green-50 border-green-100 text-green-800')}
+                </div>
             </div>
 
-            <div className="bg-white/70 backdrop-blur-xl rounded-[2rem] p-6 shadow-sm border border-white/50 h-fit min-h-[400px]">
-                <div className="relative space-y-0 before:absolute before:inset-0 before:ml-5 before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-indigo-100 before:via-slate-200 before:to-transparent before:z-0">
-                  {schedule.map((item) => (
-                    <div key={item.id} className="relative flex items-center mb-6 last:mb-0 group z-10">
-                       <div className="absolute left-0 ml-5 -translate-x-1/2 w-4 h-4 rounded-full border-4 border-white bg-indigo-500 shadow-md group-hover:scale-125 transition-transform"></div>
-                       
-                       <div className={`ml-10 flex-1 p-4 rounded-2xl border transition-all hover:shadow-md hover:-translate-y-0.5 hover:bg-white ${getScheduleItemStyle(item.color)}`}>
-                          <div className="flex justify-between items-center mb-1">
-                             <span className="text-xs font-bold opacity-70 flex items-center gap-1">
-                                <Clock size={12} />
-                                <span dir="ltr">{item.time}</span>
-                             </span>
-                             {/* Optional: Add icons based on keywords later */}
-                          </div>
-                          <h4 className="font-bold text-slate-800 text-sm">{item.title}</h4>
-                       </div>
+            {/* Daily Schedule - Timeline Style */}
+            <div className="flex flex-col gap-6">
+                <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-blue-100 text-blue-600 rounded-xl">
+                    <Clock size={24} />
+                </div>
+                <h3 className="text-xl font-bold text-slate-800">{t('dailySchedule')}</h3>
+                </div>
+
+                <div className="bg-white/70 backdrop-blur-xl rounded-[2rem] p-6 shadow-sm border border-white/50 h-fit min-h-[400px]">
+                    <div className="relative space-y-0 before:absolute before:inset-0 before:ml-5 before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-indigo-100 before:via-slate-200 before:to-transparent before:z-0">
+                    {schedule.map((item) => (
+                        <div key={item.id} className="relative flex items-center mb-6 last:mb-0 group z-10">
+                        <div className="absolute left-0 ml-5 -translate-x-1/2 w-4 h-4 rounded-full border-4 border-white bg-indigo-500 shadow-md group-hover:scale-125 transition-transform"></div>
+                        
+                        <div className={`ml-10 flex-1 p-4 rounded-2xl border transition-all hover:shadow-md hover:-translate-y-0.5 hover:bg-white ${getScheduleItemStyle(item.color)}`}>
+                            <div className="flex justify-between items-center mb-1">
+                                <span className="text-xs font-bold opacity-70 flex items-center gap-1">
+                                    <Clock size={12} />
+                                    <span dir="ltr">{item.time}</span>
+                                </span>
+                            </div>
+                            <h4 className="font-bold text-slate-800 text-sm">{item.title}</h4>
+                        </div>
+                        </div>
+                    ))}
+                    
+                    {schedule.length === 0 && (
+                        <div className="text-center py-12 text-slate-400">
+                        <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <Calendar size={24} />
+                        </div>
+                        <p className="text-sm">No schedule items yet</p>
+                        </div>
+                    )}
                     </div>
-                  ))}
-                  
-                  {schedule.length === 0 && (
-                    <div className="text-center py-12 text-slate-400">
-                       <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-3">
-                          <Calendar size={24} />
-                       </div>
-                       <p className="text-sm">No schedule items yet</p>
-                    </div>
-                  )}
                 </div>
             </div>
         </div>
