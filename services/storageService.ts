@@ -1,6 +1,6 @@
 
 import { MOCK_USERS, MOCK_STUDENTS, MOCK_CLASSES, MOCK_REPORTS } from '../constants';
-import { User, Student, ClassGroup, DailyReport, DatabaseConfig, AppNotification, ChatMessage, Post, ScheduleItem, AttendanceStatus, DailyMenu, FeeRecord } from '../types';
+import { User, Student, ClassGroup, DailyReport, DatabaseConfig, AppNotification, ChatMessage, Post, ScheduleItem, AttendanceStatus, DailyMenu, FeeRecord, BusRoute, SchoolEvent, StaffSalary } from '../types';
 import { initSupabase, syncDataToCloud, fetchDataFromCloud } from './supabaseClient';
 
 const KEYS = {
@@ -15,7 +15,10 @@ const KEYS = {
   SCHEDULE: 'golden_academy_schedule',
   ATTENDANCE: 'golden_academy_attendance_history',
   DAILY_MENU: 'golden_academy_daily_menu',
-  FEES: 'golden_academy_fees'
+  FEES: 'golden_academy_fees',
+  TRANSPORT: 'golden_academy_transport',
+  EVENTS: 'golden_academy_events',
+  PAYROLL: 'golden_academy_payroll'
 };
 
 // Initialize DB
@@ -47,10 +50,6 @@ export const initStorage = async (): Promise<{ success: boolean; message?: strin
   }
 
   if (config.isEnabled && config.url && config.key) {
-    // MODIFIED: Do NOT clear local storage here. 
-    // This allows local state (like read notifications) to persist before cloud sync overwrites it.
-    // We trust local data first for immediate UI rendering (Offline First approach).
-
     const connected = initSupabase(config);
     isCloudEnabled = connected;
 
@@ -61,22 +60,15 @@ export const initStorage = async (): Promise<{ success: boolean; message?: strin
 
     console.log("🔗 Connecting to Supabase...");
     try {
-      // 1. Check Connection by trying to fetch one key (Users)
       const { data, error } = await fetchDataFromCloud(KEYS.USERS);
       
       if (error) {
         console.error("⚠️ Database connection error:", JSON.stringify(error));
-        // Allow app to continue in "Offline/Local Mode" if DB fails, instead of blocking
-        // This ensures notifications stay read if internet is down
         return { success: true, message: 'Offline Mode (Connection Failed)' };
       }
       
-      // 2. Data Logic
       if (!data) {
-        // DB is connected but empty. 
         console.log("☁️ Database connected but empty. Seeding initial data...");
-        
-        // Ensure we have defaults locally before seeding
         if (!localStorage.getItem(KEYS.USERS)) localStorage.setItem(KEYS.USERS, JSON.stringify(MOCK_USERS));
         if (!localStorage.getItem(KEYS.STUDENTS)) localStorage.setItem(KEYS.STUDENTS, JSON.stringify(MOCK_STUDENTS));
         if (!localStorage.getItem(KEYS.CLASSES)) localStorage.setItem(KEYS.CLASSES, JSON.stringify(MOCK_CLASSES));
@@ -85,7 +77,10 @@ export const initStorage = async (): Promise<{ success: boolean; message?: strin
         if (!localStorage.getItem(KEYS.ATTENDANCE)) localStorage.setItem(KEYS.ATTENDANCE, JSON.stringify({}));
         if (!localStorage.getItem(KEYS.FEES)) localStorage.setItem(KEYS.FEES, JSON.stringify([]));
         
-        // Seed default notification only if missing
+        if (!localStorage.getItem(KEYS.TRANSPORT)) localStorage.setItem(KEYS.TRANSPORT, JSON.stringify([]));
+        if (!localStorage.getItem(KEYS.EVENTS)) localStorage.setItem(KEYS.EVENTS, JSON.stringify([]));
+        if (!localStorage.getItem(KEYS.PAYROLL)) localStorage.setItem(KEYS.PAYROLL, JSON.stringify([]));
+
         if (!localStorage.getItem(KEYS.NOTIFICATIONS)) {
             const defaultNotifications: AppNotification[] = [{
               id: '1',
@@ -103,11 +98,6 @@ export const initStorage = async (): Promise<{ success: boolean; message?: strin
              return { success: false, message: 'Failed to seed database' };
         }
       } else {
-        // 3. Data exists in Cloud. Sync it DOWN.
-        // We sync down, but since we didn't wipe local storage, this acts as a refresh.
-        // Ideally, conflict resolution should happen here, but for this app, Cloud wins for shared data.
-        // For User-Specific data (like read receipts in notifications), we rely on the fact that notifications
-        // are pushed to cloud after modification in NotificationContext.
         console.log("📥 Downloading fresh data from Cloud...");
         await syncAllFromCloud();
       }
@@ -116,7 +106,6 @@ export const initStorage = async (): Promise<{ success: boolean; message?: strin
 
     } catch (error: any) {
       console.error("⚠️ Exception during DB init:", error);
-      // Fallback to success to allow local usage
       return { success: true, message: 'Offline Mode' };
     }
   }
@@ -136,7 +125,6 @@ export const getDatabaseConfig = (): DatabaseConfig => {
 
 export const saveDatabaseConfig = (config: DatabaseConfig) => {
   localStorage.setItem(KEYS.DB_CONFIG, JSON.stringify(config));
-  // Re-init
   initSupabase(config);
   isCloudEnabled = config.isEnabled;
 };
@@ -145,14 +133,13 @@ export const saveDatabaseConfig = (config: DatabaseConfig) => {
 const saveAndSync = async (key: string, data: any) => {
   localStorage.setItem(key, JSON.stringify(data));
   if (isCloudEnabled) {
-    // Fire and forget sync to avoid UI blocking
     syncDataToCloud(key, data).catch(err => console.error(`Failed to sync ${key}:`, err));
   }
 };
 
 const syncAllFromCloud = async () => {
   try {
-    const keys = [KEYS.USERS, KEYS.STUDENTS, KEYS.CLASSES, KEYS.REPORTS, KEYS.NOTIFICATIONS, KEYS.MESSAGES, KEYS.POSTS, KEYS.SCHEDULE, KEYS.ATTENDANCE, KEYS.DAILY_MENU, KEYS.FEES];
+    const keys = Object.values(KEYS);
     let syncedCount = 0;
     for (const key of keys) {
       const { data } = await fetchDataFromCloud(key);
@@ -161,7 +148,6 @@ const syncAllFromCloud = async () => {
         syncedCount++;
       }
     }
-    // Update last sync time
     if (syncedCount > 0) {
       const config = getDatabaseConfig();
       config.lastSync = new Date().toISOString();
@@ -179,17 +165,12 @@ export const forceSyncToCloud = async () => {
    if (!isCloudEnabled) return false;
    try {
      console.log("📤 Uploading all local data to cloud...");
-     await syncDataToCloud(KEYS.USERS, JSON.parse(localStorage.getItem(KEYS.USERS) || '[]'));
-     await syncDataToCloud(KEYS.STUDENTS, JSON.parse(localStorage.getItem(KEYS.STUDENTS) || '[]'));
-     await syncDataToCloud(KEYS.CLASSES, JSON.parse(localStorage.getItem(KEYS.CLASSES) || '[]'));
-     await syncDataToCloud(KEYS.REPORTS, JSON.parse(localStorage.getItem(KEYS.REPORTS) || '{}'));
-     await syncDataToCloud(KEYS.NOTIFICATIONS, JSON.parse(localStorage.getItem(KEYS.NOTIFICATIONS) || '[]'));
-     await syncDataToCloud(KEYS.MESSAGES, JSON.parse(localStorage.getItem(KEYS.MESSAGES) || '[]'));
-     await syncDataToCloud(KEYS.POSTS, JSON.parse(localStorage.getItem(KEYS.POSTS) || '[]'));
-     await syncDataToCloud(KEYS.SCHEDULE, JSON.parse(localStorage.getItem(KEYS.SCHEDULE) || JSON.stringify(DEFAULT_SCHEDULE)));
-     await syncDataToCloud(KEYS.ATTENDANCE, JSON.parse(localStorage.getItem(KEYS.ATTENDANCE) || '{}'));
-     await syncDataToCloud(KEYS.DAILY_MENU, JSON.parse(localStorage.getItem(KEYS.DAILY_MENU) || '{}'));
-     await syncDataToCloud(KEYS.FEES, JSON.parse(localStorage.getItem(KEYS.FEES) || '[]'));
+     const keys = Object.values(KEYS);
+     for (const key of keys) {
+       const raw = localStorage.getItem(key);
+       const data = raw ? JSON.parse(raw) : (key === KEYS.REPORTS || key === KEYS.ATTENDANCE || key === KEYS.DAILY_MENU ? {} : []);
+       await syncDataToCloud(key, data);
+     }
      
      const config = getDatabaseConfig();
      config.lastSync = new Date().toISOString();
@@ -207,83 +188,46 @@ export const forceSyncFromCloud = async () => {
   return await syncAllFromCloud();
 };
 
-/**
- * Specifically sync messages for real-time chat.
- */
 export const syncMessages = async (): Promise<ChatMessage[]> => {
   if (isCloudEnabled) {
     try {
       const { data } = await fetchDataFromCloud(KEYS.MESSAGES);
-      if (data) {
-        localStorage.setItem(KEYS.MESSAGES, JSON.stringify(data));
-      }
-    } catch (e) {
-      console.error("Background message sync failed", e);
-    }
+      if (data) localStorage.setItem(KEYS.MESSAGES, JSON.stringify(data));
+    } catch (e) {}
   }
   return getMessages();
 };
 
-/**
- * Specifically sync posts for real-time dashboard updates.
- */
 export const syncPosts = async (): Promise<Post[]> => {
   if (isCloudEnabled) {
     try {
       const { data } = await fetchDataFromCloud(KEYS.POSTS);
-      if (data) {
-        localStorage.setItem(KEYS.POSTS, JSON.stringify(data));
-      }
-    } catch (e) {
-      console.error("Background post sync failed", e);
-    }
+      if (data) localStorage.setItem(KEYS.POSTS, JSON.stringify(data));
+    } catch (e) {}
   }
   return getPosts();
 };
 
-// --- BACKUP AND RESTORE FUNCTIONS ---
-
 export const createBackupData = () => {
-  const backup = {
-    version: '1.0',
-    timestamp: new Date().toISOString(),
-    users: getUsers(),
-    students: getStudents(),
-    classes: getClasses(),
-    reports: getReports(),
-    notifications: getNotifications(),
-    messages: getMessages(),
-    posts: getPosts(),
-    schedule: getSchedule(),
-    attendance: getAttendanceHistory(),
-    dailyMenu: getDailyMenu(),
-    fees: getFees(),
-  };
+  const backup: any = { version: '1.1', timestamp: new Date().toISOString() };
+  Object.values(KEYS).forEach(key => {
+      const val = localStorage.getItem(key);
+      if (val) backup[key] = JSON.parse(val);
+  });
   return backup;
 };
 
 export const restoreBackupData = (data: any) => {
   try {
-    // Basic validation
     if (!data || typeof data !== 'object') return false;
     
-    // Restore logic
-    if (data.users) localStorage.setItem(KEYS.USERS, JSON.stringify(data.users));
-    if (data.students) localStorage.setItem(KEYS.STUDENTS, JSON.stringify(data.students));
-    if (data.classes) localStorage.setItem(KEYS.CLASSES, JSON.stringify(data.classes));
-    if (data.reports) localStorage.setItem(KEYS.REPORTS, JSON.stringify(data.reports));
-    if (data.notifications) localStorage.setItem(KEYS.NOTIFICATIONS, JSON.stringify(data.notifications));
-    if (data.messages) localStorage.setItem(KEYS.MESSAGES, JSON.stringify(data.messages));
-    if (data.posts) localStorage.setItem(KEYS.POSTS, JSON.stringify(data.posts));
-    if (data.schedule) localStorage.setItem(KEYS.SCHEDULE, JSON.stringify(data.schedule));
-    if (data.attendance) localStorage.setItem(KEYS.ATTENDANCE, JSON.stringify(data.attendance));
-    if (data.dailyMenu) localStorage.setItem(KEYS.DAILY_MENU, JSON.stringify(data.dailyMenu));
-    if (data.fees) localStorage.setItem(KEYS.FEES, JSON.stringify(data.fees));
+    Object.values(KEYS).forEach(key => {
+        if (data[key]) localStorage.setItem(key, JSON.stringify(data[key]));
+    });
 
     if (isCloudEnabled) {
        forceSyncToCloud().catch(err => console.error("Auto-sync after restore failed", err));
     }
-
     return true;
   } catch (e) {
     console.error("Restore failed", e);
@@ -291,152 +235,54 @@ export const restoreBackupData = (data: any) => {
   }
 };
 
-// Users
-export const getUsers = (): User[] => {
-  const stored = localStorage.getItem(KEYS.USERS);
-  if (!stored) {
-    return []; 
-  }
-  return JSON.parse(stored);
-};
+// --- DATA ACCESSORS ---
 
-export const saveUsers = (users: User[]) => {
-  saveAndSync(KEYS.USERS, users);
-};
+export const getUsers = (): User[] => JSON.parse(localStorage.getItem(KEYS.USERS) || '[]');
+export const saveUsers = (users: User[]) => saveAndSync(KEYS.USERS, users);
 
-// Students
-export const getStudents = (): Student[] => {
-  const stored = localStorage.getItem(KEYS.STUDENTS);
-  if (!stored) {
-    return [];
-  }
-  return JSON.parse(stored);
-};
+export const getStudents = (): Student[] => JSON.parse(localStorage.getItem(KEYS.STUDENTS) || '[]');
+export const saveStudents = (students: Student[]) => saveAndSync(KEYS.STUDENTS, students);
 
-export const saveStudents = (students: Student[]) => {
-  saveAndSync(KEYS.STUDENTS, students);
-};
+export const getClasses = (): ClassGroup[] => JSON.parse(localStorage.getItem(KEYS.CLASSES) || '[]');
+export const saveClasses = (classes: ClassGroup[]) => saveAndSync(KEYS.CLASSES, classes);
 
-// Classes
-export const getClasses = (): ClassGroup[] => {
-  const stored = localStorage.getItem(KEYS.CLASSES);
-  if (!stored) {
-    return [];
-  }
-  return JSON.parse(stored);
-};
+export const getReports = (): Record<string, DailyReport> => JSON.parse(localStorage.getItem(KEYS.REPORTS) || '{}');
+export const saveReports = (reports: Record<string, DailyReport>) => saveAndSync(KEYS.REPORTS, reports);
 
-export const saveClasses = (classes: ClassGroup[]) => {
-  saveAndSync(KEYS.CLASSES, classes);
-};
+export const getNotifications = (): AppNotification[] => JSON.parse(localStorage.getItem(KEYS.NOTIFICATIONS) || '[]');
+export const saveNotifications = (notifications: AppNotification[]) => saveAndSync(KEYS.NOTIFICATIONS, notifications);
 
-// Reports
-export const getReports = (): Record<string, DailyReport> => {
-  const stored = localStorage.getItem(KEYS.REPORTS);
-  if (!stored) {
-    return {};
-  }
-  return JSON.parse(stored);
-};
+export const getMessages = (): ChatMessage[] => JSON.parse(localStorage.getItem(KEYS.MESSAGES) || '[]');
+export const saveMessages = (messages: ChatMessage[]) => saveAndSync(KEYS.MESSAGES, messages);
 
-export const saveReports = (reports: Record<string, DailyReport>) => {
-  saveAndSync(KEYS.REPORTS, reports);
-};
+export const getPosts = (): Post[] => JSON.parse(localStorage.getItem(KEYS.POSTS) || '[]');
+export const savePosts = (posts: Post[]) => saveAndSync(KEYS.POSTS, posts);
 
-// Notifications
-export const getNotifications = (): AppNotification[] => {
-  const stored = localStorage.getItem(KEYS.NOTIFICATIONS);
-  if (!stored) {
-    return [];
-  }
-  return JSON.parse(stored);
-};
+export const getSchedule = (): ScheduleItem[] => JSON.parse(localStorage.getItem(KEYS.SCHEDULE) || JSON.stringify(DEFAULT_SCHEDULE));
+export const saveSchedule = (schedule: ScheduleItem[]) => saveAndSync(KEYS.SCHEDULE, schedule);
 
-export const saveNotifications = (notifications: AppNotification[]) => {
-  saveAndSync(KEYS.NOTIFICATIONS, notifications);
-};
+export const getAttendanceHistory = (): Record<string, Record<string, AttendanceStatus>> => JSON.parse(localStorage.getItem(KEYS.ATTENDANCE) || '{}');
+export const saveAttendanceHistory = (history: Record<string, Record<string, AttendanceStatus>>) => saveAndSync(KEYS.ATTENDANCE, history);
 
-// Messages
-export const getMessages = (): ChatMessage[] => {
-  const stored = localStorage.getItem(KEYS.MESSAGES);
-  if (!stored) {
-    return [];
-  }
-  return JSON.parse(stored);
-};
-
-export const saveMessages = (messages: ChatMessage[]) => {
-  saveAndSync(KEYS.MESSAGES, messages);
-};
-
-// Posts
-export const getPosts = (): Post[] => {
-  const stored = localStorage.getItem(KEYS.POSTS);
-  if (!stored) {
-    return [];
-  }
-  return JSON.parse(stored);
-};
-
-export const savePosts = (posts: Post[]) => {
-  saveAndSync(KEYS.POSTS, posts);
-};
-
-// Schedule
-export const getSchedule = (): ScheduleItem[] => {
-  const stored = localStorage.getItem(KEYS.SCHEDULE);
-  if (!stored) {
-    return DEFAULT_SCHEDULE;
-  }
-  return JSON.parse(stored);
-};
-
-export const saveSchedule = (schedule: ScheduleItem[]) => {
-  saveAndSync(KEYS.SCHEDULE, schedule);
-};
-
-// Attendance History
-export const getAttendanceHistory = (): Record<string, Record<string, AttendanceStatus>> => {
-  const stored = localStorage.getItem(KEYS.ATTENDANCE);
-  if (!stored) {
-    return {};
-  }
-  return JSON.parse(stored);
-};
-
-export const saveAttendanceHistory = (history: Record<string, Record<string, AttendanceStatus>>) => {
-  saveAndSync(KEYS.ATTENDANCE, history);
-};
-
-// Daily Menu
 export const getDailyMenu = (): DailyMenu => {
   const stored = localStorage.getItem(KEYS.DAILY_MENU);
   const today = new Date().toISOString().split('T')[0];
   const emptyMenu: DailyMenu = { date: today, breakfast: '', lunch: '', snack: '' };
-
   if (!stored) return emptyMenu;
-  
   const menu = JSON.parse(stored);
-  // Reset if it's a new day
-  if (menu.date !== today) {
-      return emptyMenu;
-  }
+  if (menu.date !== today) return emptyMenu;
   return menu;
 };
+export const saveDailyMenu = (menu: DailyMenu) => saveAndSync(KEYS.DAILY_MENU, menu);
 
-export const saveDailyMenu = (menu: DailyMenu) => {
-  saveAndSync(KEYS.DAILY_MENU, menu);
-};
+export const getFees = (): FeeRecord[] => JSON.parse(localStorage.getItem(KEYS.FEES) || '[]');
+export const saveFees = (fees: FeeRecord[]) => saveAndSync(KEYS.FEES, fees);
 
-// Fees
-export const getFees = (): FeeRecord[] => {
-  const stored = localStorage.getItem(KEYS.FEES);
-  if (!stored) {
-    return [];
-  }
-  return JSON.parse(stored);
-};
+export const getTransportRoutes = (): BusRoute[] => JSON.parse(localStorage.getItem(KEYS.TRANSPORT) || '[]');
+export const saveTransportRoutes = (routes: BusRoute[]) => saveAndSync(KEYS.TRANSPORT, routes);
 
-export const saveFees = (fees: FeeRecord[]) => {
-  saveAndSync(KEYS.FEES, fees);
-};
+export const getEvents = (): SchoolEvent[] => JSON.parse(localStorage.getItem(KEYS.EVENTS) || '[]');
+export const saveEvents = (events: SchoolEvent[]) => saveAndSync(KEYS.EVENTS, events);
+
+export const getPayroll = (): StaffSalary[] => JSON.parse(localStorage.getItem(KEYS.PAYROLL) || '[]');
+export const savePayroll = (payroll: StaffSalary[]) => saveAndSync(KEYS.PAYROLL, payroll);

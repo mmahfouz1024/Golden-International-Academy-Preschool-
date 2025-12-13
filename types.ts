@@ -100,6 +100,7 @@ export interface User {
   phone?: string;
   interests?: string[];
   assignedClassIds?: string[];
+  salary?: number;
 }
 
 export interface ClassGroup {
@@ -170,4 +171,30 @@ export interface FeeRecord {
   paidAmount: number;
   lastPaymentDate?: string;
   history: PaymentTransaction[];
+}
+
+export interface BusRoute {
+  id: string;
+  name: string;
+  driverName: string;
+  supervisorName: string;
+  studentIds: string[];
+}
+
+export interface SchoolEvent {
+  id: string;
+  title: string;
+  date: string;
+  type: 'activity' | 'holiday' | 'meeting' | 'exam';
+  description?: string;
+}
+
+export interface StaffSalary {
+  id: string;
+  staffId: string;
+  staffName: string;
+  amount: number;
+  date: string;
+  month: string;
+  status: string;
 }

@@ -58,6 +58,8 @@ const Sidebar: React.FC<SidebarProps> = ({
       if (item.id === 'parent-view' || item.id === 'dashboard' || item.id === 'fees-management') return true;
       // If explicit permissions exist for the user, use them
       if (user.permissions && user.permissions.includes(item.id)) return true;
+      // Default parent roles
+      if (item.defaultRoles.includes('parent')) return true;
       return false;
     }
 
