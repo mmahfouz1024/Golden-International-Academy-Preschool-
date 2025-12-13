@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Check, X, Clock, UserCheck, Filter, PieChart, Save } from 'lucide-react';
+import { Check, X, Clock, UserCheck, Filter, PieChart, Save, Calendar, ChevronDown } from 'lucide-react';
 import { AttendanceStatus, Student } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
 import { getStudents, saveStudents, getAttendanceHistory, saveAttendanceHistory } from '../services/storageService';
@@ -12,6 +12,18 @@ const Attendance: React.FC = () => {
   const [filterClass, setFilterClass] = useState('All');
   const [isSaved, setIsSaved] = useState(false);
   const [attendanceMap, setAttendanceMap] = useState<Record<string, AttendanceStatus>>({});
+
+  // Helper to format date: 25 October 2023
+  const getFormattedDate = (dateStr: string) => {
+    if (!dateStr) return '';
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
+    return date.toLocaleDateString(language === 'ar' ? 'ar-EG' : 'en-GB', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+    });
+  };
 
   // Load students and attendance data when date changes
   useEffect(() => {
@@ -99,13 +111,22 @@ const Attendance: React.FC = () => {
           <h2 className="text-2xl font-bold text-gray-800">{t('attendanceRegister')}</h2>
           <p className="text-gray-500 mt-1">{t('markAttendance')}</p>
         </div>
-        <div className="flex items-center gap-3">
-          <input 
-            type="date"
-            value={selectedDate}
-            onChange={(e) => setSelectedDate(e.target.value)}
-            className="px-4 py-2 border border-gray-200 rounded-lg bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-          />
+        
+        {/* Custom Date Picker UI */}
+        <div className="relative group">
+            <div className="flex items-center gap-3 bg-white border border-gray-200 hover:border-indigo-300 rounded-xl px-4 py-2.5 transition-all cursor-pointer shadow-sm">
+                <Calendar size={20} className="text-indigo-500" />
+                <span className="font-bold text-gray-700 min-w-[140px] text-center" dir="ltr">
+                    {getFormattedDate(selectedDate)}
+                </span>
+                <ChevronDown size={16} className="text-gray-400 group-hover:text-indigo-500" />
+            </div>
+            <input 
+                type="date"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            />
         </div>
       </div>
 

@@ -101,8 +101,8 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
     if (!dateStr) return '';
     const [year, month, day] = dateStr.split('-').map(Number);
     const date = new Date(year, month - 1, day);
-    // Force English format as requested: 25 October 2025
-    return date.toLocaleDateString('en-GB', {
+    // Force format: 25 October 2025
+    return date.toLocaleDateString(language === 'ar' ? 'ar-EG' : 'en-GB', {
         day: 'numeric',
         month: 'long',
         year: 'numeric'

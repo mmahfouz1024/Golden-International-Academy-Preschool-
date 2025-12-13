@@ -75,18 +75,16 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
     'Circle time', 'Learning center', 'P.E'
   ];
 
-  // Helper to format date for display
+  // Helper to format date for display: 25 October 2025
   const getFormattedDate = (dateString: string) => {
     if (!dateString) return '';
     const [year, month, day] = dateString.split('-').map(Number);
     const date = new Date(year, month - 1, day);
     
-    // Always display date in English as requested
-    return date.toLocaleDateString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
+    return date.toLocaleDateString(language === 'ar' ? 'ar-EG' : 'en-GB', {
+      day: 'numeric',
       month: 'long',
-      day: 'numeric'
+      year: 'numeric'
     });
   };
 

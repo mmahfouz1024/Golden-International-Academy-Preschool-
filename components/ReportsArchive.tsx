@@ -20,6 +20,18 @@ const ReportsArchive: React.FC<ReportsArchiveProps> = ({ onViewReport }) => {
   const [selectedStudentId, setSelectedStudentId] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
 
+  // Helper to format date
+  const getFormattedDate = (dateStr: string) => {
+    if (!dateStr) return '';
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
+    return date.toLocaleDateString(language === 'ar' ? 'ar-EG' : 'en-GB', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+    });
+  };
+
   useEffect(() => {
     // Load data
     setStudents(getStudents());
@@ -96,7 +108,7 @@ const ReportsArchive: React.FC<ReportsArchiveProps> = ({ onViewReport }) => {
                >
                  <option value="">{t('allDates')}</option>
                  {availableDates.map(date => (
-                   <option key={date} value={date}>{date}</option>
+                   <option key={date} value={date}>{getFormattedDate(date)}</option>
                  ))}
                </select>
                <div className={`absolute ${language === 'ar' ? 'left-3' : 'right-3'} top-1/2 -translate-y-1/2 pointer-events-none`}>
@@ -133,8 +145,8 @@ const ReportsArchive: React.FC<ReportsArchiveProps> = ({ onViewReport }) => {
                     <p className="text-xs text-gray-500">{student.classGroup}</p>
                   </div>
                 </div>
-                <div className="text-sm bg-gray-50 px-2 py-1 rounded text-gray-600 font-medium">
-                  {report.date}
+                <div className="text-sm bg-gray-50 px-2 py-1 rounded text-gray-600 font-medium" dir="ltr">
+                  {getFormattedDate(report.date)}
                 </div>
               </div>
 
