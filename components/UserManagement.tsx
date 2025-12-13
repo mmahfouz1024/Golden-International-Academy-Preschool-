@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Trash2, Shield, X, School, AlertCircle, CheckCircle, Save as SaveIcon, Edit2, ChevronLeft, ChevronRight, Lock } from 'lucide-react';
+import { Plus, Search, Trash2, Shield, X, School, AlertCircle, CheckCircle, Save as SaveIcon, Edit2, ChevronLeft, ChevronRight, Lock, Wallet } from 'lucide-react';
 import { getUsers, saveUsers, getStudents, saveStudents, getClasses, saveClasses } from '../services/storageService';
 import { User, UserRole, Student, ClassGroup, StudentStatus } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -19,8 +19,8 @@ const UserManagement: React.FC = () => {
 
   // Default permissions for each role
   const DEFAULT_PERMISSIONS = {
-    admin: ['dashboard', 'students', 'attendance', 'reports-archive', 'directory', 'ai-planner', 'classes', 'users', 'database', 'teachers', 'schedule-manage', 'daily-report'],
-    manager: ['dashboard', 'students', 'attendance', 'reports-archive', 'directory', 'ai-planner', 'classes', 'users', 'database', 'teachers', 'schedule-manage', 'daily-report'],
+    admin: ['dashboard', 'students', 'attendance', 'reports-archive', 'directory', 'ai-planner', 'classes', 'users', 'database', 'teachers', 'schedule-manage', 'daily-report', 'fees-management'],
+    manager: ['dashboard', 'students', 'attendance', 'reports-archive', 'directory', 'ai-planner', 'classes', 'users', 'database', 'teachers', 'schedule-manage', 'daily-report', 'fees-management'],
     teacher: ['dashboard', 'students', 'attendance', 'reports-archive', 'directory', 'ai-planner', 'daily-report'],
     parent: ['parent-view']
   };
@@ -29,6 +29,7 @@ const UserManagement: React.FC = () => {
     { id: 'dashboard', label: t('dashboard') },
     { id: 'daily-report', label: t('dailyReportMenu') },
     { id: 'students', label: t('students') },
+    { id: 'fees-management', label: t('feesManagement') },
     { id: 'attendance', label: t('attendance') },
     { id: 'reports-archive', label: t('reportsArchive') },
     { id: 'directory', label: t('directoryTitle') },
@@ -606,94 +607,113 @@ const UserManagement: React.FC = () => {
 
                 {/* Parent Specific Fields */}
                 {formData.role === 'parent' && (
-                    <div className="col-span-2 bg-green-50 p-4 rounded-xl border border-green-100 space-y-4 animate-fade-in">
-                       <div className="flex items-center gap-2 mb-2">
-                          <School className="text-green-600" size={20} />
-                          <h4 className="font-bold text-green-800">{t('linkedStudent')}</h4>
-                       </div>
+                    <>
+                      <div className="col-span-2 bg-green-50 p-4 rounded-xl border border-green-100 space-y-4 animate-fade-in">
+                        <div className="flex items-center gap-2 mb-2">
+                            <School className="text-green-600" size={20} />
+                            <h4 className="font-bold text-green-800">{t('linkedStudent')}</h4>
+                        </div>
 
-                       {/* Toggle between selecting existing or creating new */}
-                       <div className="flex gap-2 mb-2">
-                           <button 
-                             type="button"
-                             onClick={() => setIsRegisteringStudent(false)}
-                             className={`flex-1 py-1.5 text-xs font-bold rounded-lg ${!isRegisteringStudent ? 'bg-white text-green-700 shadow-sm' : 'text-green-600/70 hover:bg-green-100'}`}
-                           >
-                             {t('selectExistingStudent')}
-                           </button>
-                           <button 
-                             type="button"
-                             onClick={() => setIsRegisteringStudent(true)}
-                             className={`flex-1 py-1.5 text-xs font-bold rounded-lg ${isRegisteringStudent ? 'bg-white text-green-700 shadow-sm' : 'text-green-600/70 hover:bg-green-100'}`}
-                           >
-                             {t('registerNewStudent')}
-                           </button>
-                       </div>
+                        {/* Toggle between selecting existing or creating new */}
+                        <div className="flex gap-2 mb-2">
+                            <button 
+                              type="button"
+                              onClick={() => setIsRegisteringStudent(false)}
+                              className={`flex-1 py-1.5 text-xs font-bold rounded-lg ${!isRegisteringStudent ? 'bg-white text-green-700 shadow-sm' : 'text-green-600/70 hover:bg-green-100'}`}
+                            >
+                              {t('selectExistingStudent')}
+                            </button>
+                            <button 
+                              type="button"
+                              onClick={() => setIsRegisteringStudent(true)}
+                              className={`flex-1 py-1.5 text-xs font-bold rounded-lg ${isRegisteringStudent ? 'bg-white text-green-700 shadow-sm' : 'text-green-600/70 hover:bg-green-100'}`}
+                            >
+                              {t('registerNewStudent')}
+                            </button>
+                        </div>
 
-                       {isRegisteringStudent ? (
-                          <div className="space-y-3 animate-fade-in">
-                              <div>
-                                <label className="block text-xs font-bold text-green-700 mb-1">{t('childName')}</label>
-                                <input 
-                                  type="text"
-                                  className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:border-green-500 text-sm"
-                                  value={newStudentData.name}
-                                  onChange={(e) => setNewStudentData({...newStudentData, name: e.target.value})}
-                                />
-                              </div>
-                              <div className="grid grid-cols-2 gap-3">
-                                  <div>
-                                    <label className="block text-xs font-bold text-green-700 mb-1">{t('birthday')}</label>
-                                    <input 
-                                      type="date"
-                                      className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:border-green-500 text-sm"
-                                      value={newStudentData.birthday}
-                                      onChange={(e) => handleBirthdayChange(e.target.value)}
-                                    />
-                                  </div>
-                                  <div>
-                                    <label className="block text-xs font-bold text-green-700 mb-1">{t('childAge')}</label>
-                                    <input 
-                                      type="number"
-                                      className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:border-green-500 text-sm bg-green-50/50"
-                                      value={newStudentData.age}
-                                      readOnly
-                                    />
-                                  </div>
-                              </div>
-                              <div>
-                                <label className="block text-xs font-bold text-green-700 mb-1">{t('childClass')}</label>
-                                <select 
-                                  className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:border-green-500 text-sm bg-white"
-                                  value={newStudentData.classGroup}
-                                  onChange={(e) => setNewStudentData({...newStudentData, classGroup: e.target.value})}
-                                >
-                                  {classes.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
-                                  {classes.length === 0 && <option value="Birds">Birds (Default)</option>}
-                                </select>
-                              </div>
-                          </div>
-                       ) : (
-                          <div>
-                            <div className="mb-2 max-h-40 overflow-y-auto border border-green-200 rounded-lg bg-white p-2 space-y-1">
-                               {students.map(s => (
-                                  <label key={s.id} className="flex items-center gap-2 p-1.5 hover:bg-green-50 rounded cursor-pointer">
-                                     <input 
-                                        type="checkbox"
-                                        checked={formData.linkedStudentIds?.includes(s.id)}
-                                        onChange={() => toggleLinkedStudent(s.id)}
-                                        className="text-green-600 rounded focus:ring-green-500"
-                                     />
-                                     <span className="text-sm text-gray-700">{s.name} <span className="text-xs text-gray-400">({s.classGroup})</span></span>
-                                  </label>
-                               ))}
+                        {isRegisteringStudent ? (
+                            <div className="space-y-3 animate-fade-in">
+                                <div>
+                                  <label className="block text-xs font-bold text-green-700 mb-1">{t('childName')}</label>
+                                  <input 
+                                    type="text"
+                                    className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:border-green-500 text-sm"
+                                    value={newStudentData.name}
+                                    onChange={(e) => setNewStudentData({...newStudentData, name: e.target.value})}
+                                  />
+                                </div>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                      <label className="block text-xs font-bold text-green-700 mb-1">{t('birthday')}</label>
+                                      <input 
+                                        type="date"
+                                        className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:border-green-500 text-sm"
+                                        value={newStudentData.birthday}
+                                        onChange={(e) => handleBirthdayChange(e.target.value)}
+                                      />
+                                    </div>
+                                    <div>
+                                      <label className="block text-xs font-bold text-green-700 mb-1">{t('childAge')}</label>
+                                      <input 
+                                        type="number"
+                                        className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:border-green-500 text-sm bg-green-50/50"
+                                        value={newStudentData.age}
+                                        readOnly
+                                      />
+                                    </div>
+                                </div>
+                                <div>
+                                  <label className="block text-xs font-bold text-green-700 mb-1">{t('childClass')}</label>
+                                  <select 
+                                    className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:border-green-500 text-sm bg-white"
+                                    value={newStudentData.classGroup}
+                                    onChange={(e) => setNewStudentData({...newStudentData, classGroup: e.target.value})}
+                                  >
+                                    {classes.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
+                                    {classes.length === 0 && <option value="Birds">Birds (Default)</option>}
+                                  </select>
+                                </div>
                             </div>
-                            <p className="text-xs text-green-600 mt-2 flex items-center gap-1 cursor-pointer hover:underline" onClick={() => setIsRegisteringStudent(true)}>
-                               <Plus size={12} /> {t('childNotListed')}
-                            </p>
-                          </div>
-                       )}
-                    </div>
+                        ) : (
+                            <div>
+                              <div className="mb-2 max-h-40 overflow-y-auto border border-green-200 rounded-lg bg-white p-2 space-y-1">
+                                {students.map(s => (
+                                    <label key={s.id} className="flex items-center gap-2 p-1.5 hover:bg-green-50 rounded cursor-pointer">
+                                      <input 
+                                          type="checkbox"
+                                          checked={formData.linkedStudentIds?.includes(s.id)}
+                                          onChange={() => toggleLinkedStudent(s.id)}
+                                          className="text-green-600 rounded focus:ring-green-500"
+                                      />
+                                      <span className="text-sm text-gray-700">{s.name} <span className="text-xs text-gray-400">({s.classGroup})</span></span>
+                                    </label>
+                                ))}
+                              </div>
+                              <p className="text-xs text-green-600 mt-2 flex items-center gap-1 cursor-pointer hover:underline" onClick={() => setIsRegisteringStudent(true)}>
+                                <Plus size={12} /> {t('childNotListed')}
+                              </p>
+                            </div>
+                        )}
+                      </div>
+
+                      {/* Optional Features for Parents (Admin/Manager Only) */}
+                      <div className="col-span-2 bg-yellow-50 p-4 rounded-xl border border-yellow-100">
+                          <label className="block text-sm font-bold text-yellow-800 mb-2 flex items-center gap-2">
+                              <Wallet size={16} />
+                              Extra Features
+                          </label>
+                          <label className="flex items-center gap-2 bg-white p-2 rounded-lg border border-yellow-200 cursor-pointer hover:bg-yellow-50/50 transition-colors">
+                              <input 
+                                  type="checkbox"
+                                  className="text-yellow-600 rounded focus:ring-yellow-500"
+                                  checked={formData.permissions?.includes('fees-management')}
+                                  onChange={() => togglePermission('fees-management')}
+                              />
+                              <span className="text-sm font-medium text-gray-700">{t('feesManagement')}</span>
+                          </label>
+                      </div>
+                    </>
                 )}
 
                 {/* Permissions Section (Admin/Manager/Teacher) */}
