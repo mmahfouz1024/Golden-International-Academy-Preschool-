@@ -223,6 +223,26 @@ export const syncMessages = async (): Promise<ChatMessage[]> => {
   return getMessages();
 };
 
+/**
+ * Specifically sync posts for real-time dashboard updates.
+ */
+export const syncPosts = async (): Promise<Post[]> => {
+  if (isCloudEnabled) {
+    try {
+      // 1. Fetch from cloud
+      const { data } = await fetchDataFromCloud(KEYS.POSTS);
+      if (data) {
+        // 2. Update local cache
+        localStorage.setItem(KEYS.POSTS, JSON.stringify(data));
+      }
+    } catch (e) {
+      console.error("Background post sync failed", e);
+    }
+  }
+  // 3. Return local data
+  return getPosts();
+};
+
 // --- BACKUP AND RESTORE FUNCTIONS ---
 
 export const createBackupData = () => {

@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { AppNotification } from '../types';
-import { getNotifications, saveNotifications, getMessages, getPosts } from '../services/storageService';
+import { getNotifications, saveNotifications, getMessages, getPosts, syncPosts } from '../services/storageService';
 import { useLanguage } from './LanguageContext';
 
 interface NotificationContextType {
@@ -20,8 +20,9 @@ const NotificationContext = createContext<NotificationContextType | undefined>(u
 
 // Use a reliable external URL for the icon to ensure mobile devices render it
 const NOTIFICATION_ICON = "https://cdn-icons-png.flaticon.com/512/2990/2990638.png";
-// Short, pleasant notification sound
-const NOTIFICATION_SOUND_URL = "https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3";
+
+// Updated to match the Chat "Pop" sound
+const NOTIFICATION_SOUND_URL = "https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3";
 
 export const NotificationProvider: React.FC<{children: React.ReactNode}> = ({ children }) => {
   const { t } = useLanguage();
@@ -50,6 +51,16 @@ export const NotificationProvider: React.FC<{children: React.ReactNode}> = ({ ch
   // Refs to track counts for polling
   const lastMessageCount = useRef(0);
   const lastPostCount = useRef(0);
+  
+  // Audio Ref for reliable playback
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Initialize Audio once
+  useEffect(() => {
+    audioRef.current = new Audio(NOTIFICATION_SOUND_URL);
+    audioRef.current.volume = 0.6;
+    audioRef.current.preload = 'auto';
+  }, []);
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
@@ -129,19 +140,16 @@ export const NotificationProvider: React.FC<{children: React.ReactNode}> = ({ ch
   }, [notifications]);
 
   const playNotificationSound = () => {
-    try {
-      const audio = new Audio(NOTIFICATION_SOUND_URL);
-      audio.volume = 0.6; // Not too loud
-      const playPromise = audio.play();
-      
-      if (playPromise !== undefined) {
-        playPromise.catch(error => {
-          // Auto-play was prevented. This happens if user hasn't interacted with document yet.
-          console.warn("Notification sound blocked by browser policy:", error);
-        });
-      }
-    } catch (e) {
-      console.error("Audio playback error", e);
+    if (audioRef.current) {
+      // Reset time to 0 to allow rapid replays (same logic as Chat)
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      audioRef.current.play().catch(e => {
+          // Ignore abort errors from rapid triggers
+          if (e.name !== 'AbortError') {
+             console.warn("Notification audio play prevented:", e);
+          }
+      });
     }
   };
 
@@ -230,7 +238,7 @@ export const NotificationProvider: React.FC<{children: React.ReactNode}> = ({ ch
     lastMessageCount.current = msgs.length;
     lastPostCount.current = posts.length;
 
-    const interval = setInterval(() => {
+    const interval = setInterval(async () => {
       // Re-read current user
       const uid = localStorage.getItem('golden_session_uid');
       if (!uid) return;
@@ -252,7 +260,10 @@ export const NotificationProvider: React.FC<{children: React.ReactNode}> = ({ ch
       }
 
       // Check Announcements (Posts)
-      const currentPosts = getPosts();
+      // Use syncPosts() here to ensure we are comparing against cloud data
+      // This ensures notifications trigger even if Dashboard isn't open
+      const currentPosts = await syncPosts();
+      
       if (currentPosts.length > lastPostCount.current) {
          const newPosts = currentPosts.slice(lastPostCount.current);
          // Filter posts not by me

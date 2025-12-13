@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Megaphone, Send, Trash2, Bell, Calendar, Pin, PinOff } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useNotification } from '../contexts/NotificationContext';
-import { getUsers, getPosts, savePosts, getSchedule } from '../services/storageService';
+import { getUsers, getPosts, savePosts, getSchedule, syncPosts } from '../services/storageService';
 import { Post, User, ScheduleItem } from '../types';
 
 const Dashboard: React.FC = () => {
@@ -36,14 +36,31 @@ const Dashboard: React.FC = () => {
   };
 
   useEffect(() => {
-    // Fetch real data from storage/database
-    const loadedPosts = getPosts();
-    setPosts(sortPosts(loadedPosts));
+    // Initial Load - Try to fetch fresh from cloud immediately
+    const loadData = async () => {
+        const cloudPosts = await syncPosts(); // Use syncPosts to ensure we get latest
+        setPosts(sortPosts(cloudPosts));
+    };
+    loadData();
     
     // Fetch Schedule
     const loadedSchedule = getSchedule();
     loadedSchedule.sort((a, b) => a.time.localeCompare(b.time));
     setSchedule(loadedSchedule);
+
+    // POLL FOR NEW POSTS (Real-time updates)
+    const interval = setInterval(async () => {
+        const freshPosts = await syncPosts();
+        setPosts(prev => {
+            // Only update if data changed to prevent re-renders
+            if (JSON.stringify(prev) !== JSON.stringify(freshPosts)) {
+                return sortPosts(freshPosts);
+            }
+            return prev;
+        });
+    }, 5000); // Check every 5 seconds
+
+    return () => clearInterval(interval);
   }, []);
   
   const handlePost = () => {
