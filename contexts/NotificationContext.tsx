@@ -20,6 +20,8 @@ const NotificationContext = createContext<NotificationContextType | undefined>(u
 
 // Use a reliable external URL for the icon to ensure mobile devices render it
 const NOTIFICATION_ICON = "https://cdn-icons-png.flaticon.com/512/2990/2990638.png";
+// Short, pleasant notification sound
+const NOTIFICATION_SOUND_URL = "https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3";
 
 export const NotificationProvider: React.FC<{children: React.ReactNode}> = ({ children }) => {
   const { t } = useLanguage();
@@ -95,6 +97,7 @@ export const NotificationProvider: React.FC<{children: React.ReactNode}> = ({ ch
           // Send a test immediate notification to confirm
           try {
              new Notification(t('appTitle'), { body: t('notificationsEnabled'), icon: NOTIFICATION_ICON });
+             playNotificationSound();
           } catch(e) {
              console.log("Immediate test notification failed (background might still work)");
           }
@@ -125,6 +128,23 @@ export const NotificationProvider: React.FC<{children: React.ReactNode}> = ({ ch
     saveNotifications(notifications);
   }, [notifications]);
 
+  const playNotificationSound = () => {
+    try {
+      const audio = new Audio(NOTIFICATION_SOUND_URL);
+      audio.volume = 0.6; // Not too loud
+      const playPromise = audio.play();
+      
+      if (playPromise !== undefined) {
+        playPromise.catch(error => {
+          // Auto-play was prevented. This happens if user hasn't interacted with document yet.
+          console.warn("Notification sound blocked by browser policy:", error);
+        });
+      }
+    } catch (e) {
+      console.error("Audio playback error", e);
+    }
+  };
+
   const addNotification = (title: string, message: string, type: AppNotification['type'] = 'info') => {
     const newNotification: AppNotification = {
       id: Date.now().toString(),
@@ -136,6 +156,9 @@ export const NotificationProvider: React.FC<{children: React.ReactNode}> = ({ ch
     };
 
     setNotifications(prev => [newNotification, ...prev]);
+    
+    // Play sound for every in-app notification
+    playNotificationSound();
 
     // System Notification Logic (Safe Mode)
     // We only attempt this if the API actually exists and is granted
