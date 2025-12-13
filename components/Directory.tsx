@@ -18,7 +18,8 @@ const Directory: React.FC = () => {
     setUsers(getUsers());
   }, []);
 
-  const teachers = users.filter(u => u.role === 'teacher' || u.role === 'admin');
+  // Filter only teachers for the Teachers tab
+  const teachers = users.filter(u => u.role === 'teacher');
   const parents = users.filter(u => u.role === 'parent');
 
   const filterList = (list: any[]) => {
@@ -134,7 +135,7 @@ const Directory: React.FC = () => {
               <img src={teacher.avatar} alt={teacher.name} className="w-16 h-16 rounded-full object-cover border-2 border-purple-50" />
               <div>
                 <h3 className="font-bold text-gray-800 text-lg">{teacher.name}</h3>
-                <span className="text-sm text-gray-500">{t(teacher.role === 'admin' ? 'roleAdmin' : 'roleTeacher')}</span>
+                <span className="text-sm text-gray-500">{t('roleTeacher')}</span>
               </div>
             </div>
             <div className="space-y-3 pt-4 border-t border-gray-50">
