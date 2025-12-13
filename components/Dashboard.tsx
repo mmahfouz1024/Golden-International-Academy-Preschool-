@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Megaphone, Send, Trash2, Bell, Calendar, Pin, PinOff, FileText, ArrowRight, ArrowLeft, Sparkles, Clock, Utensils, Coffee, Apple, Pizza, Plus, Check } from 'lucide-react';
+import { Megaphone, Send, Trash2, Bell, Calendar, Pin, PinOff, FileText, ArrowRight, ArrowLeft, Sparkles, Clock, Utensils, Coffee, Apple, Pizza, Plus } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useNotification } from '../contexts/NotificationContext';
 import { getUsers, savePosts, getSchedule, syncPosts, getPosts, getDailyMenu, saveDailyMenu } from '../services/storageService';
