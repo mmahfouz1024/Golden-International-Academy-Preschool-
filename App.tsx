@@ -20,7 +20,7 @@ import Login from './components/Login';
 import Chat from './components/Chat';
 import NotificationDropdown from './components/NotificationDropdown';
 import BackgroundPattern from './components/BackgroundPattern';
-import { Menu, Bell, ChevronRight, ChevronLeft, WifiOff, RefreshCw, Star, Users } from 'lucide-react';
+import { Menu, Bell, ChevronRight, ChevronLeft, WifiOff, RefreshCw } from 'lucide-react';
 import { Student, User } from './types';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import { NotificationProvider, useNotification } from './contexts/NotificationContext';
