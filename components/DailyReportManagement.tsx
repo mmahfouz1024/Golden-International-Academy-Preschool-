@@ -29,10 +29,6 @@ const DailyReportManagement: React.FC = () => {
     if (mode === 'select') {
       setTimeout(() => {
         dateInputRef.current?.focus();
-        // Optional: showPicker() works in modern browsers to open the calendar immediately
-        // if (dateInputRef.current && 'showPicker' in dateInputRef.current) {
-        //    (dateInputRef.current as any).showPicker();
-        // }
       }, 100);
     }
   }, [mode]);
@@ -127,17 +123,19 @@ const DailyReportManagement: React.FC = () => {
 
   const renderSelection = () => (
     <div className="max-w-4xl mx-auto space-y-6">
-      <button 
-        onClick={() => setMode('menu')}
-        className="flex items-center gap-2 text-gray-500 hover:text-indigo-600 font-medium transition-colors"
-      >
-         {language === 'ar' ? <ArrowRight size={20} /> : <ArrowLeft size={20} />}
-         {t('back')}
-      </button>
+      
+      {/* Back Button for Selection Mode */}
+      <div className="flex items-center gap-3">
+        <button 
+          onClick={() => setMode('menu')}
+          className="p-2 bg-white rounded-full text-gray-500 hover:bg-gray-50 shadow-sm border border-gray-100 transition-all"
+        >
+           {language === 'ar' ? <ArrowRight size={20} /> : <ArrowLeft size={20} />}
+        </button>
+        <h3 className="text-lg font-bold text-gray-800">{t('selectOption')}</h3>
+      </div>
 
       <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-         <h3 className="text-lg font-bold text-gray-800 mb-4">{t('selectOption')}</h3>
-         
          <div className="flex flex-col md:flex-row gap-6 items-center">
             <div className="flex-1 w-full">
                <label className="block text-sm font-bold text-gray-500 mb-2">{t('reportDate')}</label>
@@ -272,15 +270,15 @@ const DailyReportManagement: React.FC = () => {
       {mode === 'select' && renderSelection()}
       {mode === 'form' && selectedStudent && (
         <div className="animate-fade-in">
-           <div className="flex items-center justify-between mb-4">
+           {/* Back Button for Form Mode */}
+           <div className="flex items-center gap-4 mb-4">
               <button 
                 onClick={() => setMode('select')}
-                className="flex items-center gap-2 text-gray-500 hover:text-indigo-600 font-medium transition-colors"
+                className="p-2 bg-white rounded-full text-gray-500 hover:bg-gray-50 shadow-sm border border-gray-100 transition-all"
               >
-                {language === 'ar' ? <ArrowRight size={20} /> : <ArrowLeft size={20} />}
-                {t('back')}
+                 {language === 'ar' ? <ArrowRight size={20} /> : <ArrowLeft size={20} />}
               </button>
-              <h3 className="font-bold text-gray-800">{action === 'add' ? t('addNewReport') : t('editExistingReport')}</h3>
+              <h3 className="font-bold text-gray-800 text-xl">{action === 'add' ? t('addNewReport') : t('editExistingReport')}</h3>
            </div>
            
            <StudentDetail 

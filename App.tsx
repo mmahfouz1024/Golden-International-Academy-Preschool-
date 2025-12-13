@@ -513,7 +513,7 @@ const AppContent: React.FC = () => {
                <button 
                  onClick={handleBack}
                  className="p-2 text-gray-500 hover:bg-white/50 hover:text-indigo-600 rounded-xl transition-colors hidden md:block"
-                 title={t('back')}
+                 title={t('backToMain')}
                >
                  {language === 'ar' ? <ChevronRight size={24} /> : <ChevronLeft size={24} />}
                </button>
@@ -580,7 +580,7 @@ const AppContent: React.FC = () => {
                    className="flex items-center gap-2 text-gray-600 hover:text-indigo-600 font-medium"
                  >
                    {language === 'ar' ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
-                   <span>{t('back')}</span>
+                   <span>{t('backToMain')}</span>
                  </button>
                </div>
              )}
