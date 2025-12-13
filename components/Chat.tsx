@@ -19,6 +19,16 @@ const Chat: React.FC = () => {
   const [newMessage, setNewMessage] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  // Audio ref for consistent playback
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Initialize Audio on mount
+  useEffect(() => {
+    audioRef.current = new Audio(SEND_SOUND_URL);
+    audioRef.current.volume = 0.5;
+    audioRef.current.preload = 'auto';
+  }, []);
 
   // Load Data function
   const loadData = () => {
@@ -133,12 +143,16 @@ const Chat: React.FC = () => {
   }, [messages.length, selectedUser, isOpen]);
 
   const playSendSound = () => {
-    try {
-      const audio = new Audio(SEND_SOUND_URL);
-      audio.volume = 0.5;
-      audio.play().catch(e => console.warn("Audio play prevented:", e));
-    } catch (e) {
-      console.error("Audio error", e);
+    if (audioRef.current) {
+      // Reset time to 0 to allow rapid replays
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      audioRef.current.play().catch(e => {
+          // Ignore abort errors from rapid clicks
+          if (e.name !== 'AbortError') {
+             console.warn("Audio play prevented:", e);
+          }
+      });
     }
   };
 
