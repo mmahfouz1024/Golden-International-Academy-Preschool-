@@ -1,14 +1,18 @@
 
 import React, { useState, useEffect } from 'react';
-import { Check, X, Clock, UserCheck, Filter, PieChart, Save, Calendar, ChevronDown } from 'lucide-react';
+import { Check, X, Clock, UserCheck, Filter, PieChart, Save, Calendar, ChevronDown, ArrowRight, ArrowLeft, Edit, Plus, AlertCircle, CheckCircle } from 'lucide-react';
 import { AttendanceStatus, Student } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
 import { getStudents, saveStudents, getAttendanceHistory, saveAttendanceHistory } from '../services/storageService';
 
 const Attendance: React.FC = () => {
   const { t, language } = useLanguage();
+  const [mode, setMode] = useState<'select' | 'mark'>('select');
   const [students, setStudents] = useState<Student[]>([]);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [attendanceHistory, setAttendanceHistory] = useState<Record<string, Record<string, AttendanceStatus>>>({});
+  
+  // Marking State
   const [filterClass, setFilterClass] = useState('All');
   const [isSaved, setIsSaved] = useState(false);
   const [attendanceMap, setAttendanceMap] = useState<Record<string, AttendanceStatus>>({});
@@ -25,35 +29,36 @@ const Attendance: React.FC = () => {
     });
   };
 
-  // Load students and attendance data when date changes
   useEffect(() => {
-    const loadedStudents = getStudents();
-    setStudents(loadedStudents);
-    
-    const history = getAttendanceHistory();
-    const dateRecord = history[selectedDate];
+    // Load initial data
+    setStudents(getStudents());
+    setAttendanceHistory(getAttendanceHistory());
+  }, []);
 
-    if (dateRecord) {
-      // If we have saved history for this date, use it
-      setAttendanceMap(dateRecord);
+  const handleStartAttendance = () => {
+    // Check if record exists
+    const existingRecord = attendanceHistory[selectedDate];
+    
+    if (existingRecord) {
+        setAttendanceMap(existingRecord);
     } else {
-      // If no record exists for this date, check if it's "Today" to use legacy flag, 
-      // otherwise default to 'present' (assuming new day starts clean)
-      const isToday = selectedDate === new Date().toISOString().split('T')[0];
-      const initialMap: Record<string, AttendanceStatus> = {};
-      
-      loadedStudents.forEach(s => {
-        if (isToday) {
-           // For backward compatibility / initial load of "Today"
-           initialMap[s.id] = s.attendanceToday ? 'present' : 'absent';
-        } else {
-           // For a new past/future date with no record, default to present (or could be empty)
-           initialMap[s.id] = 'present';
-        }
-      });
-      setAttendanceMap(initialMap);
+        // Initialize new record
+        const initialMap: Record<string, AttendanceStatus> = {};
+        const isToday = selectedDate === new Date().toISOString().split('T')[0];
+        
+        students.forEach(s => {
+            // If creating for Today, use current status from student profile if available (legacy support)
+            // Otherwise default to Present
+            if (isToday) {
+                initialMap[s.id] = s.attendanceToday ? 'present' : 'absent';
+            } else {
+                initialMap[s.id] = 'present';
+            }
+        });
+        setAttendanceMap(initialMap);
     }
-  }, [selectedDate]);
+    setMode('mark');
+  };
 
   const filteredStudents = students.filter(student => 
     filterClass === 'All' || student.classGroup === filterClass
@@ -79,6 +84,7 @@ const Attendance: React.FC = () => {
     const history = getAttendanceHistory();
     history[selectedDate] = attendanceMap;
     saveAttendanceHistory(history);
+    setAttendanceHistory(history); // Update local history state
 
     // 2. If Today, update legacy student record for easy access elsewhere
     const isToday = selectedDate === new Date().toISOString().split('T')[0];
@@ -102,31 +108,91 @@ const Attendance: React.FC = () => {
     excused: Object.values(attendanceMap).filter(s => s === 'excused').length,
   };
 
-  const total = Object.keys(attendanceMap).length || 1; // Avoid division by zero
+  const total = Object.keys(attendanceMap).length || 1; 
 
+  const renderDateSelection = () => {
+      const recordExists = !!attendanceHistory[selectedDate];
+
+      return (
+          <div className="max-w-2xl mx-auto mt-8 px-4">
+              <div className="text-center mb-10">
+                  <h2 className="text-3xl font-bold text-gray-800 mb-2">{t('attendanceDateSelect')}</h2>
+                  <p className="text-gray-500">{t('markAttendance')}</p>
+              </div>
+
+              <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8 flex flex-col gap-8 items-center">
+                  
+                  {/* Date Picker */}
+                  <div className="w-full">
+                      <label className="block text-sm font-bold text-gray-500 mb-2 text-center">{t('selectDate')}</label>
+                      <div className="relative group max-w-sm mx-auto">
+                        <div className="flex items-center justify-center gap-3 bg-gray-50 hover:bg-white border-2 border-gray-200 hover:border-indigo-300 rounded-2xl px-6 py-4 transition-all cursor-pointer shadow-sm group-hover:shadow-md">
+                            <Calendar size={24} className="text-indigo-500" />
+                            <span className="font-bold text-gray-700 text-xl min-w-[160px] text-center" dir="ltr">
+                                {getFormattedDate(selectedDate)}
+                            </span>
+                            <ChevronDown size={20} className="text-gray-400 group-hover:text-indigo-500" />
+                        </div>
+                        <input 
+                            type="date"
+                            value={selectedDate}
+                            onChange={(e) => setSelectedDate(e.target.value)}
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        />
+                    </div>
+                  </div>
+
+                  {/* Status & Action */}
+                  <div className={`w-full p-6 rounded-2xl border-2 flex flex-col items-center gap-4 transition-all duration-300 ${recordExists ? 'bg-indigo-50 border-indigo-100' : 'bg-gray-50 border-gray-100'}`}>
+                      <div className={`p-4 rounded-full ${recordExists ? 'bg-white text-indigo-600 shadow-sm' : 'bg-white text-gray-400 shadow-sm'}`}>
+                          {recordExists ? <CheckCircle size={32} /> : <AlertCircle size={32} />}
+                      </div>
+                      
+                      <div className="text-center">
+                          <h3 className={`text-lg font-bold ${recordExists ? 'text-indigo-900' : 'text-gray-700'}`}>
+                              {recordExists ? t('attendanceRecordFound') : t('attendanceRecordNotFound')}
+                          </h3>
+                          <p className="text-sm text-gray-500 mt-1">
+                              {recordExists ? t('modifyAttendance') : t('createNewAttendance')}
+                          </p>
+                      </div>
+
+                      <button 
+                          onClick={handleStartAttendance}
+                          className={`w-full max-w-xs py-4 rounded-xl font-bold text-white shadow-lg transform transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2 ${
+                              recordExists ? 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-200' : 'bg-green-600 hover:bg-green-700 shadow-green-200'
+                          }`}
+                      >
+                          {recordExists ? <Edit size={20} /> : <Plus size={20} />}
+                          <span>{recordExists ? t('edit') : t('startReporting')}</span>
+                          {language === 'ar' ? <ArrowLeft size={20} /> : <ArrowRight size={20} />}
+                      </button>
+                  </div>
+
+              </div>
+          </div>
+      );
+  };
+
+  if (mode === 'select') {
+      return renderDateSelection();
+  }
+
+  // Marking Screen
   return (
-    <div className="space-y-6 pb-20">
+    <div className="space-y-6 pb-20 animate-fade-in">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-800">{t('attendanceRegister')}</h2>
-          <p className="text-gray-500 mt-1">{t('markAttendance')}</p>
-        </div>
-        
-        {/* Custom Date Picker UI */}
-        <div className="relative group">
-            <div className="flex items-center gap-3 bg-white border border-gray-200 hover:border-indigo-300 rounded-xl px-4 py-2.5 transition-all cursor-pointer shadow-sm">
-                <Calendar size={20} className="text-indigo-500" />
-                <span className="font-bold text-gray-700 min-w-[140px] text-center" dir="ltr">
-                    {getFormattedDate(selectedDate)}
-                </span>
-                <ChevronDown size={16} className="text-gray-400 group-hover:text-indigo-500" />
-            </div>
-            <input 
-                type="date"
-                value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-            />
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={() => setMode('select')}
+            className="p-2 bg-white rounded-full text-gray-500 hover:bg-gray-50 shadow-sm border border-gray-100 transition-all"
+          >
+             {language === 'ar' ? <ArrowRight size={24} /> : <ArrowLeft size={24} />}
+          </button>
+          <div>
+            <h2 className="text-2xl font-bold text-gray-800">{t('attendanceRegister')}</h2>
+            <p className="text-indigo-600 font-bold text-sm mt-1" dir="ltr">{getFormattedDate(selectedDate)}</p>
+          </div>
         </div>
       </div>
 
@@ -179,7 +245,6 @@ const Attendance: React.FC = () => {
                 onChange={(e) => setFilterClass(e.target.value)}
              >
                 <option value="All">{t('filterClass')}</option>
-                {/* Dynamically list unique classes */}
                 {Array.from(new Set(students.map(s => s.classGroup))).map(c => (
                    <option key={c} value={c}>{c}</option>
                 ))}

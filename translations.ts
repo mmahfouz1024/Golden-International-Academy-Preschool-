@@ -323,6 +323,11 @@ export const translations = {
     // Attendance
     attendanceRegister: "Attendance Register",
     markAttendance: "Mark Daily Attendance",
+    attendanceDateSelect: "Select Attendance Date",
+    attendanceRecordFound: "Attendance record found for this date",
+    attendanceRecordNotFound: "No attendance record found",
+    modifyAttendance: "Modify Attendance",
+    createNewAttendance: "Create New Attendance",
     present: "Present",
     absent: "Absent",
     late: "Late",
@@ -719,6 +724,11 @@ export const translations = {
     // Attendance
     attendanceRegister: "سجل الحضور",
     markAttendance: "تسجيل الحضور اليومي",
+    attendanceDateSelect: "اختيار تاريخ الحضور",
+    attendanceRecordFound: "يوجد سجل حضور لهذا التاريخ",
+    attendanceRecordNotFound: "لا يوجد سجل حضور مسجل",
+    modifyAttendance: "تعديل السجل",
+    createNewAttendance: "إنشاء سجل جديد",
     present: "حاضر",
     absent: "غائب",
     late: "تأخر",
