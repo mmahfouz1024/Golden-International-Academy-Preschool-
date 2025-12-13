@@ -57,6 +57,8 @@ export const translations = {
     chat: "Chat",
     logout: "Logout",
     logoutConfirm: "Are you sure you want to logout?",
+    exitApp: "Exit App",
+    exitConfirm: "Are you sure you want to close the application?",
     installApp: "Install App",
     pressBackAgainToExit: "Press back again to exit",
     
@@ -458,6 +460,8 @@ export const translations = {
     chat: "المحادثات",
     logout: "تسجيل خروج",
     logoutConfirm: "هل أنت متأكد من تسجيل الخروج؟",
+    exitApp: "إغلاق التطبيق",
+    exitConfirm: "هل أنت متأكد من إغلاق التطبيق؟",
     installApp: "تثبيت التطبيق",
     pressBackAgainToExit: "اضغط مرة أخرى للخروج",
     

@@ -1,9 +1,10 @@
 
 import React, { useState } from 'react';
-import { LayoutDashboard, Users, CalendarCheck, Sparkles, LogOut, Home, Download, UserCog, School, ChevronRight, Contact, FileClock, Palette, Database, FileText, GraduationCap, CalendarDays } from 'lucide-react';
+import { LayoutDashboard, Users, CalendarCheck, Sparkles, LogOut, Home, Download, UserCog, School, ChevronRight, Contact, FileClock, Palette, Database, FileText, GraduationCap, CalendarDays, Power } from 'lucide-react';
 import { User, Theme } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { App } from '@capacitor/app';
 
 interface SidebarProps {
   currentView: string;
@@ -85,6 +86,17 @@ const Sidebar: React.FC<SidebarProps> = ({
     { id: 'sunshine', label: t('themeSunshine'), color: '#d97706' },
   ];
 
+  const handleExitApp = async () => {
+    if (window.confirm(t('exitConfirm'))) {
+      try {
+        await App.exitApp();
+      } catch (e) {
+        console.log("Exit app not supported on this platform, trying window.close");
+        window.close();
+      }
+    }
+  };
+
   return (
     <>
       {isMobileOpen && (
@@ -160,7 +172,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             );
           })}
 
-          <div className="my-4 border-t border-gray-100 pt-4">
+          <div className="my-4 border-t border-gray-100 pt-4 space-y-2">
             <button
                 onClick={onLogout}
                 className="w-full flex items-center gap-3 px-5 py-3.5 rounded-2xl transition-all duration-300 font-bold text-sm bg-red-50 text-red-600 hover:bg-red-100 hover:shadow-md border border-transparent"
@@ -169,6 +181,16 @@ const Sidebar: React.FC<SidebarProps> = ({
                     <LogOut size={18} className="text-red-500" />
                 </div>
                 <span>{t('logout')}</span>
+            </button>
+
+            <button
+                onClick={handleExitApp}
+                className="w-full flex items-center gap-3 px-5 py-3.5 rounded-2xl transition-all duration-300 font-bold text-sm bg-gray-50 text-gray-600 hover:bg-gray-100 hover:shadow-md border border-transparent"
+            >
+                <div className="bg-white/50 p-1.5 rounded-lg">
+                    <Power size={18} className="text-gray-500" />
+                </div>
+                <span>{t('exitApp')}</span>
             </button>
           </div>
 

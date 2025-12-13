@@ -25,7 +25,7 @@ const ClassManagement: React.FC = () => {
     name: '',
     ageRange: '',
     teacherId: '',
-    capacity: 20
+    capacity: undefined
   });
 
   const teachers = users.filter(u => u.role === 'teacher' || u.role === 'admin' || u.role === 'manager');
@@ -45,7 +45,7 @@ const ClassManagement: React.FC = () => {
         name: '',
         ageRange: '',
         teacherId: '',
-        capacity: 20
+        capacity: undefined
       });
     }
     setIsModalOpen(true);
@@ -81,7 +81,7 @@ const ClassManagement: React.FC = () => {
         name: formData.name,
         ageRange: formData.ageRange || '',
         teacherId: formData.teacherId,
-        capacity: formData.capacity || 20
+        capacity: formData.capacity || 20 // Fallback to 20 only if user leaves it completely empty on save
       };
       updatedClasses = [...classes, newClass];
     }
@@ -273,8 +273,9 @@ const ClassManagement: React.FC = () => {
                     type="number" 
                     min="1"
                     className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-                    value={formData.capacity}
-                    onChange={e => setFormData({...formData, capacity: parseInt(e.target.value)})}
+                    value={formData.capacity || ''}
+                    onChange={e => setFormData({...formData, capacity: parseInt(e.target.value) || undefined})}
+                    placeholder="20"
                   />
                 </div>
               </div>
