@@ -280,6 +280,13 @@ const Chat: React.FC = () => {
                         />
                     </div>
                 </div>
+
+                {/* Instruction Message */}
+                <div className="bg-indigo-50 p-2 text-center border-b border-indigo-100">
+                    <p className="text-xs text-indigo-600 font-medium">
+                        {t('selectUserToChat')}
+                    </p>
+                </div>
                 
                 <div className="flex-1 overflow-y-auto p-2">
                     {getFilteredUsers().length > 0 ? (
