@@ -98,7 +98,12 @@ const Attendance: React.FC = () => {
     }
 
     setIsSaved(true);
-    setTimeout(() => setIsSaved(false), 2000);
+    
+    // Wait for visual feedback (1.5s), then return to selection screen
+    setTimeout(() => {
+        setIsSaved(false);
+        setMode('select');
+    }, 1500);
   };
 
   const stats = {
