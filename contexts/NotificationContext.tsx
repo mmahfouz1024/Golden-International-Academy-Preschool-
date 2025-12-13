@@ -66,7 +66,6 @@ export const NotificationProvider: React.FC<{children: React.ReactNode}> = ({ ch
 
   const requestPermission = async (): Promise<boolean> => {
     // 1. Basic Support Check - If API is missing (common in simple APK WebViews)
-    // We ENABLE it virtually so the UI updates and the user is happy.
     if (typeof Notification === 'undefined') {
       console.log("Notification API not found - Enabling virtual mode for APK/WebView");
       localStorage.setItem('golden_notifications_override', 'granted');
@@ -85,7 +84,6 @@ export const NotificationProvider: React.FC<{children: React.ReactNode}> = ({ ch
             if (result && typeof result.then === 'function') {
                result.then(resolve).catch((e) => {
                  console.error("Permission Request Promise failed", e);
-                 // Don't reject, just resolve denied so app doesn't crash
                  resolve('denied');
                });
             }
@@ -99,22 +97,14 @@ export const NotificationProvider: React.FC<{children: React.ReactNode}> = ({ ch
       setPermissionStatus(permission);
       
       if (permission === 'granted') {
-          // Ensure SW is ready
-          if ('serviceWorker' in navigator) {
-             navigator.serviceWorker.ready.then(() => {
-                console.log("SW ready for notifications");
-             }).catch(e => console.log("SW not ready yet", e));
-          }
           // Send a test immediate notification to confirm
           try {
-             new Notification(t('appTitle'), { body: t('notificationsEnabled'), icon: NOTIFICATION_ICON });
-             playNotificationSound();
+             addNotification(t('appTitle'), t('notificationsEnabled'), 'success');
           } catch(e) {
              console.log("Immediate test notification failed (background might still work)");
           }
           return true;
       } else if (permission === 'denied') {
-          // If explicitly denied, user must enable in settings
           alert(t('notificationsBlockedMsg'));
           return false;
       }
@@ -141,11 +131,9 @@ export const NotificationProvider: React.FC<{children: React.ReactNode}> = ({ ch
 
   const playNotificationSound = () => {
     if (audioRef.current) {
-      // Reset time to 0 to allow rapid replays (same logic as Chat)
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
       audioRef.current.play().catch(e => {
-          // Ignore abort errors from rapid triggers
           if (e.name !== 'AbortError') {
              console.warn("Notification audio play prevented:", e);
           }
@@ -154,6 +142,7 @@ export const NotificationProvider: React.FC<{children: React.ReactNode}> = ({ ch
   };
 
   const addNotification = (title: string, message: string, type: AppNotification['type'] = 'info') => {
+    // 1. Add to In-App List
     const newNotification: AppNotification = {
       id: Date.now().toString(),
       title,
@@ -162,50 +151,32 @@ export const NotificationProvider: React.FC<{children: React.ReactNode}> = ({ ch
       isRead: false,
       type
     };
-
     setNotifications(prev => [newNotification, ...prev]);
-    
-    // Play sound for every in-app notification
     playNotificationSound();
 
-    // System Notification Logic (Safe Mode)
-    // We only attempt this if the API actually exists and is granted
+    // 2. Trigger System Notification via Service Worker (Best for persistence)
     if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.ready.then(registration => {
-          registration.showNotification(title, {
-            body: message,
-            icon: NOTIFICATION_ICON,
-            badge: NOTIFICATION_ICON,
-            vibrate: [200, 100, 200],
-            tag: 'golden-app',
-            data: { url: '/' },
-            requireInteraction: true
-          } as any).catch(err => {
-              console.error("SW Show Notification Error:", err);
-              fallbackNotification(title, message);
-          });
-        }).catch(e => {
-            console.error("SW Registration not ready:", e);
-            fallbackNotification(title, message);
-        });
-      } else {
-        fallbackNotification(title, message);
-      }
-    }
-  };
-
-  const fallbackNotification = (title: string, message: string) => {
-      try {
-          if (typeof Notification !== 'undefined') {
-            new Notification(title, {
-                body: message,
-                icon: NOTIFICATION_ICON
+        
+        // Try to delegate to Service Worker first
+        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+            navigator.serviceWorker.controller.postMessage({
+                type: 'SHOW_NOTIFICATION',
+                payload: { title, body: message }
             });
-          }
-        } catch (e) {
-          console.error("Notification fallback error", e);
+        } else {
+            // Fallback: Create locally if SW is not ready (though SW is preferred)
+            try {
+                new Notification(title, {
+                    body: message,
+                    icon: NOTIFICATION_ICON,
+                    badge: NOTIFICATION_ICON,
+                    tag: 'golden-app'
+                });
+            } catch (e) {
+                console.error("Notification fallback error", e);
+            }
         }
+    }
   };
 
   const testNotification = async () => {
@@ -251,17 +222,14 @@ export const NotificationProvider: React.FC<{children: React.ReactNode}> = ({ ch
         const myNewMsgs = newMsgs.filter(m => m.receiverId === uid);
         
         myNewMsgs.forEach(msg => {
-           // We have a new message!
            addNotification(t('newMessage'), msg.content, 'info');
         });
         lastMessageCount.current = currentMsgs.length;
       } else {
-        lastMessageCount.current = currentMsgs.length; // Sync in case of deletion
+        lastMessageCount.current = currentMsgs.length; 
       }
 
       // Check Announcements (Posts)
-      // Use syncPosts() here to ensure we are comparing against cloud data
-      // This ensures notifications trigger even if Dashboard isn't open
       const currentPosts = await syncPosts();
       
       if (currentPosts.length > lastPostCount.current) {
