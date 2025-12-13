@@ -21,7 +21,7 @@ const NotificationContext = createContext<NotificationContextType | undefined>(u
 // Use a reliable external URL for the icon to ensure mobile devices render it
 const NOTIFICATION_ICON = "https://cdn-icons-png.flaticon.com/512/2990/2990638.png";
 
-// Unified Sound URL (Modern Notification Pop)
+// Original Notification Sound (Distinct from Chat Pop)
 const NOTIFICATION_SOUND_URL = "https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3";
 
 export const NotificationProvider: React.FC<{children: React.ReactNode}> = ({ children }) => {

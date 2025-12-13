@@ -5,8 +5,8 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { getUsers, getMessages, saveMessages, syncMessages } from '../services/storageService';
 import { User, ChatMessage } from '../types';
 
-// Sound effect for sending messages - Simple Pop Sound
-const SEND_SOUND_URL = "https://assets.mixkit.co/active_storage/sfx/2346/2346-preview.mp3";
+// Sound effect for sending messages - Reliable Pop Sound
+const SEND_SOUND_URL = "https://codeskulptor-demos.commondatastorage.googleapis.com/pang/pop.mp3";
 
 const Chat: React.FC = () => {
   const { t, language } = useLanguage();
@@ -26,7 +26,7 @@ const Chat: React.FC = () => {
   // Initialize Audio on mount
   useEffect(() => {
     audioRef.current = new Audio(SEND_SOUND_URL);
-    audioRef.current.volume = 0.6; 
+    audioRef.current.volume = 0.5; 
     audioRef.current.preload = 'auto';
   }, []);
 
