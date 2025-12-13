@@ -16,6 +16,7 @@ import Profile from './components/Profile';
 import DatabaseControl from './components/DatabaseControl';
 import DailyReportManagement from './components/DailyReportManagement';
 import FeesManagement from './components/FeesManagement';
+import ClassGallery from './components/ClassGallery';
 import Login from './components/Login';
 import Chat from './components/Chat';
 import NotificationDropdown from './components/NotificationDropdown';
@@ -403,6 +404,8 @@ const AppContent: React.FC = () => {
         return <DailyReportManagement />;
       case 'fees-management':
         return <FeesManagement />;
+      case 'gallery':
+        return <ClassGallery />;
       case 'attendance':
         return <Attendance />;
       case 'ai-planner':

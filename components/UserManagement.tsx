@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Trash2, Shield, X, School, AlertCircle, CheckCircle, Save as SaveIcon, Edit2, ChevronLeft, ChevronRight, Lock, Wallet } from 'lucide-react';
+import { Plus, Search, Trash2, Shield, X, School, AlertCircle, CheckCircle, Save as SaveIcon, Edit2, ChevronLeft, ChevronRight, Lock, Wallet, Image as ImageIcon } from 'lucide-react';
 import { getUsers, saveUsers, getStudents, saveStudents, getClasses, saveClasses } from '../services/storageService';
 import { User, UserRole, Student, ClassGroup, StudentStatus } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -19,10 +19,10 @@ const UserManagement: React.FC = () => {
 
   // Default permissions for each role
   const DEFAULT_PERMISSIONS = {
-    admin: ['dashboard', 'students', 'attendance', 'reports-archive', 'directory', 'ai-planner', 'classes', 'users', 'database', 'teachers', 'schedule-manage', 'daily-report', 'fees-management'],
-    manager: ['dashboard', 'students', 'attendance', 'reports-archive', 'directory', 'ai-planner', 'classes', 'users', 'database', 'teachers', 'schedule-manage', 'daily-report', 'fees-management'],
-    teacher: ['dashboard', 'students', 'attendance', 'reports-archive', 'directory', 'ai-planner', 'daily-report'],
-    parent: ['parent-view']
+    admin: ['dashboard', 'students', 'attendance', 'reports-archive', 'directory', 'ai-planner', 'classes', 'users', 'database', 'teachers', 'schedule-manage', 'daily-report', 'fees-management', 'gallery'],
+    manager: ['dashboard', 'students', 'attendance', 'reports-archive', 'directory', 'ai-planner', 'classes', 'users', 'database', 'teachers', 'schedule-manage', 'daily-report', 'fees-management', 'gallery'],
+    teacher: ['dashboard', 'students', 'attendance', 'reports-archive', 'directory', 'ai-planner', 'daily-report', 'gallery'],
+    parent: ['parent-view', 'gallery']
   };
 
   const ALL_PAGES = [
@@ -30,6 +30,7 @@ const UserManagement: React.FC = () => {
     { id: 'daily-report', label: t('dailyReportMenu') },
     { id: 'students', label: t('students') },
     { id: 'fees-management', label: t('feesManagement') },
+    { id: 'gallery', label: t('gallery') },
     { id: 'attendance', label: t('attendance') },
     { id: 'reports-archive', label: t('reportsArchive') },
     { id: 'directory', label: t('directoryTitle') },
@@ -703,7 +704,7 @@ const UserManagement: React.FC = () => {
                               <Wallet size={16} />
                               Extra Features
                           </label>
-                          <label className="flex items-center gap-2 bg-white p-2 rounded-lg border border-yellow-200 cursor-pointer hover:bg-yellow-50/50 transition-colors">
+                          <label className="flex items-center gap-2 bg-white p-2 rounded-lg border border-yellow-200 cursor-pointer hover:bg-yellow-50/50 transition-colors mb-2">
                               <input 
                                   type="checkbox"
                                   className="text-yellow-600 rounded focus:ring-yellow-500"
@@ -711,6 +712,15 @@ const UserManagement: React.FC = () => {
                                   onChange={() => togglePermission('fees-management')}
                               />
                               <span className="text-sm font-medium text-gray-700">{t('feesManagement')}</span>
+                          </label>
+                          <label className="flex items-center gap-2 bg-white p-2 rounded-lg border border-yellow-200 cursor-pointer hover:bg-yellow-50/50 transition-colors">
+                              <input 
+                                  type="checkbox"
+                                  className="text-yellow-600 rounded focus:ring-yellow-500"
+                                  checked={formData.permissions?.includes('gallery')}
+                                  onChange={() => togglePermission('gallery')}
+                              />
+                              <span className="text-sm font-medium text-gray-700">{t('gallery')}</span>
                           </label>
                       </div>
                     </>

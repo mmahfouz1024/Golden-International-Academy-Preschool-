@@ -1,6 +1,6 @@
 
 import { MOCK_USERS, MOCK_STUDENTS, MOCK_CLASSES, MOCK_REPORTS } from '../constants';
-import { User, Student, ClassGroup, DailyReport, DatabaseConfig, AppNotification, ChatMessage, Post, ScheduleItem, AttendanceStatus, DailyMenu, FeeRecord, BusRoute, SchoolEvent, StaffSalary } from '../types';
+import { User, Student, ClassGroup, DailyReport, DatabaseConfig, AppNotification, ChatMessage, Post, ScheduleItem, AttendanceStatus, DailyMenu, FeeRecord, BusRoute, SchoolEvent, StaffSalary, GalleryPost } from '../types';
 import { initSupabase, syncDataToCloud, fetchDataFromCloud } from './supabaseClient';
 
 const KEYS = {
@@ -18,7 +18,8 @@ const KEYS = {
   FEES: 'golden_academy_fees',
   TRANSPORT: 'golden_academy_transport',
   EVENTS: 'golden_academy_events',
-  PAYROLL: 'golden_academy_payroll'
+  PAYROLL: 'golden_academy_payroll',
+  GALLERY: 'golden_academy_gallery'
 };
 
 // Initialize DB
@@ -80,6 +81,7 @@ export const initStorage = async (): Promise<{ success: boolean; message?: strin
         if (!localStorage.getItem(KEYS.TRANSPORT)) localStorage.setItem(KEYS.TRANSPORT, JSON.stringify([]));
         if (!localStorage.getItem(KEYS.EVENTS)) localStorage.setItem(KEYS.EVENTS, JSON.stringify([]));
         if (!localStorage.getItem(KEYS.PAYROLL)) localStorage.setItem(KEYS.PAYROLL, JSON.stringify([]));
+        if (!localStorage.getItem(KEYS.GALLERY)) localStorage.setItem(KEYS.GALLERY, JSON.stringify([]));
 
         if (!localStorage.getItem(KEYS.NOTIFICATIONS)) {
             const defaultNotifications: AppNotification[] = [{
@@ -286,3 +288,6 @@ export const saveEvents = (events: SchoolEvent[]) => saveAndSync(KEYS.EVENTS, ev
 
 export const getPayroll = (): StaffSalary[] => JSON.parse(localStorage.getItem(KEYS.PAYROLL) || '[]');
 export const savePayroll = (payroll: StaffSalary[]) => saveAndSync(KEYS.PAYROLL, payroll);
+
+export const getGalleryPosts = (): GalleryPost[] => JSON.parse(localStorage.getItem(KEYS.GALLERY) || '[]');
+export const saveGalleryPosts = (posts: GalleryPost[]) => saveAndSync(KEYS.GALLERY, posts);

@@ -28,6 +28,16 @@ export const translations = {
     schoolCalendar: "Calendar",
     staffAffairs: "Staff & HR",
     
+    // Gallery
+    gallery: "Class Gallery",
+    galleryTitle: "Class Photo Album",
+    gallerySubtitle: "Photos of activities, events, and happy moments",
+    uploadPhotos: "Upload Photos",
+    selectClass: "Select Class",
+    postDescription: "Description / Caption",
+    noGalleryPosts: "No photos added to the album yet.",
+    deletePostConfirm: "Delete this entire album post?",
+    
     // Transport (Restored)
     transportTitle: "Bus & Transport Tracking",
     manageRoutes: "Manage Bus Routes",
@@ -517,6 +527,16 @@ export const translations = {
     transport: "النقل المدرسي",
     schoolCalendar: "التقويم",
     staffAffairs: "شؤون الموظفين",
+    
+    // Gallery
+    gallery: "معرض الصور",
+    galleryTitle: "ألبوم صور الفصل",
+    gallerySubtitle: "صور الأنشطة، الفعاليات، واللحظات السعيدة",
+    uploadPhotos: "رفع صور",
+    selectClass: "اختر الفصل",
+    postDescription: "الوصف / العنوان",
+    noGalleryPosts: "لم يتم إضافة صور للألبوم بعد.",
+    deletePostConfirm: "هل أنت متأكد من حذف هذا الألبوم؟",
 
     // Transport (Restored)
     transportTitle: "تتبع النقل المدرسي",

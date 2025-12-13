@@ -198,3 +198,13 @@ export interface StaffSalary {
   month: string;
   status: string;
 }
+
+export interface GalleryPost {
+  id: string;
+  classId: string; // Stores the Class Name (e.g., 'Birds') to match Student.classGroup
+  teacherId: string;
+  teacherName: string;
+  date: string;
+  description: string;
+  images: string[];
+}
