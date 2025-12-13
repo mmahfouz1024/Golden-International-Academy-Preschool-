@@ -54,6 +54,7 @@ export const translations = {
     myChild: "My Child",
     chat: "Chat",
     logout: "Logout",
+    logoutConfirm: "Are you sure you want to logout?",
     installApp: "Install App",
     
     // SWAPPED ROLES HERE
@@ -446,6 +447,7 @@ export const translations = {
     myChild: "طفلي",
     chat: "المحادثات",
     logout: "تسجيل خروج",
+    logoutConfirm: "هل أنت متأكد من تسجيل الخروج؟",
     installApp: "تثبيت التطبيق",
     
     // SWAPPED ROLES ARABIC

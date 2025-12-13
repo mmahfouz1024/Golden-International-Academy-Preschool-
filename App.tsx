@@ -67,7 +67,7 @@ const AppContent: React.FC = () => {
     startApp();
   }, []);
 
-  // Helper to find all children for a parent user
+  // Helper to find children for a parent user
   const findChildrenForParent = (parentUser: User): Student[] => {
       const allStudents = getStudents();
       let children: Student[] = [];
@@ -185,12 +185,14 @@ const AppContent: React.FC = () => {
   };
 
   const handleLogout = () => {
-    setUser(null);
-    localStorage.removeItem('golden_session_uid'); // Clear session
-    setSelectedStudent(null);
-    setParentChildren([]);
-    setSelectedReportDate(undefined);
-    setCurrentView('dashboard');
+    if (window.confirm(t('logoutConfirm'))) {
+      setUser(null);
+      localStorage.removeItem('golden_session_uid'); // Clear session
+      setSelectedStudent(null);
+      setParentChildren([]);
+      setSelectedReportDate(undefined);
+      setCurrentView('dashboard');
+    }
   };
 
   const handleUpdateUser = (updatedUser: User) => {

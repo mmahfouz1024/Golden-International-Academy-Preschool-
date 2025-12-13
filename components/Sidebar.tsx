@@ -134,7 +134,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* Menu Items */}
-        <nav className="flex-1 px-4 py-2 space-y-2 overflow-y-auto">
+        <nav className="flex-1 px-4 py-2 space-y-2 overflow-y-auto custom-scrollbar">
           {menuItems.map((item) => {
             const Icon = item.icon;
             const isActive = currentView === item.id;
@@ -160,6 +160,18 @@ const Sidebar: React.FC<SidebarProps> = ({
             );
           })}
 
+          <div className="my-4 border-t border-gray-100 pt-4">
+            <button
+                onClick={onLogout}
+                className="w-full flex items-center gap-3 px-5 py-3.5 rounded-2xl transition-all duration-300 font-bold text-sm bg-red-50 text-red-600 hover:bg-red-100 hover:shadow-md border border-transparent"
+            >
+                <div className="bg-white/50 p-1.5 rounded-lg">
+                    <LogOut size={18} className="text-red-500" />
+                </div>
+                <span>{t('logout')}</span>
+            </button>
+          </div>
+
           {showInstallButton && (
             <button
               onClick={onInstall}
@@ -172,7 +184,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             </button>
           )}
 
-          <div className="pt-4 mt-2">
+          <div className="pt-2 mt-2">
             <button
               onClick={() => setIsThemeMenuOpen(!isThemeMenuOpen)}
               className="w-full flex items-center gap-3 px-5 py-3 rounded-2xl transition-all duration-200 text-gray-600 hover:bg-white hover:shadow-md border border-transparent hover:border-gray-100 justify-between group bg-white/30"
