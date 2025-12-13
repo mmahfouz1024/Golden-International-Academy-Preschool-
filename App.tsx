@@ -101,6 +101,7 @@ const AppContent: React.FC = () => {
           if (foundUser) {
              console.log("Restoring session for:", foundUser.username);
              setUser(foundUser);
+             setIsMobileOpen(false); // Ensure sidebar is closed on restore
       
              // Route based on role
              if (foundUser.role === 'parent') {
@@ -159,6 +160,7 @@ const AppContent: React.FC = () => {
   };
 
   const handleLogin = (loggedInUser: User) => {
+    setIsMobileOpen(false); // Force sidebar to close on login
     setUser(loggedInUser);
     // Persist session
     localStorage.setItem('golden_session_uid', loggedInUser.id);
@@ -187,6 +189,7 @@ const AppContent: React.FC = () => {
 
   const handleLogout = () => {
     if (window.confirm(t('logoutConfirm'))) {
+      setIsMobileOpen(false); // Force sidebar to close on logout
       setUser(null);
       localStorage.removeItem('golden_session_uid'); // Clear session
       setSelectedStudent(null);
