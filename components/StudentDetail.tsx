@@ -68,9 +68,6 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
   const [saveError, setSaveError] = useState<string | null>(null);
   const [isCompressing, setIsCompressing] = useState(false);
   
-  // State for Download Preview Modal
-  const [downloadPreview, setDownloadPreview] = useState<{data: string, index: number} | null>(null);
-
   // Predefined Activities List
   const activitiesList = [
     'Montessori', 'Garden', 'Coloring', 'Art', 'Swimming', 
@@ -321,62 +318,22 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
     if (e.target) e.target.value = '';
   };
 
-  // Initiate Download (Open Modal)
-  const initiateDownload = (photoData: string, index: number) => {
-    setDownloadPreview({ data: photoData, index });
-  };
-
-  // Helper to convert Base64 to File
-  const dataURItoFile = (dataURI: string, filename: string): File | null => {
+  // Direct Download Function
+  const handleDirectDownload = (photoData: string, index: number) => {
     try {
-        const arr = dataURI.split(',');
-        if (arr.length < 2) return null;
-        const mimeMatch = arr[0].match(/:(.*?);/);
-        const mime = mimeMatch ? mimeMatch[1] : 'image/jpeg';
-        const bstr = atob(arr[1]);
-        let n = bstr.length;
-        const u8arr = new Uint8Array(n);
-        while(n--){
-            u8arr[n] = bstr.charCodeAt(n);
-        }
-        return new File([u8arr], filename, {type:mime});
+        const link = document.createElement('a');
+        link.href = photoData;
+        // Create a safe filename
+        const safeName = student.name.replace(/\s+/g, '_');
+        link.download = `photo_${safeName}_${selectedDate}_${index + 1}.jpg`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     } catch (e) {
-        console.error("Conversion failed", e);
-        return null;
+        console.error("Direct download failed", e);
+        // Fallback: Open in new tab if programmatic download is blocked
+        window.open(photoData, '_blank');
     }
-  };
-
-  // 1. Share Strategy (Native Android Sheet)
-  const handleShare = async () => {
-    if (!downloadPreview) return;
-    try {
-        const fileName = `photo_${student.name.replace(/\s+/g, '_')}.jpg`;
-        const file = dataURItoFile(downloadPreview.data, fileName);
-        
-        if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
-            await navigator.share({
-                files: [file],
-                title: 'Share Photo',
-            });
-        } else {
-            alert(language === 'ar' ? 'المشاركة غير مدعومة، جرب زر فتح في المتصفح' : 'Sharing not supported, try Open in Browser');
-        }
-    } catch (e) {
-        console.error("Share failed", e);
-        alert("Share failed. Please try Open in Browser.");
-    }
-  };
-
-  // 2. Open in New Tab Strategy (Forces System Browser usually)
-  const handleOpenInBrowser = () => {
-      if (!downloadPreview) return;
-      const win = window.open();
-      if (win) {
-          win.document.write(`<img src="${downloadPreview.data}" style="max-width:100%; height:auto;" />`);
-          win.document.title = "View Photo";
-      } else {
-          alert("Pop-up blocked. Please allow pop-ups.");
-      }
   };
 
   const removePhoto = (index: number) => {
@@ -942,9 +899,9 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
                     <div key={idx} className="relative group aspect-video rounded-xl overflow-hidden bg-gray-100">
                       <img src={photo} alt="Daily activity" className="w-full h-full object-cover" />
                       
-                      {/* Download Button - Visible for everyone - Triggers Preview */}
+                      {/* Download Button - Direct Download */}
                       <button 
-                        onClick={() => initiateDownload(photo, idx)}
+                        onClick={() => handleDirectDownload(photo, idx)}
                         className="absolute top-2 left-2 p-1.5 bg-black/40 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/60"
                         title={t('save')}
                       >
@@ -1018,66 +975,6 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
             </div>
           )}
         </>
-      )}
-
-      {/* DOWNLOAD PREVIEW MODAL */}
-      {downloadPreview && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-fade-in">
-            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden flex flex-col relative border-4 border-white transform transition-all scale-100">
-               {/* Close Button */}
-               <button 
-                 onClick={() => setDownloadPreview(null)}
-                 className="absolute top-4 right-4 z-10 p-2 bg-black/20 hover:bg-black/40 rounded-full text-white transition-colors"
-               >
-                 <X size={20} />
-               </button>
-
-               {/* Image Preview */}
-               <div className="w-full bg-gray-100 flex items-center justify-center p-2 relative">
-                  <img 
-                    src={downloadPreview.data} 
-                    alt="Preview" 
-                    className="max-h-[50vh] w-auto object-contain rounded-lg shadow-sm"
-                  />
-                  {/* Screenshot Hint */}
-                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/60 text-white text-xs px-3 py-1.5 rounded-full backdrop-blur-sm pointer-events-none whitespace-nowrap flex items-center gap-1">
-                     <Camera size={12} />
-                     {language === 'ar' ? 'خذ لقطة شاشة للحفظ' : 'Take a screenshot to save'}
-                  </div>
-               </div>
-
-               {/* Confirmation Footer */}
-               <div className="p-6 text-center space-y-4">
-                  <div className="space-y-1">
-                    <h3 className="text-lg font-bold text-gray-800">
-                        {language === 'ar' ? 'حفظ الصورة' : 'Save Photo'}
-                    </h3>
-                    <p className="text-xs text-gray-500 px-4 leading-relaxed">
-                        {language === 'ar' 
-                            ? 'بسبب قيود التطبيق، يرجى تجربة الأزرار أدناه أو أخذ لقطة شاشة.' 
-                            : 'Due to app restrictions, try buttons below or take a screenshot.'}
-                    </p>
-                  </div>
-                  
-                  <div className="flex gap-2 justify-center pt-2">
-                     <button 
-                        onClick={handleShare}
-                        className="flex-1 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 shadow-lg shadow-indigo-200 transition-colors flex flex-col items-center justify-center gap-1"
-                     >
-                        <Share2 size={18} />
-                        <span className="text-xs">{t('yes')} (Share)</span>
-                     </button>
-                     <button 
-                        onClick={handleOpenInBrowser}
-                        className="flex-1 py-3 bg-white text-gray-600 border-2 border-gray-100 font-bold rounded-xl hover:bg-gray-50 transition-colors flex flex-col items-center justify-center gap-1"
-                     >
-                        <ExternalLink size={18} />
-                        <span className="text-xs">Browser</span>
-                     </button>
-                  </div>
-               </div>
-            </div>
-        </div>
       )}
     </div>
   );
