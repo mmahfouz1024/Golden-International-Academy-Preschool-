@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Image as ImageIcon, Plus, Trash2, X, Upload, Calendar, Camera } from 'lucide-react';
+import { Image as ImageIcon, Plus, Trash2, X, Upload, Calendar, Camera, Download } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { getUsers, getClasses, getStudents, getGalleryPosts, saveGalleryPosts } from '../services/storageService';
 import { User, ClassGroup, GalleryPost } from '../types';
@@ -100,6 +100,22 @@ const ClassGallery: React.FC = () => {
           setPosts(updated);
           saveGalleryPosts(updated);
       }
+  };
+
+  const handleDownloadImage = (base64Data: string, filename: string) => {
+    try {
+        const link = document.createElement('a');
+        link.href = base64Data;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    } catch (e) {
+        console.error("Download failed", e);
+        // Fallback open in new tab
+        const win = window.open();
+        win?.document.write('<iframe src="' + base64Data  + '" frameborder="0" style="border:0; top:0px; left:0px; bottom:0px; right:0px; width:100%; height:100%;" allowfullscreen></iframe>');
+    }
   };
 
   // Image Compression (Reused logic)
@@ -339,10 +355,24 @@ const ClassGallery: React.FC = () => {
                         {post.images.map((img, idx) => (
                             <div 
                                 key={idx} 
-                                className="relative aspect-square rounded-2xl overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
+                                className="relative aspect-square rounded-2xl overflow-hidden cursor-pointer group/img"
                                 onClick={() => setPreviewImage(img)}
                             >
-                                <img src={img} alt="gallery" className="w-full h-full object-cover" />
+                                <img src={img} alt="gallery" className="w-full h-full object-cover group-hover/img:scale-105 transition-transform" />
+                                
+                                {/* Overlay with Download Button on Hover */}
+                                <div className="absolute inset-0 bg-black/20 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-end justify-end p-2">
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleDownloadImage(img, `class_photo_${post.classId}_${idx}.jpg`);
+                                        }}
+                                        className="bg-white/90 hover:bg-white text-gray-700 p-2 rounded-full shadow-md transition-transform hover:scale-110"
+                                        title={t('save')}
+                                    >
+                                        <Download size={16} />
+                                    </button>
+                                </div>
                             </div>
                         ))}
                     </div>
@@ -363,9 +393,22 @@ const ClassGallery: React.FC = () => {
                 className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 cursor-pointer"
                 onClick={() => setPreviewImage(null)}
             >
-                <button className="absolute top-4 right-4 text-white/70 hover:text-white">
-                    <X size={32} />
-                </button>
+                <div className="absolute top-4 right-4 flex gap-4">
+                    <button 
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            handleDownloadImage(previewImage, `downloaded_photo_${Date.now()}.jpg`);
+                        }}
+                        className="text-white/70 hover:text-white transition-colors bg-white/10 p-2 rounded-full hover:bg-white/20"
+                        title={t('save')}
+                    >
+                        <Download size={24} />
+                    </button>
+                    <button className="text-white/70 hover:text-white transition-colors">
+                        <X size={32} />
+                    </button>
+                </div>
+                
                 <img 
                     src={previewImage} 
                     className="max-w-full max-h-[90vh] rounded-lg shadow-2xl object-contain" 
