@@ -21,8 +21,8 @@ const TeacherFocusMode: React.FC = () => {
   const [meals, setMeals] = useState<Record<string, MealStatus>>({});
   const [hasSaved, setHasSaved] = useState(false);
 
+  // 1. Initialize Classes (Run once)
   useEffect(() => {
-    // 1. Get Teacher's assigned classes or all classes if admin
     const currentUser = getUsers().find(u => u.id === localStorage.getItem('golden_session_uid'));
     const allClasses = getClasses();
     
@@ -36,19 +36,28 @@ const TeacherFocusMode: React.FC = () => {
     }
     
     setClasses(relevantClassNames);
-    if (relevantClassNames.length > 0) setSelectedClass(relevantClassNames[0]);
+    if (relevantClassNames.length > 0) {
+        setSelectedClass(relevantClassNames[0]);
+    } else {
+        setLoading(false); // No classes to load
+    }
+  }, []);
 
-    // 2. Load Student Data
+  // 2. Load Data when Class or Date changes
+  useEffect(() => {
+    if (!selectedClass) return;
+
+    setLoading(true);
+    
+    // Load Student Data
     const allStudents = getStudents();
     
     // Filter by class
-    const classStudents = allStudents.filter(s => 
-        relevantClassNames.length > 0 ? s.classGroup === (selectedClass || relevantClassNames[0]) : true
-    );
+    const classStudents = allStudents.filter(s => s.classGroup === selectedClass);
     
     setStudents(classStudents);
 
-    // 3. Load Existing Data for Today
+    // Load Existing Data for Today
     const history = getAttendanceHistory();
     const reports = getReports();
     
