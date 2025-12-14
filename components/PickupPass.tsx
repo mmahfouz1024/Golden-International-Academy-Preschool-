@@ -4,7 +4,7 @@ import QRCode from 'react-qr-code';
 import { User, Student } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
 import { getStudents } from '../services/storageService';
-import { QrCode, Clock, ShieldCheck, UserCheck, Share } from 'lucide-react';
+import { QrCode, Clock, ShieldCheck, UserCheck, Share, Download, Loader2 } from 'lucide-react';
 
 interface PickupPassProps {
   user: User;
@@ -16,6 +16,7 @@ const PickupPass: React.FC<PickupPassProps> = ({ user }) => {
   const [children, setChildren] = useState<Student[]>([]);
   const [qrValue, setQrValue] = useState('');
   const [expiryTime, setExpiryTime] = useState<string>('');
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     // 1. Find User's Children
@@ -60,74 +61,129 @@ const PickupPass: React.FC<PickupPassProps> = ({ user }) => {
     return () => clearInterval(interval);
   }, [selectedStudent, user.id]);
 
-  const shareQrCode = async () => {
-    try {
-        const svg = document.querySelector("#pickup-qr-wrapper svg") as SVGElement;
-        if (!svg) return;
+  // Helper to generate image blob from SVG QR and Text
+  const generatePassImage = async (): Promise<Blob | null> => {
+    const svg = document.querySelector("#pickup-qr-wrapper svg") as SVGElement;
+    if (!svg) return null;
 
-        // Convert SVG to XML string
+    return new Promise((resolve) => {
+        // 1. Serialize SVG
         const xml = new XMLSerializer().serializeToString(svg);
         const svg64 = btoa(unescape(encodeURIComponent(xml)));
-        const b64Start = 'data:image/svg+xml;base64,';
-        const image64 = b64Start + svg64;
+        const image64 = 'data:image/svg+xml;base64,' + svg64;
 
-        // Draw to Canvas to convert to PNG
+        // 2. Load SVG Image
         const img = new Image();
         img.src = image64;
-        img.onload = async () => {
+        img.onload = () => {
+            // 3. Create Canvas
             const canvas = document.createElement('canvas');
-            const padding = 40;
-            const textHeight = 100;
-            const targetSize = 600;
+            const targetSize = 800; // High res
+            const padding = 60;
+            const headerHeight = 120;
+            const footerHeight = 100;
             
-            canvas.width = targetSize; 
-            canvas.height = targetSize + textHeight;
+            canvas.width = targetSize;
+            canvas.height = targetSize + headerHeight + footerHeight;
+            
             const ctx = canvas.getContext('2d');
-            if (!ctx) return;
+            if (!ctx) { resolve(null); return; }
 
-            // White background
-            ctx.fillStyle = 'white';
+            // 4. Draw Background
+            ctx.fillStyle = '#ffffff';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
-            // Draw QR Code
-            ctx.drawImage(img, padding, padding + 50, targetSize - (padding*2), targetSize - (padding*2));
+            // Draw Header Background
+            ctx.fillStyle = '#4f46e5'; // Indigo
+            ctx.fillRect(0, 0, canvas.width, 20);
 
-            // Add Text (Child Name + Time) for context in the image itself
-            ctx.font = 'bold 36px Arial';
-            ctx.fillStyle = '#312e81'; // Indigo-900
+            // 5. Draw Header Text (Child Name)
+            ctx.font = 'bold 48px Arial';
+            ctx.fillStyle = '#312e81'; // Dark Indigo
             ctx.textAlign = 'center';
-            ctx.fillText(selectedStudent?.name || '', canvas.width/2, 60);
+            ctx.fillText(selectedStudent?.name || 'Student', canvas.width/2, headerHeight - 30);
+
+            // 6. Draw QR Code
+            ctx.drawImage(img, padding, headerHeight, targetSize - (padding*2), targetSize - (padding*2));
+
+            // 7. Draw Footer Text (Validity)
+            ctx.font = '32px Arial';
+            ctx.fillStyle = '#6b7280'; // Gray
+            ctx.fillText(`${t('validFor')}: ${expiryTime}`, canvas.width/2, canvas.height - footerHeight + 40);
             
             ctx.font = '24px Arial';
-            ctx.fillStyle = '#6b7280'; // Gray-500
-            ctx.fillText(`${t('validFor')}: ${expiryTime}`, canvas.width/2, canvas.height - 30);
+            ctx.fillStyle = '#9ca3af'; // Light Gray
+            ctx.fillText('Golden Academy Pickup Pass', canvas.width/2, canvas.height - 20);
 
-            const dataUrl = canvas.toDataURL('image/png');
-            const blob = await (await fetch(dataUrl)).blob();
-            const file = new File([blob], 'pickup-pass.png', { type: 'image/png' });
-
-            if (navigator.share) {
-                try {
-                    await navigator.share({
-                        title: 'Golden Academy Pickup Pass',
-                        text: `${t('pickupPass')} - ${selectedStudent?.name}`,
-                        files: [file]
-                    });
-                } catch (shareError) {
-                    console.log('Share canceled or failed', shareError);
-                }
-            } else {
-                // Fallback download if Web Share API not supported
-                const link = document.createElement('a');
-                link.href = dataUrl;
-                link.download = `pickup-pass-${selectedStudent?.name}.png`;
-                link.click();
-                alert(t('sharingNotSupported'));
-            }
+            // 8. Convert to Blob
+            canvas.toBlob((blob) => {
+                resolve(blob);
+            }, 'image/png');
         };
+        img.onerror = () => {
+            console.error("Failed to load SVG image for canvas");
+            resolve(null);
+        };
+    });
+  };
+
+  const handleShare = async () => {
+    if (isProcessing) return;
+    setIsProcessing(true);
+
+    try {
+        const blob = await generatePassImage();
+        if (!blob) {
+            alert("Error generating image.");
+            setIsProcessing(false);
+            return;
+        }
+
+        const file = new File([blob], `pickup-${selectedStudent?.name}.png`, { type: 'image/png' });
+
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            await navigator.share({
+                title: 'Pickup Pass',
+                text: `Pickup pass for ${selectedStudent?.name}`,
+                files: [file]
+            });
+        } else {
+            // If native sharing not supported, fallback to download
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `pickup-${selectedStudent?.name}.png`;
+            link.click();
+            URL.revokeObjectURL(url);
+            // Optional: alert(t('sharingNotSupported'));
+        }
     } catch (e) {
-        console.error(e);
-        alert("Error generating image for sharing");
+        console.error("Share failed", e);
+    } finally {
+        setIsProcessing(false);
+    }
+  };
+
+  const handleDownload = async () => {
+    if (isProcessing) return;
+    setIsProcessing(true);
+    
+    try {
+        const blob = await generatePassImage();
+        if (blob) {
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `pickup-pass-${selectedStudent?.name}-${Date.now()}.png`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+        }
+    } catch(e) {
+        console.error("Download failed", e);
+    } finally {
+        setIsProcessing(false);
     }
   };
 
@@ -141,7 +197,7 @@ const PickupPass: React.FC<PickupPassProps> = ({ user }) => {
   }
 
   return (
-    <div className="max-w-md mx-auto space-y-6 animate-fade-in">
+    <div className="max-w-md mx-auto space-y-6 animate-fade-in pb-20">
         <div className="text-center mb-6">
             <h2 className="text-2xl font-bold text-gray-800 flex items-center justify-center gap-2">
                 <QrCode className="text-indigo-600" />
@@ -208,15 +264,27 @@ const PickupPass: React.FC<PickupPassProps> = ({ user }) => {
                         </p>
                     </div>
 
-                    {/* Share Button */}
-                    <button 
-                        onClick={shareQrCode}
-                        className="mt-6 w-full py-3 bg-indigo-50 text-indigo-700 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-indigo-100 transition-colors"
-                    >
-                        <Share size={18} />
-                        {t('sharePass')}
-                    </button>
-                    <p className="text-[10px] text-gray-400 mt-2 text-center">{t('sharePassDesc')}</p>
+                    {/* Actions */}
+                    <div className="grid grid-cols-2 gap-3 w-full mt-6">
+                        <button 
+                            onClick={handleShare}
+                            disabled={isProcessing}
+                            className="py-3 bg-indigo-50 text-indigo-700 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-indigo-100 transition-colors disabled:opacity-50"
+                        >
+                            {isProcessing ? <Loader2 size={18} className="animate-spin" /> : <Share size={18} />}
+                            {t('sharePass')}
+                        </button>
+                        
+                        <button 
+                            onClick={handleDownload}
+                            disabled={isProcessing}
+                            className="py-3 bg-gray-50 text-gray-700 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-gray-100 transition-colors disabled:opacity-50"
+                        >
+                            <Download size={18} />
+                            {t('save')}
+                        </button>
+                    </div>
+                    <p className="text-[10px] text-gray-400 mt-3 text-center w-full">{t('sharePassDesc')}</p>
                 </div>
 
                 {/* Footer Security Strip */}
