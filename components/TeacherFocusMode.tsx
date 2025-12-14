@@ -96,7 +96,12 @@ const TeacherFocusMode: React.FC = () => {
     
     // Check if any report in this class already has data, use the first one found as initial state
     let loadedActivities: string[] = [];
-    let loadedAcademic = { religion: [], arabic: [], english: [], math: [] };
+    let loadedAcademic: {
+        religion: string[];
+        arabic: string[];
+        english: string[];
+        math: string[];
+    } = { religion: [], arabic: [], english: [], math: [] };
     
     let activitiesFound = false;
     let academicFound = false;
@@ -144,7 +149,7 @@ const TeacherFocusMode: React.FC = () => {
     setAttendance(initialAttendance);
     setMeals(initialMeals);
     setClassActivities(loadedActivities);
-    setClassAcademic(loadedAcademic as any);
+    setClassAcademic(loadedAcademic);
     setLoading(false);
 
   }, [selectedClass, todayStr]);
