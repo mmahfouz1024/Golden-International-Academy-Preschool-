@@ -11,6 +11,9 @@ const GateScanner: React.FC = () => {
   const [scannedStudent, setScannedStudent] = useState<Student | null>(null);
   const [scanStatus, setScanStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [errorMsg, setErrorMsg] = useState('');
+  
+  // We don't strictly need a ref for the scanner instance with the cleanup pattern below, 
+  // but it helps if we want to call methods on it elsewhere.
   const scannerRef = useRef<Html5QrcodeScanner | null>(null);
 
   // Load students for verification
@@ -21,24 +24,42 @@ const GateScanner: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    // Initialize Scanner only if in idle mode and not already initialized
-    if (scanStatus === 'idle' && !scannerRef.current) {
+    // 1. Only initialize if we are in 'idle' mode
+    if (scanStatus !== 'idle') return;
+
+    const scannerId = "reader";
+    let scanner: Html5QrcodeScanner | null = null;
+
+    // 2. Use a small timeout to ensure the DOM element with id="reader" is actually rendered
+    const timerId = setTimeout(() => {
+        const element = document.getElementById(scannerId);
+        if (!element) return;
+
+        // Configuration
         const config = {
             fps: 10,
             qrbox: { width: 250, height: 250 },
             formatsToSupport: [ Html5QrcodeSupportedFormats.QR_CODE ],
-            rememberLastUsedCamera: true
+            rememberLastUsedCamera: true,
+            aspectRatio: 1.0,
+            showTorchButtonIfSupported: true
         };
         
-        const scanner = new Html5QrcodeScanner("reader", config, false);
-        
-        scanner.render(onScanSuccess, onScanFailure);
-        scannerRef.current = scanner;
-    }
+        // Initialize
+        try {
+            scanner = new Html5QrcodeScanner(scannerId, config, false);
+            scanner.render(onScanSuccess, onScanFailure);
+            scannerRef.current = scanner;
+        } catch (err) {
+            console.error("Error starting scanner:", err);
+        }
+    }, 100);
 
+    // 3. Cleanup function: Critical for React strict mode / re-renders
     return () => {
-        if (scannerRef.current) {
-            scannerRef.current.clear().catch(error => console.error("Failed to clear scanner", error));
+        clearTimeout(timerId);
+        if (scanner) {
+            scanner.clear().catch(error => console.warn("Failed to clear scanner", error));
             scannerRef.current = null;
         }
     };
@@ -87,14 +108,8 @@ const GateScanner: React.FC = () => {
   };
 
   const onScanSuccess = (decodedText: string) => {
-      if (scanStatus !== 'idle') return; // Prevent multiple scans
-      
-      // Stop scanner temporarily
-      if (scannerRef.current) {
-          scannerRef.current.clear();
-          scannerRef.current = null;
-      }
-      
+      // Stop scanner temporarily by changing state, which triggers cleanup
+      setScanStatus('processing' as any); 
       processScanData(decodedText);
   };
 
@@ -113,6 +128,8 @@ const GateScanner: React.FC = () => {
           // Pick random student
           const randomStudent = students[Math.floor(Math.random() * students.length)];
           const mockQr = JSON.stringify({ sid: randomStudent.id, pid: "simulated", ts: Date.now() });
+          // Manually trigger success flow
+          setScanStatus('processing' as any);
           processScanData(mockQr);
       } else {
           alert("No students to simulate.");
@@ -147,17 +164,14 @@ const GateScanner: React.FC = () => {
             
             {scanStatus === 'idle' && (
                 <>
-                    <div id="reader" className="w-full h-full object-cover"></div>
-                    {/* Overlay Grid */}
-                    <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-                        <div className="w-64 h-64 border-2 border-white/50 rounded-2xl relative">
-                            <div className="absolute top-0 left-0 w-6 h-6 border-t-4 border-l-4 border-indigo-500 -mt-1 -ml-1 rounded-tl-lg"></div>
-                            <div className="absolute top-0 right-0 w-6 h-6 border-t-4 border-r-4 border-indigo-500 -mt-1 -mr-1 rounded-tr-lg"></div>
-                            <div className="absolute bottom-0 left-0 w-6 h-6 border-b-4 border-l-4 border-indigo-500 -mb-1 -ml-1 rounded-bl-lg"></div>
-                            <div className="absolute bottom-0 right-0 w-6 h-6 border-b-4 border-r-4 border-indigo-500 -mb-1 -mr-1 rounded-br-lg"></div>
-                        </div>
-                    </div>
-                    <p className="absolute bottom-6 left-0 right-0 text-center text-white/80 text-sm font-medium bg-black/40 py-2 backdrop-blur-sm">
+                    {/* 
+                       Removed 'object-cover' and 'h-full' from the reader div. 
+                       The library creates its own video element inside. 
+                       Adding conflicting CSS often hides the video.
+                    */}
+                    <div id="reader" style={{ width: '100%', height: '100%' }}></div>
+                    
+                    <p className="absolute bottom-6 left-0 right-0 text-center text-white/80 text-sm font-medium bg-black/40 py-2 backdrop-blur-sm pointer-events-none z-10">
                         {t('scannerInstruction')}
                     </p>
                 </>
