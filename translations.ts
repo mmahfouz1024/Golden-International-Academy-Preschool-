@@ -27,9 +27,9 @@ export const translations = {
     transport: "Transport",
     schoolCalendar: "Calendar",
     staffAffairs: "Staff & HR",
+    gallery: "Class Gallery",
     
     // Gallery
-    gallery: "Class Gallery",
     galleryTitle: "Class Photo Album",
     gallerySubtitle: "Photos of activities, events, and happy moments",
     uploadPhotos: "Upload Photos",
@@ -38,7 +38,7 @@ export const translations = {
     noGalleryPosts: "No photos added to the album yet.",
     deletePostConfirm: "Delete this entire album post?",
     
-    // Transport
+    // Transport (Restored)
     transportTitle: "Bus & Transport Tracking",
     manageRoutes: "Manage Bus Routes",
     addRoute: "Add Route",
@@ -49,7 +49,7 @@ export const translations = {
     noRoutes: "No bus routes defined",
     deleteRouteConfirm: "Delete this bus route?",
     
-    // Calendar
+    // Calendar (Restored)
     calendarTitle: "School Events Calendar",
     calendarSubtitle: "Holidays, Exams, and Activities",
     addEvent: "Add Event",
@@ -63,7 +63,7 @@ export const translations = {
     deleteEventConfirm: "Delete this event?",
     noEvents: "No upcoming events",
     
-    // HR & Payroll
+    // HR & Payroll (Restored)
     hrTitle: "Staff Payroll",
     hrSubtitle: "Manage salaries and payments",
     recordSalary: "Record Payment",
@@ -116,13 +116,12 @@ export const translations = {
     pressBackAgainToExit: "Press back again to exit",
     feesManagement: "Financial Management",
     
-    // Roles
+    // SWAPPED ROLES HERE
     roleAdmin: "General Manager",
     roleManager: "Admin",
+    
     roleTeacher: "Teacher",
     roleParent: "Parent",
-    
-    // Settings
     profile: "Profile",
     colorPalette: "Theme",
     themeSmart: "Smart (Blue)",
@@ -221,7 +220,7 @@ export const translations = {
     manageStudents: "Manage student profiles and daily reports",
     newStudent: "Register New Student",
     editStudent: "Edit Student Profile",
-    deleteStudentConfirm: "Are you sure you want to permanently delete this student?",
+    deleteStudentConfirm: "Are you sure you want to delete this student?",
     searchPlaceholder: "Search by student or parent name...",
     filterClass: "All Classes",
     filterAge: "All Ages",
@@ -354,7 +353,6 @@ export const translations = {
     noLinkedStudent: "Not Linked",
     permissionLevel: "Permission Level",
     assignClass: "Assign Classes",
-    selectClass: "Select Classes...",
     noClassAssigned: "No Class Assigned",
     usernameExists: "Username already exists",
     permissions: "Access Permissions",
@@ -528,9 +526,9 @@ export const translations = {
     transport: "النقل المدرسي",
     schoolCalendar: "التقويم",
     staffAffairs: "شؤون الموظفين",
-    
-    // Gallery
     gallery: "معرض الصور",
+
+    // Gallery
     galleryTitle: "ألبوم صور الفصل",
     gallerySubtitle: "صور الأنشطة، الفعاليات، واللحظات السعيدة",
     uploadPhotos: "رفع صور",
@@ -539,7 +537,7 @@ export const translations = {
     noGalleryPosts: "لم يتم إضافة صور للألبوم بعد.",
     deletePostConfirm: "هل أنت متأكد من حذف هذا الألبوم؟",
 
-    // Transport
+    // Transport (Restored)
     transportTitle: "تتبع النقل المدرسي",
     manageRoutes: "إدارة خطوط الباصات",
     addRoute: "إضافة خط",
@@ -550,7 +548,7 @@ export const translations = {
     noRoutes: "لم يتم تعريف خطوط نقل بعد",
     deleteRouteConfirm: "هل أنت متأكد من حذف هذا الخط؟",
 
-    // Calendar
+    // Calendar (Restored)
     calendarTitle: "التقويم المدرسي",
     calendarSubtitle: "الإجازات، الاختبارات، والأنشطة",
     addEvent: "إضافة فعالية",
@@ -564,7 +562,7 @@ export const translations = {
     deleteEventConfirm: "حذف هذه الفعالية؟",
     noEvents: "لا توجد فعاليات قادمة",
 
-    // HR & Payroll
+    // HR & Payroll (Restored)
     hrTitle: "رواتب الموظفين",
     hrSubtitle: "إدارة الرواتب والمدفوعات",
     recordSalary: "تسجيل دفعة",
@@ -617,13 +615,12 @@ export const translations = {
     pressBackAgainToExit: "اضغط مرة أخرى للخروج",
     feesManagement: "الإدارة المالية",
     
-    // Roles
+    // SWAPPED ROLES ARABIC
     roleAdmin: "المدير العام",
     roleManager: "أدمن",
+    
     roleTeacher: "المعلم",
     roleParent: "ولي الأمر",
-    
-    // Settings
     profile: "الملف الشخصي",
     colorPalette: "المظهر",
     themeSmart: "ذكي (أزرق)",
@@ -855,7 +852,6 @@ export const translations = {
     noLinkedStudent: "غير مرتبط",
     permissionLevel: "مستوى الصلاحية",
     assignClass: "تعيين فصول",
-    selectClass: "اختر الفصول...",
     noClassAssigned: "لا يوجد فصل",
     usernameExists: "اسم المستخدم موجود مسبقاً",
     permissions: "صلاحيات الوصول",
@@ -907,7 +903,7 @@ export const translations = {
     directoryTitle: "دليل الروضة",
     directorySubtitle: "نظرة عامة على جميع الطلاب والمعلمات وأولياء الأمور",
     allStudents: "الطلاب",
-    allTeachers: "المعلمات",
+    allTeachers: "الطلاب",
     allParents: "أولياء الأمور",
     contactInfo: "معلومات الاتصال",
     callNow: "اتصال",
