@@ -45,6 +45,9 @@ export const translations = {
     simulateScan: "Simulate Scan (Demo)",
     validFor: "Valid for 5 minutes",
     generatedAt: "Generated at",
+    sharePass: "Share Pass",
+    sharePassDesc: "Send this code to the driver or relative",
+    sharingNotSupported: "Sharing not supported on this browser, downloading image instead.",
 
     // UI/UX Improvements
     darkMode: "Dark Mode",
@@ -580,6 +583,9 @@ export const translations = {
     simulateScan: "محاكاة المسح (تجريبي)",
     validFor: "صالح لمدة 5 دقائق",
     generatedAt: "تم التوليد في",
+    sharePass: "مشاركة البطاقة",
+    sharePassDesc: "أرسل هذا الكود للسائق أو القريب",
+    sharingNotSupported: "المشاركة غير مدعومة في هذا المتصفح، جاري تحميل الصورة.",
 
     // UI/UX Improvements
     darkMode: "الوضع الليلي",

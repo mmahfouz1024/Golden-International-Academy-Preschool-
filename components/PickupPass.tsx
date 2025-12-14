@@ -4,7 +4,7 @@ import QRCode from 'react-qr-code';
 import { User, Student } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
 import { getStudents } from '../services/storageService';
-import { QrCode, Clock, ShieldCheck, UserCheck } from 'lucide-react';
+import { QrCode, Clock, ShieldCheck, UserCheck, Share } from 'lucide-react';
 
 interface PickupPassProps {
   user: User;
@@ -60,6 +60,77 @@ const PickupPass: React.FC<PickupPassProps> = ({ user }) => {
     return () => clearInterval(interval);
   }, [selectedStudent, user.id]);
 
+  const shareQrCode = async () => {
+    try {
+        const svg = document.querySelector("#pickup-qr-wrapper svg") as SVGElement;
+        if (!svg) return;
+
+        // Convert SVG to XML string
+        const xml = new XMLSerializer().serializeToString(svg);
+        const svg64 = btoa(unescape(encodeURIComponent(xml)));
+        const b64Start = 'data:image/svg+xml;base64,';
+        const image64 = b64Start + svg64;
+
+        // Draw to Canvas to convert to PNG
+        const img = new Image();
+        img.src = image64;
+        img.onload = async () => {
+            const canvas = document.createElement('canvas');
+            const padding = 40;
+            const textHeight = 100;
+            const targetSize = 600;
+            
+            canvas.width = targetSize; 
+            canvas.height = targetSize + textHeight;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) return;
+
+            // White background
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw QR Code
+            ctx.drawImage(img, padding, padding + 50, targetSize - (padding*2), targetSize - (padding*2));
+
+            // Add Text (Child Name + Time) for context in the image itself
+            ctx.font = 'bold 36px Arial';
+            ctx.fillStyle = '#312e81'; // Indigo-900
+            ctx.textAlign = 'center';
+            ctx.fillText(selectedStudent?.name || '', canvas.width/2, 60);
+            
+            ctx.font = '24px Arial';
+            ctx.fillStyle = '#6b7280'; // Gray-500
+            ctx.fillText(`${t('validFor')}: ${expiryTime}`, canvas.width/2, canvas.height - 30);
+
+            const dataUrl = canvas.toDataURL('image/png');
+            const blob = await (await fetch(dataUrl)).blob();
+            const file = new File([blob], 'pickup-pass.png', { type: 'image/png' });
+
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: 'Golden Academy Pickup Pass',
+                        text: `${t('pickupPass')} - ${selectedStudent?.name}`,
+                        files: [file]
+                    });
+                } catch (shareError) {
+                    console.log('Share canceled or failed', shareError);
+                }
+            } else {
+                // Fallback download if Web Share API not supported
+                const link = document.createElement('a');
+                link.href = dataUrl;
+                link.download = `pickup-pass-${selectedStudent?.name}.png`;
+                link.click();
+                alert(t('sharingNotSupported'));
+            }
+        };
+    } catch (e) {
+        console.error(e);
+        alert("Error generating image for sharing");
+    }
+  };
+
   if (children.length === 0) {
       return (
           <div className="flex flex-col items-center justify-center h-64 text-gray-400 bg-white rounded-3xl border border-gray-100">
@@ -114,7 +185,7 @@ const PickupPass: React.FC<PickupPassProps> = ({ user }) => {
 
                 {/* QR Section */}
                 <div className="p-8 flex flex-col items-center justify-center bg-white">
-                    <div className="p-4 bg-white rounded-3xl border-4 border-gray-100 shadow-inner">
+                    <div className="p-4 bg-white rounded-3xl border-4 border-gray-100 shadow-inner" id="pickup-qr-wrapper">
                         <div style={{ height: "auto", margin: "0 auto", maxWidth: 200, width: "100%" }}>
                             <QRCode
                                 size={256}
@@ -136,6 +207,16 @@ const PickupPass: React.FC<PickupPassProps> = ({ user }) => {
                             {t('generatedAt')}: {expiryTime}
                         </p>
                     </div>
+
+                    {/* Share Button */}
+                    <button 
+                        onClick={shareQrCode}
+                        className="mt-6 w-full py-3 bg-indigo-50 text-indigo-700 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-indigo-100 transition-colors"
+                    >
+                        <Share size={18} />
+                        {t('sharePass')}
+                    </button>
+                    <p className="text-[10px] text-gray-400 mt-2 text-center">{t('sharePassDesc')}</p>
                 </div>
 
                 {/* Footer Security Strip */}
