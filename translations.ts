@@ -23,6 +23,12 @@ export const translations = {
     noChildRecord: "No child record linked to this account",
     contactAdmin: "Please contact school administration",
 
+    // Biometrics
+    loginWithBiometrics: "Login with Face ID / Fingerprint",
+    biometricNotAvailable: "Biometrics not set up on this device",
+    biometricError: "Authentication failed",
+    noSavedUser: "Please login manually first to enable biometrics",
+
     // UI/UX Improvements
     darkMode: "Dark Mode",
     focusMode: "Teacher Focus Mode",
@@ -534,6 +540,12 @@ export const translations = {
     allow: "سماح",
     noChildRecord: "لا يوجد سجل طفل مرتبط بهذا الحساب",
     contactAdmin: "يرجى التواصل مع إدارة الروضة",
+
+    // Biometrics
+    loginWithBiometrics: "دخول ببصمة الوجه / الإصبع",
+    biometricNotAvailable: "البصمة غير مفعلة على هذا الجهاز",
+    biometricError: "فشل التحقق من الهوية",
+    noSavedUser: "يرجى تسجيل الدخول يدوياً أولاً لتفعيل البصمة",
 
     // UI/UX Improvements
     darkMode: "الوضع الليلي",

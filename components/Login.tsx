@@ -1,9 +1,11 @@
 
-import React, { useState } from 'react';
-import { LogIn, Sun, Cloud, Star, Sparkles, UserCircle, KeyRound, LockKeyhole, ArrowLeft, ArrowRight, CheckCircle, Send } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { LogIn, Sun, Cloud, Star, Sparkles, UserCircle, KeyRound, LockKeyhole, ArrowLeft, ArrowRight, CheckCircle, Send, Fingerprint } from 'lucide-react';
 import { getUsers, getMessages, saveMessages } from '../services/storageService';
 import { User, ChatMessage } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
+import { NativeBiometric } from '@capacitor-community/native-biometric';
+import { Capacitor } from '@capacitor/core';
 
 interface LoginProps {
   onLogin: (user: User) => void;
@@ -20,7 +22,26 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const [recoverUsername, setRecoverUsername] = useState('');
   const [recoverSuccess, setRecoverSuccess] = useState(false);
 
+  // Biometric State
+  const [isBiometricAvailable, setIsBiometricAvailable] = useState(false);
+
   const { t, dir, language } = useLanguage();
+
+  useEffect(() => {
+    const checkBiometric = async () => {
+      if (Capacitor.isNativePlatform()) {
+        try {
+          const result = await NativeBiometric.isAvailable();
+          if (result.isAvailable) {
+            setIsBiometricAvailable(true);
+          }
+        } catch (e) {
+          console.log("Biometric not available");
+        }
+      }
+    };
+    checkBiometric();
+  }, []);
 
   const handleLoginSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,9 +57,40 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     );
     
     if (user) {
+      // Save user ID for Biometric quick login later
+      localStorage.setItem('biometric_uid', user.id);
       onLogin(user);
     } else {
       setError(t('loginError'));
+    }
+  };
+
+  const handleBiometricLogin = async () => {
+    try {
+      const verified = await NativeBiometric.verifyIdentity({
+        reason: "Log in to Golden Academy",
+        title: "Log in",
+        subtitle: "",
+        description: "Use Touch ID or Face ID"
+      });
+
+      if (verified) {
+        // Retrieve the last successfully logged in user ID
+        const storedUid = localStorage.getItem('biometric_uid');
+        if (storedUid) {
+           const users = getUsers();
+           const user = users.find(u => u.id === storedUid);
+           if (user) {
+             onLogin(user);
+           } else {
+             setError(t('userNotFound'));
+           }
+        } else {
+           setError(t('noSavedUser'));
+        }
+      }
+    } catch (e) {
+      setError(t('biometricError'));
     }
   };
 
@@ -210,6 +262,18 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                     <LogIn size={20} />
                   </div>
                 </button>
+
+                {/* Biometric Button */}
+                {isBiometricAvailable && (
+                  <button
+                    type="button"
+                    onClick={handleBiometricLogin}
+                    className="w-full bg-white border-2 border-slate-200 text-slate-600 font-bold py-3 rounded-full hover:bg-slate-50 transition-all flex items-center justify-center gap-2"
+                  >
+                    <Fingerprint size={24} className="text-indigo-500" />
+                    <span>{t('loginWithBiometrics')}</span>
+                  </button>
+                )}
               </form>
           )}
 
