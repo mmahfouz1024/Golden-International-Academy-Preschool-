@@ -19,15 +19,16 @@ const UserManagement: React.FC = () => {
 
   // Default permissions for each role
   const DEFAULT_PERMISSIONS = {
-    admin: ['dashboard', 'students', 'attendance', 'reports-archive', 'directory', 'ai-planner', 'classes', 'users', 'database', 'teachers', 'schedule-manage', 'daily-report', 'fees-management', 'gallery', 'focus-mode'],
-    manager: ['dashboard', 'students', 'attendance', 'reports-archive', 'directory', 'ai-planner', 'classes', 'users', 'teachers', 'schedule-manage', 'daily-report', 'fees-management', 'gallery', 'focus-mode'], // Removed 'database'
-    teacher: ['dashboard', 'students', 'attendance', 'reports-archive', 'directory', 'ai-planner', 'daily-report', 'gallery', 'focus-mode'],
+    admin: ['dashboard', 'students', 'attendance', 'reports-archive', 'directory', 'ai-planner', 'classes', 'users', 'database', 'teachers', 'schedule-manage', 'daily-report', 'fees-management', 'gallery', 'focus-mode', 'gate-scanner'],
+    manager: ['dashboard', 'students', 'attendance', 'reports-archive', 'directory', 'ai-planner', 'classes', 'users', 'teachers', 'schedule-manage', 'daily-report', 'fees-management', 'gallery', 'focus-mode', 'gate-scanner'], // Removed 'database'
+    teacher: ['dashboard', 'students', 'attendance', 'reports-archive', 'directory', 'ai-planner', 'daily-report', 'gallery', 'focus-mode', 'gate-scanner'],
     parent: ['parent-view', 'gallery']
   };
 
   const ALL_PAGES = [
     { id: 'dashboard', label: t('dashboard') },
     { id: 'focus-mode', label: t('focusMode') },
+    { id: 'gate-scanner', label: t('gateScanner') },
     { id: 'daily-report', label: t('dailyReportMenu') },
     { id: 'students', label: t('students') },
     { id: 'fees-management', label: t('feesManagement') },
