@@ -370,7 +370,7 @@ const TeacherFocusMode: React.FC = () => {
         </div>
 
         {/* Floating Controls (Save + Mic) - Positioned opposite to Chat Widget */}
-        <div className={`fixed bottom-6 ${language === 'ar' ? 'right-6' : 'left-6'} z-30 flex flex-col gap-3 items-start`}>
+        <div className={`fixed bottom-6 ${language === 'ar' ? 'right-6' : 'left-6'} z-30 flex flex-col gap-3 ${language === 'ar' ? 'items-end' : 'items-start'}`}>
             
             {/* Mic Button */}
             <button
