@@ -136,22 +136,36 @@ export const interpretVoiceCommand = async (command: string, students: {id: stri
     const prompt = `
       You are an AI assistant for a kindergarten teacher. 
       Interpret the following voice command and map it to a specific action.
+      The command may be in English or Arabic.
       
       Available Students: [${studentContext}]
       
       Command: "${command}"
       
       Determine the intent and return a JSON object.
+      
       Possible Actions:
-      1. 'mark_attendance': Set attendance status. (status: 'present', 'absent')
-      2. 'update_meal': Set meal consumption. (status: 'all', 'some', 'none')
+      1. 'mark_attendance': Set attendance status. 
+         - English keywords: present, absent, here, away.
+         - Arabic keywords: حاضر, موجود, غائب, غياب, مجاش.
+         - Values: 'present', 'absent'.
+      2. 'update_meal': Set meal consumption.
+         - English keywords: ate all, finished, ate some, didn't eat.
+         - Arabic keywords: أكل كله, خلص أكله, أكل شوية, مأكلش, صايم.
+         - Values: 'all', 'some', 'none'.
       3. 'add_note': Add a text note.
-      4. 'unknown': If command is unclear.
+         - English keywords: note, add note, remember that.
+         - Arabic keywords: ملاحظة, اكتب, سجل.
+      4. 'unknown': If command is unclear or student name is not found in the list.
+
+      Rules:
+      - Match student names approximately (fuzzy match) even if spelling differs slightly.
+      - If multiple students match, pick the most likely one.
 
       Return ONLY JSON format:
       {
         "action": "mark_attendance" | "update_meal" | "add_note" | "unknown",
-        "studentId": "id_string" (if applicable, best match),
+        "studentId": "id_string" (if applicable, best match from Available Students),
         "value": "string_value" (e.g., 'present', 'all', or the note text),
         "confidence": number (0-1)
       }

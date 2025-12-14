@@ -235,7 +235,7 @@ const TeacherFocusMode: React.FC = () => {
       console.log("AI Interpreted:", result);
 
       if (result.action === 'unknown' || !result.studentId) {
-          addNotification("Voice Assistant", "Could not understand command.", "warning");
+          addNotification("Voice Assistant", `Could not understand: "${text}"`, "warning");
       } else {
           const student = students.find(s => s.id === result.studentId);
           const studentName = student ? student.name : "Student";
