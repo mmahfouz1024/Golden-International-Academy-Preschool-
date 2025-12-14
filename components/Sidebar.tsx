@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { LayoutDashboard, Users, CalendarCheck, Sparkles, LogOut, Home, Download, UserCog, School, ChevronRight, Contact, FileClock, Palette, Database, FileText, GraduationCap, CalendarDays, Wallet, Image as ImageIcon } from 'lucide-react';
+import { LayoutDashboard, Users, CalendarCheck, Sparkles, LogOut, Home, Download, UserCog, School, ChevronRight, Contact, FileClock, Palette, Database, FileText, GraduationCap, CalendarDays, Wallet, Image as ImageIcon, Zap, Moon, Sun } from 'lucide-react';
 import { User, Theme } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -27,11 +27,12 @@ const Sidebar: React.FC<SidebarProps> = ({
   onInstall
 }) => {
   const { t } = useLanguage();
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme, isDarkMode, toggleDarkMode } = useTheme();
   const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
 
   const allMenuItems = [
     { id: 'dashboard', label: t('dashboard'), icon: LayoutDashboard, defaultRoles: ['admin', 'manager', 'teacher', 'parent'] },
+    { id: 'focus-mode', label: t('focusMode'), icon: Zap, defaultRoles: ['admin', 'manager', 'teacher'] },
     { id: 'daily-report', label: t('dailyReportMenu'), icon: FileText, defaultRoles: ['admin', 'manager', 'teacher'] },
     { id: 'students', label: t('students'), icon: Users, defaultRoles: ['admin', 'manager', 'teacher'] },
     { id: 'gallery', label: t('gallery'), icon: ImageIcon, defaultRoles: ['admin', 'manager', 'teacher', 'parent'] },
@@ -101,7 +102,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
       <aside className={`
         fixed inset-y-0 left-0 z-30 w-72
-        bg-white/80 backdrop-blur-xl border-r-4 border-white shadow-2xl
+        bg-white/80 dark:bg-gray-900/90 backdrop-blur-xl border-r-4 border-white dark:border-gray-800 shadow-2xl
         transform transition-transform duration-300 ease-in-out flex flex-col
         ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
@@ -154,23 +155,23 @@ const Sidebar: React.FC<SidebarProps> = ({
                   w-full flex items-center gap-3 px-5 py-3.5 rounded-2xl transition-all duration-300 font-bold text-sm
                   ${isActive 
                     ? 'bg-gradient-to-r from-orange-400 to-pink-500 text-white shadow-lg shadow-orange-200 transform scale-[1.02]' 
-                    : 'bg-white/50 text-gray-600 hover:bg-white hover:text-indigo-600 hover:shadow-md border border-transparent hover:border-indigo-100'}
+                    : 'bg-white/50 dark:bg-gray-800/50 text-gray-600 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-800 hover:text-indigo-600 hover:shadow-md border border-transparent hover:border-indigo-100 dark:hover:border-gray-700'}
                 `}
               >
-                <div className={`${isActive ? 'bg-white/20' : 'bg-gray-100'} p-1.5 rounded-lg`}>
-                   <Icon size={18} className={isActive ? 'text-white' : 'text-gray-500'} />
+                <div className={`${isActive ? 'bg-white/20' : 'bg-gray-100 dark:bg-gray-700'} p-1.5 rounded-lg`}>
+                   <Icon size={18} className={isActive ? 'text-white' : 'text-gray-500 dark:text-gray-400'} />
                 </div>
                 <span>{item.label}</span>
               </button>
             );
           })}
 
-          <div className="my-4 border-t border-gray-100 pt-4 space-y-2">
+          <div className="my-4 border-t border-gray-100 dark:border-gray-700 pt-4 space-y-2">
             <button
                 onClick={onLogout}
-                className="w-full flex items-center gap-3 px-5 py-3.5 rounded-2xl transition-all duration-300 font-bold text-sm bg-red-50 text-red-600 hover:bg-red-100 hover:shadow-md border border-transparent"
+                className="w-full flex items-center gap-3 px-5 py-3.5 rounded-2xl transition-all duration-300 font-bold text-sm bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 hover:shadow-md border border-transparent"
             >
-                <div className="bg-white/50 p-1.5 rounded-lg">
+                <div className="bg-white/50 dark:bg-black/20 p-1.5 rounded-lg">
                     <LogOut size={18} className="text-red-500" />
                 </div>
                 <span>{t('logout')}</span>
@@ -189,30 +190,27 @@ const Sidebar: React.FC<SidebarProps> = ({
             </button>
           )}
 
-          <div className="pt-2 mt-2">
+          <div className="pt-2 mt-2 space-y-2">
+            {/* Theme Toggle */}
             <button
               onClick={() => setIsThemeMenuOpen(!isThemeMenuOpen)}
-              className="w-full flex items-center gap-3 px-5 py-3 rounded-2xl transition-all duration-200 text-gray-600 hover:bg-white hover:shadow-md border border-transparent hover:border-gray-100 justify-between group bg-white/30"
+              className="w-full flex items-center gap-3 px-5 py-3 rounded-2xl transition-all duration-200 text-gray-600 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-800 hover:shadow-md border border-transparent hover:border-gray-100 justify-between group bg-white/30 dark:bg-gray-800/30"
             >
               <div className="flex items-center gap-3">
                 <Palette size={18} className="text-gray-400 group-hover:text-indigo-500" />
                 <span className="font-medium">{t('colorPalette')}</span>
               </div>
-              {isThemeMenuOpen ? (
-                 <ChevronRight size={16} className="rotate-90 text-gray-400" />
-              ) : (
-                 <ChevronRight size={16} className="text-gray-400" />
-              )}
+              <ChevronRight size={16} className={`text-gray-400 transition-transform ${isThemeMenuOpen ? 'rotate-90' : ''}`} />
             </button>
 
             {isThemeMenuOpen && (
-              <div className="mt-2 p-2 space-y-1 bg-white rounded-2xl shadow-lg border-2 border-indigo-50 animate-fade-in">
+              <div className="p-2 space-y-1 bg-white dark:bg-gray-800 rounded-2xl shadow-lg border-2 border-indigo-50 dark:border-gray-700 animate-fade-in">
                 {themes.map((t) => (
                   <button
                     key={t.id}
                     onClick={() => setTheme(t.id)}
                     className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm transition-all ${
-                      theme === t.id ? 'bg-indigo-50 text-indigo-700 font-bold' : 'text-gray-500 hover:bg-gray-50'
+                      theme === t.id ? 'bg-indigo-50 dark:bg-gray-700 text-indigo-700 dark:text-white font-bold' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
                     }`}
                   >
                     <span className="w-4 h-4 rounded-full shadow-sm border border-gray-100" style={{ backgroundColor: t.color }}></span>
@@ -221,28 +219,42 @@ const Sidebar: React.FC<SidebarProps> = ({
                 ))}
               </div>
             )}
+
+            {/* Dark Mode Toggle */}
+            <button
+              onClick={toggleDarkMode}
+              className="w-full flex items-center gap-3 px-5 py-3 rounded-2xl transition-all duration-200 text-gray-600 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-800 hover:shadow-md border border-transparent hover:border-gray-100 dark:hover:border-gray-700 justify-between bg-white/30 dark:bg-gray-800/30"
+            >
+               <div className="flex items-center gap-3">
+                  {isDarkMode ? <Moon size={18} className="text-indigo-400" /> : <Sun size={18} className="text-amber-500" />}
+                  <span className="font-medium">{t('darkMode')}</span>
+               </div>
+               <div className={`w-10 h-5 rounded-full relative transition-colors ${isDarkMode ? 'bg-indigo-600' : 'bg-gray-300'}`}>
+                  <div className={`absolute top-1 left-1 w-3 h-3 bg-white rounded-full transition-transform ${isDarkMode ? 'translate-x-5' : ''}`}></div>
+               </div>
+            </button>
           </div>
         </nav>
 
         {/* User Profile Footer */}
         <div className="p-4 mt-auto">
-          <div className="bg-white p-3 rounded-2xl shadow-lg border border-gray-100 flex items-center gap-3">
+          <div className="bg-white dark:bg-gray-800 p-3 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 flex items-center gap-3">
             <button 
               onClick={() => setCurrentView('profile')}
               className="flex-1 flex items-center gap-3 group"
             >
               <div className="relative">
-                 <img src={user?.avatar || "https://picsum.photos/seed/user/40/40"} alt="User" className="w-10 h-10 rounded-full border-2 border-indigo-100 group-hover:border-indigo-300 transition-colors" />
-                 <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
+                 <img src={user?.avatar || "https://picsum.photos/seed/user/40/40"} alt="User" className="w-10 h-10 rounded-full border-2 border-indigo-100 dark:border-gray-600 group-hover:border-indigo-300 transition-colors" />
+                 <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white dark:border-gray-800 rounded-full"></div>
               </div>
               <div className="flex-1 min-w-0 text-start">
-                <p className="text-sm font-bold text-gray-800 truncate group-hover:text-indigo-600 transition-colors">{user?.name}</p>
-                <p className="text-[10px] text-gray-500 truncate uppercase tracking-wider font-bold">{getRoleLabel(user?.role)}</p>
+                <p className="text-sm font-bold text-gray-800 dark:text-white truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{user?.name}</p>
+                <p className="text-[10px] text-gray-500 dark:text-gray-400 truncate uppercase tracking-wider font-bold">{getRoleLabel(user?.role)}</p>
               </div>
             </button>
             <button 
               onClick={onLogout}
-              className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors"
+              className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-xl transition-colors"
               title={t('logout')}
             >
               <LogOut size={20} />

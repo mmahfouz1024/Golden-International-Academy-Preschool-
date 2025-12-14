@@ -5,6 +5,8 @@ import { Theme } from '../types';
 interface ThemeContextType {
   theme: Theme;
   setTheme: (theme: Theme) => void;
+  isDarkMode: boolean;
+  toggleDarkMode: () => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -69,6 +71,14 @@ export const ThemeProvider: React.FC<{children: React.ReactNode}> = ({ children 
     return (localStorage.getItem('golden_academy_theme') as Theme) || 'smart';
   });
 
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
+    return localStorage.getItem('golden_academy_dark_mode') === 'true';
+  });
+
+  const toggleDarkMode = () => {
+    setIsDarkMode(prev => !prev);
+  };
+
   useEffect(() => {
     localStorage.setItem('golden_academy_theme', theme);
     const palette = THEME_PALETTES[theme];
@@ -83,8 +93,18 @@ export const ThemeProvider: React.FC<{children: React.ReactNode}> = ({ children 
 
   }, [theme]);
 
+  useEffect(() => {
+    localStorage.setItem('golden_academy_dark_mode', String(isDarkMode));
+    const root = document.documentElement;
+    if (isDarkMode) {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+  }, [isDarkMode]);
+
   return (
-    <ThemeContext.Provider value={{ theme, setTheme }}>
+    <ThemeContext.Provider value={{ theme, setTheme, isDarkMode, toggleDarkMode }}>
       {children}
     </ThemeContext.Provider>
   );

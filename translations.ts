@@ -23,6 +23,21 @@ export const translations = {
     noChildRecord: "No child record linked to this account",
     contactAdmin: "Please contact school administration",
 
+    // UI/UX Improvements
+    darkMode: "Dark Mode",
+    focusMode: "Teacher Focus Mode",
+    focusModeDesc: "Simplified interface for quick daily updates",
+    quickAttendance: "Quick Attendance",
+    quickMeals: "Quick Meals",
+    saveAll: "Save All",
+    markRestPresent: "Mark Rest Present",
+    changesSaved: "Changes Saved",
+    present: "Present",
+    absent: "Absent",
+    ateAll: "Ate All",
+    ateSome: "Ate Some",
+    ateNone: "None",
+
     // New Modules (Restored)
     transport: "Transport",
     schoolCalendar: "Calendar",
@@ -426,8 +441,6 @@ export const translations = {
     attendanceRecordNotFound: "No attendance record found",
     modifyAttendance: "Modify Attendance",
     createNewAttendance: "Create New Attendance",
-    present: "Present",
-    absent: "Absent",
     late: "Late",
     excused: "Excused",
     markAllPresent: "Mark All Present",
@@ -521,6 +534,21 @@ export const translations = {
     allow: "سماح",
     noChildRecord: "لا يوجد سجل طفل مرتبط بهذا الحساب",
     contactAdmin: "يرجى التواصل مع إدارة الروضة",
+
+    // UI/UX Improvements
+    darkMode: "الوضع الليلي",
+    focusMode: "وضع تركيز المعلمة",
+    focusModeDesc: "واجهة مبسطة للتحديثات اليومية السريعة",
+    quickAttendance: "تحضير سريع",
+    quickMeals: "وجبات سريعة",
+    saveAll: "حفظ الكل",
+    markRestPresent: "تحضير الباقي",
+    changesSaved: "تم حفظ التغييرات",
+    present: "حاضر",
+    absent: "غائب",
+    ateAll: "أكل الكل",
+    ateSome: "أكل البعض",
+    ateNone: "لم يأكل",
 
     // New Modules (Restored)
     transport: "النقل المدرسي",
@@ -925,8 +953,6 @@ export const translations = {
     attendanceRecordNotFound: "لا يوجد سجل حضور مسجل",
     modifyAttendance: "تعديل السجل",
     createNewAttendance: "إنشاء سجل جديد",
-    present: "حاضر",
-    absent: "غائب",
     late: "تأخر",
     excused: "معذور",
     markAllPresent: "تحديد الكل حاضر",

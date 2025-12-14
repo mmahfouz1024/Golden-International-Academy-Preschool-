@@ -17,6 +17,7 @@ import DatabaseControl from './components/DatabaseControl';
 import DailyReportManagement from './components/DailyReportManagement';
 import FeesManagement from './components/FeesManagement';
 import ClassGallery from './components/ClassGallery';
+import TeacherFocusMode from './components/TeacherFocusMode';
 import Login from './components/Login';
 import Chat from './components/Chat';
 import NotificationDropdown from './components/NotificationDropdown';
@@ -373,18 +374,18 @@ const AppContent: React.FC = () => {
        if (parentChildren.length > 0) {
            return (
                <div className="flex flex-col items-center justify-center min-h-[50vh] animate-fade-in">
-                  <h2 className="text-2xl font-bold text-gray-800 mb-6">{t('selectChildTitle')}</h2>
+                  <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-6">{t('selectChildTitle')}</h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-2xl">
                       {parentChildren.map(child => (
                           <button 
                             key={child.id}
                             onClick={() => setSelectedStudent(child)}
-                            className="bg-white p-6 rounded-2xl shadow-sm border-2 border-transparent hover:border-indigo-500 hover:shadow-md transition-all flex flex-col items-center gap-4 group"
+                            className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border-2 border-transparent hover:border-indigo-500 hover:shadow-md transition-all flex flex-col items-center gap-4 group"
                           >
                               <img src={child.avatar} alt={child.name} className="w-24 h-24 rounded-full object-cover group-hover:scale-110 transition-transform" />
                               <div className="text-center">
-                                  <h3 className="font-bold text-lg text-gray-800">{child.name}</h3>
-                                  <p className="text-sm text-gray-500">{child.classGroup}</p>
+                                  <h3 className="font-bold text-lg text-gray-800 dark:text-white">{child.name}</h3>
+                                  <p className="text-sm text-gray-500 dark:text-gray-400">{child.classGroup}</p>
                               </div>
                           </button>
                       ))}
@@ -400,6 +401,8 @@ const AppContent: React.FC = () => {
         return <Dashboard setCurrentView={handleSetView} />;
       case 'students':
         return <StudentList onStudentSelect={(s) => { setSelectedStudent(s); setSelectedReportDate(undefined); }} />;
+      case 'focus-mode':
+        return <TeacherFocusMode />;
       case 'daily-report':
         return <DailyReportManagement />;
       case 'fees-management':
@@ -448,7 +451,7 @@ const AppContent: React.FC = () => {
 
   if (!isInitialized) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-sky-50">
+      <div className="flex flex-col items-center justify-center min-h-screen bg-sky-50 dark:bg-gray-900">
         <div className="w-16 h-16 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-4"></div>
         <p className="text-indigo-600 font-bold animate-pulse">{t('loading')}</p>
       </div>
@@ -460,7 +463,7 @@ const AppContent: React.FC = () => {
   }
 
   return (
-    <div className={`flex h-screen bg-slate-50 ${dir === 'rtl' ? 'rtl' : 'ltr'}`} dir={dir}>
+    <div className={`flex h-screen bg-slate-50 dark:bg-gray-900 ${dir === 'rtl' ? 'rtl' : 'ltr'}`} dir={dir}>
       <BackgroundPattern />
       
       {/* Sidebar */}
@@ -479,11 +482,11 @@ const AppContent: React.FC = () => {
       <div className={`flex-1 flex flex-col transition-all duration-300 ${language === 'ar' ? 'lg:mr-72' : 'lg:ml-72'} relative z-10 h-full overflow-hidden`}>
         
         {/* Top Navbar */}
-        <header className="sticky top-0 z-20 px-4 sm:px-8 py-4 flex items-center justify-between bg-slate-50/80 backdrop-blur-md">
+        <header className="sticky top-0 z-20 px-4 sm:px-8 py-4 flex items-center justify-between bg-slate-50/80 dark:bg-gray-900/80 backdrop-blur-md">
           <div className="flex items-center gap-3">
             <button 
               onClick={() => setIsMobileOpen(true)}
-              className="lg:hidden p-2 rounded-xl text-gray-600 hover:bg-white/50"
+              className="lg:hidden p-2 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-white/50 dark:hover:bg-gray-800"
             >
               <Menu size={24} />
             </button>
@@ -491,12 +494,12 @@ const AppContent: React.FC = () => {
             {showBackButton && (
               <button 
                 onClick={handleBack}
-                className="p-2 rounded-xl text-gray-600 hover:bg-white/50 transition-colors flex items-center gap-1 group"
+                className="p-2 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-white/50 dark:hover:bg-gray-800 transition-colors flex items-center gap-1 group"
               >
-                <div className="bg-white p-1.5 rounded-lg shadow-sm group-hover:shadow border border-gray-100 group-hover:border-indigo-100 transition-all">
+                <div className="bg-white dark:bg-gray-800 p-1.5 rounded-lg shadow-sm group-hover:shadow border border-gray-100 dark:border-gray-700 group-hover:border-indigo-100 transition-all">
                    {language === 'ar' ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
                 </div>
-                <span className="text-sm font-bold text-gray-500 group-hover:text-indigo-600 hidden sm:block">{t('back')}</span>
+                <span className="text-sm font-bold text-gray-500 dark:text-gray-400 group-hover:text-indigo-600 hidden sm:block">{t('back')}</span>
               </button>
             )}
           </div>
@@ -504,7 +507,7 @@ const AppContent: React.FC = () => {
           <div className="flex items-center gap-4">
             <div className="relative" ref={notificationRef}>
               <button 
-                className="p-2.5 rounded-xl bg-white shadow-sm border border-gray-100 text-gray-500 hover:text-indigo-600 transition-colors relative"
+                className="p-2.5 rounded-xl bg-white dark:bg-gray-800 shadow-sm border border-gray-100 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors relative"
                 onClick={() => setShowNotifications(!showNotifications)}
               >
                 <Bell size={20} />

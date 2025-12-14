@@ -22,6 +22,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
+        darkMode: 'class', // Enable class-based dark mode
         theme: {
           extend: {
             fontFamily: {
@@ -42,6 +43,7 @@
                 700: '#334155', // Softer than standard gray-700
                 800: '#1e293b', // Deep blue-gray instead of black
                 900: '#0f172a',
+                950: '#020617', // Added for Dark Mode
               },
               indigo: {
                 50: 'var(--color-primary-50)',
@@ -84,6 +86,7 @@
       body {
         font-family: 'Quicksand', 'Tajawal', sans-serif;
         font-weight: 500; /* Slightly bolder for "Light/Distinctive" readability */
+        transition: background-color 0.3s ease, color 0.3s ease;
       }
       
       h1, h2, h3, h4, h5, h6, .font-display {
@@ -121,6 +124,11 @@
         --color-primary-900: #312e81;
         --color-primary-950: #1e1b4b;
       }
+
+      .dark body {
+        background-color: #0f172a;
+        color: #e2e8f0;
+      }
     </style>
   <script type="importmap">
 {
@@ -146,7 +154,7 @@
 }
 </script>
 </head>
-  <body class="bg-sky-50 text-slate-700 antialiased">
+  <body class="bg-sky-50 dark:bg-gray-900 text-slate-700 dark:text-gray-200 antialiased transition-colors duration-300">
     <div id="root"></div>
     <script type="module" src="./index.tsx"></script>
   </body>
