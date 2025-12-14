@@ -303,16 +303,19 @@ const TeacherFocusMode: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-4">
-                {classes.length > 1 && (
+                {classes.length > 0 && (
                     <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <span className="text-gray-400 text-xs font-bold uppercase tracking-wider">{t('studentClass')}:</span>
+                        </div>
                         <select 
-                            className="appearance-none bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-800 dark:text-white py-3 pl-4 pr-10 rounded-xl font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            className="appearance-none bg-indigo-50 dark:bg-gray-700 border-2 border-indigo-100 dark:border-gray-600 text-indigo-900 dark:text-white py-3 pl-16 pr-10 rounded-xl font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer min-w-[200px]"
                             value={selectedClass}
                             onChange={(e) => setSelectedClass(e.target.value)}
                         >
                             {classes.map(c => <option key={c} value={c}>{c}</option>)}
                         </select>
-                        <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                        <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-indigo-400" />
                     </div>
                 )}
                 
@@ -326,13 +329,24 @@ const TeacherFocusMode: React.FC = () => {
         </div>
 
         {/* --- CLASS ACTIVITIES SELECTOR (Apply to All) --- */}
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700">
-            <h3 className="font-bold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border-2 border-indigo-50 dark:border-gray-700 relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
+                <Gamepad2 size={100} className="text-indigo-500" />
+            </div>
+            
+            <h3 className="font-bold text-gray-800 dark:text-white mb-4 flex items-center gap-2 text-lg">
                 <div className="p-2 bg-pink-100 text-pink-600 rounded-lg">
-                   <Gamepad2 size={20} />
+                   <Gamepad2 size={24} />
                 </div>
-                {t('activities')} ({t('filterClass')})
+                {t('activities')}
+                <span className="text-gray-400 mx-1">|</span>
+                <span className="text-indigo-600 dark:text-indigo-400 underline decoration-wavy decoration-indigo-300 underline-offset-4">{selectedClass}</span>
             </h3>
+            
+            <p className="text-sm text-gray-500 mb-4 bg-gray-50 dark:bg-gray-700/50 p-3 rounded-xl border border-gray-100 dark:border-gray-600 inline-block">
+                Select activities below to apply them to <b>all present students</b> in the <b>{selectedClass}</b> class.
+            </p>
+
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
                 {ACTIVITIES_LIST.map(act => {
                     const isSelected = classActivities.includes(act);
@@ -343,7 +357,7 @@ const TeacherFocusMode: React.FC = () => {
                             className={`
                                 flex items-center gap-2 p-3 rounded-xl border-2 transition-all select-none
                                 ${isSelected 
-                                    ? 'border-pink-200 bg-pink-50 text-pink-700' 
+                                    ? 'border-pink-200 bg-pink-50 text-pink-700 transform scale-105 shadow-sm' 
                                     : 'border-transparent bg-gray-50 dark:bg-gray-700/50 text-gray-500 hover:bg-gray-100'}
                             `}
                         >
