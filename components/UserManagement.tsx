@@ -20,7 +20,7 @@ const UserManagement: React.FC = () => {
   // Default permissions for each role
   const DEFAULT_PERMISSIONS = {
     admin: ['dashboard', 'students', 'attendance', 'reports-archive', 'directory', 'ai-planner', 'classes', 'users', 'database', 'teachers', 'schedule-manage', 'daily-report', 'fees-management', 'gallery', 'focus-mode'],
-    manager: ['dashboard', 'students', 'attendance', 'reports-archive', 'directory', 'ai-planner', 'classes', 'users', 'database', 'teachers', 'schedule-manage', 'daily-report', 'fees-management', 'gallery', 'focus-mode'],
+    manager: ['dashboard', 'students', 'attendance', 'reports-archive', 'directory', 'ai-planner', 'classes', 'users', 'teachers', 'schedule-manage', 'daily-report', 'fees-management', 'gallery', 'focus-mode'], // Removed 'database'
     teacher: ['dashboard', 'students', 'attendance', 'reports-archive', 'directory', 'ai-planner', 'daily-report', 'gallery', 'focus-mode'],
     parent: ['parent-view', 'gallery']
   };
@@ -133,6 +133,7 @@ const UserManagement: React.FC = () => {
         newPermissions = newPermissions.filter(p => p !== 'users');
     }
     if (currentUser?.role === 'manager') {
+        // Manager cannot grant database permission anyway, but ensuring cleanup
         newPermissions = newPermissions.filter(p => p !== 'database');
     }
 
@@ -215,7 +216,12 @@ const UserManagement: React.FC = () => {
         cleanPermissions = cleanPermissions.filter(p => p !== 'users');
     }
 
-    // Rule 2: Manager (Labeled Admin) cannot grant 'database' permission
+    // Rule 2: Only 'admin' role can have 'database' permission
+    if (formData.role !== 'admin') {
+        cleanPermissions = cleanPermissions.filter(p => p !== 'database');
+    }
+
+    // Rule 3: Manager (Labeled Admin) cannot grant 'database' permission (Redundant but safe)
     if (currentUser?.role === 'manager') {
         cleanPermissions = cleanPermissions.filter(p => p !== 'database');
     }
@@ -736,6 +742,9 @@ const UserManagement: React.FC = () => {
                     </label>
                     <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto custom-scrollbar">
                        {ALL_PAGES.map(page => {
+                         // Only General Manager ('admin') can have Database permission
+                         if (page.id === 'database' && formData.role !== 'admin') return null;
+
                          const isDatabaseRestricted = currentUser?.role === 'manager' && page.id === 'database';
                          const isUsersRestrictedForTeacher = formData.role === 'teacher' && page.id === 'users';
                          const isDisabled = isDatabaseRestricted || isUsersRestrictedForTeacher;
