@@ -137,7 +137,6 @@ export const interpretVoiceCommand = async (command: string, students: {id: stri
       You are an AI assistant for a kindergarten teacher. 
       Interpret the following voice command and map it to a specific action.
       The command may be in English, Arabic, or a mix (Arabizi).
-      The user might speak English words that get transcribed as Arabic characters (Phonetic).
       
       Available Students: [${studentContext}]
       
@@ -147,10 +146,11 @@ export const interpretVoiceCommand = async (command: string, students: {id: stri
       
       Possible Actions:
       1. 'mark_attendance': Set attendance status. 
-         - English keywords: present, absent, here, away.
-         - Arabic keywords: حاضر, موجود, غائب, غياب, مجاش.
+         - English keywords: present, absent, here, away, mark attendance.
+         - Arabic keywords: حاضر, موجود, غائب, غياب, مجاش, سجل حضور, تسجيل حضور, حضر.
          - Arabizi/Phonetic: hadir, mawjood, ghaeb, ghayeb, majash, bresent (present), absent (أبسنت).
          - Values: 'present', 'absent'.
+         - Note: If user says "Register/Record attendance" (سجل حضور) without saying "absent", assume value is 'present'.
       2. 'update_meal': Set meal consumption.
          - English keywords: ate all, finished, ate some, didn't eat.
          - Arabic keywords: أكل كله, خلص أكله, أكل شوية, مأكلش, صايم.
@@ -158,12 +158,17 @@ export const interpretVoiceCommand = async (command: string, students: {id: stri
          - Values: 'all', 'some', 'none'.
       3. 'add_note': Add a text note.
          - English keywords: note, add note, remember that.
-         - Arabic keywords: ملاحظة, اكتب, سجل.
+         - Arabic keywords: ملاحظة, اكتب ملاحظة, سجل ملاحظة.
+         - Note: Only use this if the command is clearly about writing a note/observation, NOT attendance.
       4. 'unknown': If command is unclear or student name is not found in the list.
 
-      Rules:
-      - Match student names approximately (fuzzy match) even if spelling differs slightly or is phonetic (e.g. "Ahmed" vs "أحمد").
-      - If multiple students match, pick the most likely one based on context.
+      CRITICAL Name Matching Rules:
+      - Match student names loosely to handle spelling variations.
+      - **Arabic Specifics**:
+        - Treat "ة" (Ta Marbuta) and "ه" (Ha) at end of words as IDENTICAL (e.g. "حمزة" == "حمزه").
+        - Treat "أ", "إ", "آ", "ا" (Alif forms) as IDENTICAL (e.g. "أحمد" == "احمد").
+        - Treat "ي" and "ى" as IDENTICAL.
+      - If multiple students match, pick the most likely one based on the full name provided.
 
       Return ONLY JSON format:
       {
