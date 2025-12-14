@@ -191,7 +191,12 @@ const TeacherFocusMode: React.FC = () => {
 
     const SpeechRecognition = (window as any).webkitSpeechRecognition;
     const recognition = new SpeechRecognition();
-    recognition.lang = language === 'ar' ? 'ar-EG' : 'en-US';
+    
+    // Explicitly set to Arabic (Egypt) to support mixed language input.
+    // Modern speech engines handle "Mark Ahmed Present" perfectly even in Arabic mode, 
+    // but the English mode often fails completely with Arabic names or commands.
+    recognition.lang = 'ar-EG'; 
+    
     recognition.continuous = false;
     recognition.interimResults = false;
 

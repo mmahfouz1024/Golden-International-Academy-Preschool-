@@ -136,7 +136,8 @@ export const interpretVoiceCommand = async (command: string, students: {id: stri
     const prompt = `
       You are an AI assistant for a kindergarten teacher. 
       Interpret the following voice command and map it to a specific action.
-      The command may be in English or Arabic.
+      The command may be in English, Arabic, or a mix (Arabizi).
+      The user might speak English words that get transcribed as Arabic characters (Phonetic).
       
       Available Students: [${studentContext}]
       
@@ -148,10 +149,12 @@ export const interpretVoiceCommand = async (command: string, students: {id: stri
       1. 'mark_attendance': Set attendance status. 
          - English keywords: present, absent, here, away.
          - Arabic keywords: حاضر, موجود, غائب, غياب, مجاش.
+         - Arabizi/Phonetic: hadir, mawjood, ghaeb, ghayeb, majash, bresent (present), absent (أبسنت).
          - Values: 'present', 'absent'.
       2. 'update_meal': Set meal consumption.
          - English keywords: ate all, finished, ate some, didn't eat.
          - Arabic keywords: أكل كله, خلص أكله, أكل شوية, مأكلش, صايم.
+         - Arabizi/Phonetic: akal kullo, akal shwaya, ma akalsh, finish, eat all (إيت أول).
          - Values: 'all', 'some', 'none'.
       3. 'add_note': Add a text note.
          - English keywords: note, add note, remember that.
@@ -159,8 +162,8 @@ export const interpretVoiceCommand = async (command: string, students: {id: stri
       4. 'unknown': If command is unclear or student name is not found in the list.
 
       Rules:
-      - Match student names approximately (fuzzy match) even if spelling differs slightly.
-      - If multiple students match, pick the most likely one.
+      - Match student names approximately (fuzzy match) even if spelling differs slightly or is phonetic (e.g. "Ahmed" vs "أحمد").
+      - If multiple students match, pick the most likely one based on context.
 
       Return ONLY JSON format:
       {
