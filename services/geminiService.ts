@@ -12,11 +12,68 @@ let aiClient: GoogleGenAI | null = null;
 
 const getAiClient = () => {
   if (!aiClient) {
-    // Use the API key or fallback to empty string to prevent crash, though calls will fail gracefully later
     const apiKey = process.env.API_KEY || ''; 
     aiClient = new GoogleGenAI({ apiKey });
   }
   return aiClient;
+};
+
+// --- Arabic Text Normalization Helper ---
+const normalizeArabic = (text: string): string => {
+  if (!text) return "";
+  return text
+    .replace(/[أإآ]/g, 'ا') // Normalize Alif
+    .replace(/ة/g, 'ه')     // Normalize Ta Marbuta to Ha
+    .replace(/ى/g, 'ي')     // Normalize Ya
+    .replace(/[\u064B-\u065F]/g, '') // Remove Tashkeel (diacritics)
+    .replace(/[^\w\s\u0600-\u06FF]/g, '') // Remove special chars
+    .replace(/\s+/g, ' ')   // Collapse whitespace
+    .trim()
+    .toLowerCase();
+};
+
+const findBestStudentMatch = (searchName: string, students: {id: string, name: string}[]): string | null => {
+  if (!searchName) return null;
+  const normalizedSearch = normalizeArabic(searchName);
+  const searchParts = normalizedSearch.split(' ');
+
+  let bestMatchId: string | null = null;
+  let highestScore = 0;
+
+  for (const student of students) {
+    const normalizedStudentName = normalizeArabic(student.name);
+    const studentParts = normalizedStudentName.split(' ');
+    
+    // Scoring System: Count how many parts of the search name appear in the student name
+    let score = 0;
+    for (const part of searchParts) {
+      if (studentParts.includes(part)) {
+        score += 1;
+      } else {
+        // Partial match check (e.g. "Mohamed" matches "Mohammed")
+        for (const sPart of studentParts) {
+           if (sPart.includes(part) || part.includes(sPart)) {
+             if (Math.abs(sPart.length - part.length) <= 1) { // tight length check
+                score += 0.8; 
+             }
+           }
+        }
+      }
+    }
+
+    // Boost score if the full normalized string is a substring (exact phrase match)
+    if (normalizedStudentName.includes(normalizedSearch)) {
+      score += 2; 
+    }
+
+    if (score > highestScore) {
+      highestScore = score;
+      bestMatchId = student.id;
+    }
+  }
+
+  // Threshold: At least one strong match or partials
+  return highestScore >= 0.8 ? bestMatchId : null;
 };
 
 export const generateActivityPlan = async (ageGroup: string, topic: string) => {
@@ -92,7 +149,6 @@ export const generateMonthlyProgress = async (studentName: string, month: string
     const ai = getAiClient();
     const model = 'gemini-2.5-flash';
     
-    // Construct the prompt with data
     const prompt = `
       You are a professional kindergarten teacher consultant.
       Please write a "Monthly Progress Report" for a student based on their daily logs for the month of ${month}.
@@ -130,49 +186,36 @@ export const interpretVoiceCommand = async (command: string, students: {id: stri
     const ai = getAiClient();
     const model = 'gemini-2.5-flash';
     
-    // Minimal context about students to map names to IDs
-    const studentContext = students.map(s => `${s.name} (ID: ${s.id})`).join(', ');
+    // NOTE: We do NOT pass the full student list to the AI anymore to avoid token limits or hallucination.
+    // We only ask the AI to extract the name, and we match it locally.
 
     const prompt = `
-      You are a precise Intent Classifier for a kindergarten app.
-      Your job is to map a spoken command to a specific Action and Student ID.
+      You are a Kindergarten Voice Assistant.
+      Extract structured data from the following command.
 
-      LIST OF STUDENTS:
-      [${studentContext}]
+      COMMAND: "${command}"
 
-      USER COMMAND: "${command}"
+      MAPPING RULES:
+      1. **Action**:
+         - "mark_attendance" IF command contains words like: حضور, غياب, سجل حضور, تسجيل, موجود, غائب, present, absent, attendance.
+         - "update_meal" IF command contains words like: أكل, وجبة, خلص, eat, meal, food, lunch.
+         - "add_note" IF command is about writing a note/observation.
+         
+      2. **Value** (based on action):
+         - For 'mark_attendance': 
+           - 'absent' IF command implies absent ("غائب", "مجاش", "not here").
+           - 'present' OTHERWISE (default for "سجل حضور", "موجود", "حاضر").
+         - For 'update_meal': 'all' | 'some' | 'none'.
+         - For 'add_note': The actual note content.
 
-      INSTRUCTIONS:
-      1. **Identify the Student**:
-         - Find the name in the command that best matches a student in the list.
-         - **IGNORE** spelling mistakes in Arabic names.
-         - TREAT "ة" (Ta Marbuta) and "ه" (Ha) as EQUAL (e.g. "حمزه" == "حمزة", "فاطمه" == "فاطمة").
-         - TREAT "أ" and "ا" as EQUAL.
-         - Use Fuzzy Matching logic. If the command says "Hamza" and list has "Hamza Mohamed", match it.
+      3. **Target Name**:
+         - Extract the name of the student mentioned. E.g. "حمزه محمد", "Sarah", "Ahmed".
 
-      2. **Identify the Action**:
-         - **mark_attendance**:
-           - Keywords: "حضور" (attendance), "سجل حضور" (record attendance), "موجود" (present), "حاضر" (present), "غائب" (absent), "غياب", "مجاش".
-           - IMPORTANT: "سجل حضور" means 'mark_attendance', NOT 'add_note'.
-           - Value: If command implies absent ("غائب"), value is 'absent'. Otherwise (default) value is 'present'.
-         - **update_meal**:
-           - Keywords: "أكل" (ate), "وجبة" (meal), "خلص" (finished), "food".
-           - Value: 'all', 'some', or 'none'.
-         - **add_note**:
-           - Keywords: "ملاحظة" (note), "اكتب" (write), "ذكرني" (remind me).
-           - Only use this if it's NOT attendance or meal.
-
-      EXAMPLES (Few-Shot Learning):
-      - Input: "سجل حضور الطالب حمزه محمد" -> Output: {"action": "mark_attendance", "value": "present", "studentId": "..."}
-      - Input: "حمزة غائب اليوم" -> Output: {"action": "mark_attendance", "value": "absent", "studentId": "..."}
-      - Input: "حمزه اكل كله" -> Output: {"action": "update_meal", "value": "all", "studentId": "..."}
-
-      OUTPUT JSON ONLY:
+      OUTPUT JSON:
       {
         "action": "mark_attendance" | "update_meal" | "add_note" | "unknown",
-        "studentId": "id_string" (The exact ID from the student list),
-        "value": "string_value",
-        "confidence": number (0-1)
+        "extractedName": "string",
+        "value": "string"
       }
     `;
 
@@ -185,15 +228,30 @@ export const interpretVoiceCommand = async (command: string, students: {id: stri
           type: Type.OBJECT,
           properties: {
             action: { type: Type.STRING },
-            studentId: { type: Type.STRING },
-            value: { type: Type.STRING },
-            confidence: { type: Type.NUMBER }
+            extractedName: { type: Type.STRING },
+            value: { type: Type.STRING }
           }
         }
       }
     });
 
-    return JSON.parse(response.text || '{}');
+    const result = JSON.parse(response.text || '{}');
+    
+    // --- CLIENT-SIDE FUZZY MATCHING ---
+    // This solves the Arabic spelling issues (e.g. Hamza with Ha vs Ta Marbuta)
+    // deterministically in code rather than relying on the LLM.
+    let matchedStudentId = null;
+    if (result.extractedName) {
+        matchedStudentId = findBestStudentMatch(result.extractedName, students);
+    }
+
+    return {
+        action: result.action || 'unknown',
+        studentId: matchedStudentId,
+        value: result.value,
+        extractedName: result.extractedName // Passed back for debugging or error messages
+    };
+
   } catch (error) {
     console.error("Error interpreting command:", error);
     return { action: 'unknown' };
