@@ -137,6 +137,8 @@ export interface Post {
   content: string;
   date: string;
   isPinned?: boolean;
+  likes?: number;
+  likedBy?: string[]; // Array of User IDs
 }
 
 export type Theme = 'smart' | 'blossom' | 'garden' | 'sunshine';

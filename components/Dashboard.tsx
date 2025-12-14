@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Megaphone, Send, Trash2, Bell, Calendar, Pin, PinOff, FileText, ArrowRight, ArrowLeft, Sparkles, Clock, Utensils, Coffee, Apple, Pizza, Plus } from 'lucide-react';
+import { Megaphone, Send, Trash2, Bell, Calendar, Pin, PinOff, FileText, ArrowRight, ArrowLeft, Sparkles, Clock, Utensils, Coffee, Apple, Pizza, Plus, Heart } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useNotification } from '../contexts/NotificationContext';
 import { getUsers, savePosts, getSchedule, syncPosts, getPosts, getDailyMenu, saveDailyMenu } from '../services/storageService';
@@ -106,7 +106,9 @@ const Dashboard: React.FC<DashboardProps> = ({ setCurrentView }) => {
       authorRole: currentUser.role,
       content: newPostContent.trim(),
       date: new Date().toISOString(),
-      isPinned: false
+      isPinned: false,
+      likes: 0,
+      likedBy: []
     };
 
     const updatedPosts = sortPosts([newPost, ...posts]);
@@ -135,6 +137,31 @@ const Dashboard: React.FC<DashboardProps> = ({ setCurrentView }) => {
     const sortedPosts = sortPosts(updatedPosts);
     setPosts(sortedPosts);
     savePosts(sortedPosts);
+  };
+
+  const handleLikeToggle = (postId: string) => {
+    if (!currentUser) return;
+
+    const updatedPosts = posts.map(post => {
+      if (post.id === postId) {
+        const likedBy = post.likedBy || [];
+        const isLiked = likedBy.includes(currentUser.id);
+        const newLikedBy = isLiked 
+          ? likedBy.filter(id => id !== currentUser.id)
+          : [...likedBy, currentUser.id];
+        
+        return {
+          ...post,
+          likes: newLikedBy.length,
+          likedBy: newLikedBy
+        };
+      }
+      return post;
+    });
+
+    // Don't re-sort immediately on like to avoid jumping UI
+    setPosts(updatedPosts);
+    savePosts(updatedPosts);
   };
 
   const handlePermissionClick = async () => {
@@ -344,7 +371,9 @@ const Dashboard: React.FC<DashboardProps> = ({ setCurrentView }) => {
 
                 <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-5 pb-4">
                   {posts.length > 0 ? (
-                    posts.map(post => (
+                    posts.map(post => {
+                      const isLiked = post.likedBy?.includes(currentUser?.id || '');
+                      return (
                       <div 
                         key={post.id} 
                         className={`p-6 rounded-3xl border transition-all hover:shadow-md ${
@@ -395,11 +424,26 @@ const Dashboard: React.FC<DashboardProps> = ({ setCurrentView }) => {
                             </div>
                           )}
                         </div>
-                        <p className="text-slate-600 text-sm leading-relaxed whitespace-pre-wrap font-medium">
+                        <p className="text-slate-600 text-sm leading-relaxed whitespace-pre-wrap font-medium mb-3">
                           {post.content}
                         </p>
+
+                        {/* Like Button */}
+                        <div className="flex items-center gap-2">
+                           <button 
+                             onClick={() => handleLikeToggle(post.id)}
+                             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                               isLiked 
+                                 ? 'text-rose-600 bg-rose-50 hover:bg-rose-100' 
+                                 : 'text-slate-400 bg-slate-50 hover:bg-slate-100 hover:text-rose-500'
+                             }`}
+                           >
+                             <Heart size={14} fill={isLiked ? "currentColor" : "none"} className={isLiked ? "animate-pulse" : ""} />
+                             <span>{post.likes || 0}</span>
+                           </button>
+                        </div>
                       </div>
-                    ))
+                    )})
                   ) : (
                     <div className="flex flex-col items-center justify-center h-64 text-slate-300">
                       <Megaphone size={48} className="mb-4 opacity-20" />
