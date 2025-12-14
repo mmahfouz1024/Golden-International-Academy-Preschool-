@@ -134,47 +134,44 @@ export const interpretVoiceCommand = async (command: string, students: {id: stri
     const studentContext = students.map(s => `${s.name} (ID: ${s.id})`).join(', ');
 
     const prompt = `
-      You are an AI assistant for a kindergarten teacher. 
-      Interpret the following voice command and map it to a specific action.
-      The command may be in English, Arabic, or a mix (Arabizi).
-      
-      Available Students: [${studentContext}]
-      
-      Command: "${command}"
-      
-      Determine the intent and return a JSON object.
-      
-      Possible Actions:
-      1. 'mark_attendance': Set attendance status. 
-         - English keywords: present, absent, here, away, mark attendance.
-         - Arabic keywords: حاضر, موجود, غائب, غياب, مجاش, سجل حضور, تسجيل حضور, حضر.
-         - Arabizi/Phonetic: hadir, mawjood, ghaeb, ghayeb, majash, bresent (present), absent (أبسنت).
-         - Values: 'present', 'absent'.
-         - Note: If user says "Register/Record attendance" (سجل حضور) without saying "absent", assume value is 'present'.
-      2. 'update_meal': Set meal consumption.
-         - English keywords: ate all, finished, ate some, didn't eat.
-         - Arabic keywords: أكل كله, خلص أكله, أكل شوية, مأكلش, صايم.
-         - Arabizi/Phonetic: akal kullo, akal shwaya, ma akalsh, finish, eat all (إيت أول).
-         - Values: 'all', 'some', 'none'.
-      3. 'add_note': Add a text note.
-         - English keywords: note, add note, remember that.
-         - Arabic keywords: ملاحظة, اكتب ملاحظة, سجل ملاحظة.
-         - Note: Only use this if the command is clearly about writing a note/observation, NOT attendance.
-      4. 'unknown': If command is unclear or student name is not found in the list.
+      You are a precise Intent Classifier for a kindergarten app.
+      Your job is to map a spoken command to a specific Action and Student ID.
 
-      CRITICAL Name Matching Rules:
-      - Match student names loosely to handle spelling variations.
-      - **Arabic Specifics**:
-        - Treat "ة" (Ta Marbuta) and "ه" (Ha) at end of words as IDENTICAL (e.g. "حمزة" == "حمزه").
-        - Treat "أ", "إ", "آ", "ا" (Alif forms) as IDENTICAL (e.g. "أحمد" == "احمد").
-        - Treat "ي" and "ى" as IDENTICAL.
-      - If multiple students match, pick the most likely one based on the full name provided.
+      LIST OF STUDENTS:
+      [${studentContext}]
 
-      Return ONLY JSON format:
+      USER COMMAND: "${command}"
+
+      INSTRUCTIONS:
+      1. **Identify the Student**:
+         - Find the name in the command that best matches a student in the list.
+         - **IGNORE** spelling mistakes in Arabic names.
+         - TREAT "ة" (Ta Marbuta) and "ه" (Ha) as EQUAL (e.g. "حمزه" == "حمزة", "فاطمه" == "فاطمة").
+         - TREAT "أ" and "ا" as EQUAL.
+         - Use Fuzzy Matching logic. If the command says "Hamza" and list has "Hamza Mohamed", match it.
+
+      2. **Identify the Action**:
+         - **mark_attendance**:
+           - Keywords: "حضور" (attendance), "سجل حضور" (record attendance), "موجود" (present), "حاضر" (present), "غائب" (absent), "غياب", "مجاش".
+           - IMPORTANT: "سجل حضور" means 'mark_attendance', NOT 'add_note'.
+           - Value: If command implies absent ("غائب"), value is 'absent'. Otherwise (default) value is 'present'.
+         - **update_meal**:
+           - Keywords: "أكل" (ate), "وجبة" (meal), "خلص" (finished), "food".
+           - Value: 'all', 'some', or 'none'.
+         - **add_note**:
+           - Keywords: "ملاحظة" (note), "اكتب" (write), "ذكرني" (remind me).
+           - Only use this if it's NOT attendance or meal.
+
+      EXAMPLES (Few-Shot Learning):
+      - Input: "سجل حضور الطالب حمزه محمد" -> Output: {"action": "mark_attendance", "value": "present", "studentId": "..."}
+      - Input: "حمزة غائب اليوم" -> Output: {"action": "mark_attendance", "value": "absent", "studentId": "..."}
+      - Input: "حمزه اكل كله" -> Output: {"action": "update_meal", "value": "all", "studentId": "..."}
+
+      OUTPUT JSON ONLY:
       {
         "action": "mark_attendance" | "update_meal" | "add_note" | "unknown",
-        "studentId": "id_string" (if applicable, best match from Available Students),
-        "value": "string_value" (e.g., 'present', 'all', or the note text),
+        "studentId": "id_string" (The exact ID from the student list),
+        "value": "string_value",
         "confidence": number (0-1)
       }
     `;
