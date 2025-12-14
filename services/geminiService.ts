@@ -124,3 +124,59 @@ export const generateMonthlyProgress = async (studentName: string, month: string
     throw error;
   }
 };
+
+export const interpretVoiceCommand = async (command: string, students: {id: string, name: string}[]) => {
+  try {
+    const ai = getAiClient();
+    const model = 'gemini-2.5-flash';
+    
+    // Minimal context about students to map names to IDs
+    const studentContext = students.map(s => `${s.name} (ID: ${s.id})`).join(', ');
+
+    const prompt = `
+      You are an AI assistant for a kindergarten teacher. 
+      Interpret the following voice command and map it to a specific action.
+      
+      Available Students: [${studentContext}]
+      
+      Command: "${command}"
+      
+      Determine the intent and return a JSON object.
+      Possible Actions:
+      1. 'mark_attendance': Set attendance status. (status: 'present', 'absent')
+      2. 'update_meal': Set meal consumption. (status: 'all', 'some', 'none')
+      3. 'add_note': Add a text note.
+      4. 'unknown': If command is unclear.
+
+      Return ONLY JSON format:
+      {
+        "action": "mark_attendance" | "update_meal" | "add_note" | "unknown",
+        "studentId": "id_string" (if applicable, best match),
+        "value": "string_value" (e.g., 'present', 'all', or the note text),
+        "confidence": number (0-1)
+      }
+    `;
+
+    const response = await ai.models.generateContent({
+      model: model,
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            action: { type: Type.STRING },
+            studentId: { type: Type.STRING },
+            value: { type: Type.STRING },
+            confidence: { type: Type.NUMBER }
+          }
+        }
+      }
+    });
+
+    return JSON.parse(response.text || '{}');
+  } catch (error) {
+    console.error("Error interpreting command:", error);
+    return { action: 'unknown' };
+  }
+};

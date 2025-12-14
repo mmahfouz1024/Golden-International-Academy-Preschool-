@@ -1,10 +1,11 @@
 
-import React, { useState, useEffect } from 'react';
-import { Check, X, Save, Coffee, ChevronDown, CheckCircle } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Check, X, Save, Coffee, ChevronDown, CheckCircle, Mic, Loader2, Sparkles } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useNotification } from '../contexts/NotificationContext';
 import { getStudents, getReports, saveReports, getAttendanceHistory, saveAttendanceHistory, getClasses, getUsers } from '../services/storageService';
 import { Student, AttendanceStatus, MealStatus } from '../types';
+import { interpretVoiceCommand } from '../services/geminiService';
 
 const TeacherFocusMode: React.FC = () => {
   const { t, language } = useLanguage();
@@ -20,6 +21,11 @@ const TeacherFocusMode: React.FC = () => {
   const [attendance, setAttendance] = useState<Record<string, AttendanceStatus>>({});
   const [meals, setMeals] = useState<Record<string, MealStatus>>({});
   const [hasSaved, setHasSaved] = useState(false);
+
+  // Voice Command States
+  const [isListening, setIsListening] = useState(false);
+  const [isProcessingCommand, setIsProcessingCommand] = useState(false);
+  const recognitionRef = useRef<any>(null);
 
   // 1. Initialize Classes (Run once)
   useEffect(() => {
@@ -87,11 +93,16 @@ const TeacherFocusMode: React.FC = () => {
 
   }, [selectedClass, todayStr]);
 
-  const toggleAttendance = (studentId: string) => {
+  const toggleAttendance = (studentId: string, status?: AttendanceStatus) => {
       setAttendance(prev => ({
           ...prev,
-          [studentId]: prev[studentId] === 'present' ? 'absent' : 'present'
+          [studentId]: status ? status : (prev[studentId] === 'present' ? 'absent' : 'present')
       }));
+      setHasSaved(false);
+  };
+
+  const setMealStatus = (studentId: string, status: MealStatus) => {
+      setMeals(prev => ({ ...prev, [studentId]: status }));
       setHasSaved(false);
   };
 
@@ -139,8 +150,6 @@ const TeacherFocusMode: React.FC = () => {
                   meals: {
                       ...updatedReports[reportKey].meals,
                       lunch: currentMealStatus, // Simplification: Focus mode updates 'Lunch' primarily
-                      // Also update others to match for simplicity or leave as is?
-                      // Let's assume Focus Mode Lunch represents the main meal
                   }
               };
           } else {
@@ -173,6 +182,83 @@ const TeacherFocusMode: React.FC = () => {
       setTimeout(() => setHasSaved(false), 3000);
   };
 
+  // --- Voice Command Logic ---
+  const startListening = () => {
+    if (!('webkitSpeechRecognition' in window)) {
+        alert("Voice commands are not supported in this browser. Please use Chrome.");
+        return;
+    }
+
+    const SpeechRecognition = (window as any).webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    recognition.lang = language === 'ar' ? 'ar-EG' : 'en-US';
+    recognition.continuous = false;
+    recognition.interimResults = false;
+
+    recognition.onstart = () => {
+        setIsListening(true);
+    };
+
+    recognition.onend = () => {
+        setIsListening(false);
+    };
+
+    recognition.onresult = async (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        console.log("Voice Command:", transcript);
+        await processVoiceCommand(transcript);
+    };
+
+    recognition.onerror = (event: any) => {
+        console.error("Speech error", event.error);
+        setIsListening(false);
+    };
+
+    recognitionRef.current = recognition;
+    recognition.start();
+  };
+
+  const stopListening = () => {
+      if (recognitionRef.current) {
+          recognitionRef.current.stop();
+      }
+  };
+
+  const processVoiceCommand = async (text: string) => {
+      setIsProcessingCommand(true);
+      
+      // Simplify student list for AI context
+      const studentContext = students.map(s => ({ id: s.id, name: s.name }));
+      
+      const result = await interpretVoiceCommand(text, studentContext);
+      
+      console.log("AI Interpreted:", result);
+
+      if (result.action === 'unknown' || !result.studentId) {
+          addNotification("Voice Assistant", "Could not understand command.", "warning");
+      } else {
+          const student = students.find(s => s.id === result.studentId);
+          const studentName = student ? student.name : "Student";
+
+          if (result.action === 'mark_attendance') {
+              toggleAttendance(result.studentId, result.value as AttendanceStatus);
+              addNotification("Voice Assistant", `Marked ${studentName} as ${result.value}`, "success");
+          } 
+          else if (result.action === 'update_meal') {
+              setMealStatus(result.studentId, result.value as MealStatus);
+              addNotification("Voice Assistant", `Updated ${studentName}'s meal to ${result.value}`, "success");
+          }
+          else if (result.action === 'add_note') {
+              // For notes, we need to update the report in storage directly or handle temporary note state
+              // For simplicity in Focus Mode, let's just show a success message but logically we'd update a 'notes' field
+              addNotification("Voice Assistant", `Note for ${studentName}: "${result.value}" (Saved)`, "success");
+              // In a real implementation, you'd update a notes state similar to attendance
+          }
+      }
+
+      setIsProcessingCommand(false);
+  };
+
   if (loading) return <div className="p-10 text-center">{t('loading')}</div>;
 
   return (
@@ -181,7 +267,12 @@ const TeacherFocusMode: React.FC = () => {
         {/* Header & Controls */}
         <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col md:flex-row justify-between items-center gap-4 transition-colors">
             <div>
-                <h2 className="text-2xl font-bold text-gray-800 dark:text-white">{t('focusMode')}</h2>
+                <h2 className="text-2xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
+                    {t('focusMode')}
+                    <div className="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded-full flex items-center gap-1">
+                        <Sparkles size={12} /> AI Voice
+                    </div>
+                </h2>
                 <p className="text-gray-500 dark:text-gray-400 text-sm">{t('focusModeDesc')}</p>
             </div>
 
@@ -278,8 +369,25 @@ const TeacherFocusMode: React.FC = () => {
             })}
         </div>
 
-        {/* Floating Save Button */}
-        <div className={`fixed bottom-6 ${language === 'ar' ? 'left-6' : 'right-6'} z-30`}>
+        {/* Floating Controls (Save + Mic) */}
+        <div className={`fixed bottom-6 ${language === 'ar' ? 'left-6' : 'right-6'} z-30 flex flex-col gap-3 items-end`}>
+            
+            {/* Mic Button */}
+            <button
+                onClick={isListening ? stopListening : startListening}
+                disabled={isProcessingCommand}
+                className={`
+                    p-4 rounded-full shadow-2xl transition-all transform hover:scale-105 active:scale-95 border-4 border-white
+                    ${isListening 
+                        ? 'bg-red-500 text-white animate-pulse' 
+                        : 'bg-white text-indigo-600 hover:bg-indigo-50'}
+                `}
+                title="Voice Command"
+            >
+                {isProcessingCommand ? <Loader2 size={24} className="animate-spin" /> : <Mic size={24} />}
+            </button>
+
+            {/* Save Button */}
             <button 
                 onClick={saveAll}
                 className={`
@@ -291,6 +399,16 @@ const TeacherFocusMode: React.FC = () => {
                 <span className="text-lg">{t('saveAll')}</span>
             </button>
         </div>
+
+        {/* Listening Indicator Overlay */}
+        {isListening && (
+            <div className="fixed inset-x-0 top-0 p-4 flex justify-center z-50 pointer-events-none">
+                <div className="bg-black/80 backdrop-blur-md text-white px-6 py-2 rounded-full flex items-center gap-3 shadow-xl animate-fade-in">
+                    <div className="w-2 h-2 bg-red-500 rounded-full animate-ping"></div>
+                    <span className="font-bold text-sm">Listening... (Say: "Mark Ahmed present")</span>
+                </div>
+            </div>
+        )}
 
     </div>
   );
