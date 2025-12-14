@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { LogIn, Sun, Cloud, Star, Sparkles, UserCircle, KeyRound, LockKeyhole, ArrowLeft, ArrowRight, CheckCircle, Send, Fingerprint, ScanFace } from 'lucide-react';
+import { LogIn, Sun, Cloud, Star, Sparkles, UserCircle, KeyRound, LockKeyhole, ArrowLeft, ArrowRight, CheckCircle, Send, Fingerprint, ScanFace, X } from 'lucide-react';
 import { getUsers, getMessages, saveMessages } from '../services/storageService';
 import { User, ChatMessage } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -22,7 +22,8 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
   // Biometric State
   const [isBiometricAvailable, setIsBiometricAvailable] = useState(false);
-  const [isScanning, setIsScanning] = useState(false);
+  const [showBiometricModal, setShowBiometricModal] = useState(false);
+  const [biometricStatus, setBiometricStatus] = useState<'idle' | 'scanning' | 'success' | 'failed'>('idle');
 
   const { t, dir, language } = useLanguage();
 
@@ -56,26 +57,29 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     }
   };
 
-  const handleBiometricLogin = async () => {
-    setIsScanning(true);
-    setError('');
-
-    // Simulate Native Biometric Scan Delay
+  const startBiometricScan = () => {
+    setBiometricStatus('scanning');
+    
+    // Simulate Scan Delay
     setTimeout(() => {
-        setIsScanning(false);
-        
         // Retrieve the last successfully logged in user ID
         const storedUid = localStorage.getItem('biometric_uid');
+        
         if (storedUid) {
            const users = getUsers();
            const user = users.find(u => u.id === storedUid);
            if (user) {
-             onLogin(user);
+             setBiometricStatus('success');
+             setTimeout(() => {
+                 onLogin(user);
+             }, 800); // Wait a bit to show success state
            } else {
-             setError(t('userNotFound'));
+             setBiometricStatus('failed');
+             setTimeout(() => setBiometricStatus('idle'), 2000);
            }
         } else {
-           setError(t('noSavedUser'));
+           setBiometricStatus('failed');
+           setTimeout(() => setBiometricStatus('idle'), 2000);
         }
     }, 1500);
   };
@@ -249,26 +253,16 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                   </div>
                 </button>
 
-                {/* Biometric Button (Simulated for Web) */}
+                {/* Biometric Button */}
                 {isBiometricAvailable && (
                   <button
                     type="button"
-                    onClick={handleBiometricLogin}
-                    disabled={isScanning}
-                    className="w-full bg-white border-2 border-slate-100 text-slate-600 font-bold py-3.5 rounded-full hover:bg-slate-50 hover:border-slate-200 transition-all flex items-center justify-center gap-2 mt-2 disabled:opacity-70 disabled:cursor-not-allowed group relative overflow-hidden"
+                    onClick={() => { setShowBiometricModal(true); setBiometricStatus('idle'); }}
+                    className="w-full bg-white border-2 border-slate-200 text-slate-600 font-bold py-3.5 rounded-full hover:bg-slate-50 hover:border-slate-300 transition-all flex items-center justify-center gap-2 mt-2 group relative overflow-hidden"
                   >
-                    {isScanning ? (
-                        <>
-                           <div className="w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
-                           <span className="text-indigo-500">Scanning...</span>
-                        </>
-                    ) : (
-                        <>
-                           <Fingerprint size={24} className="text-indigo-500 group-hover:scale-110 transition-transform" />
-                           <span>{t('loginWithBiometrics')}</span>
-                           <ScanFace size={20} className="text-pink-400 absolute right-6 opacity-0 group-hover:opacity-100 transition-opacity" />
-                        </>
-                    )}
+                     <Fingerprint size={24} className="text-indigo-500 group-hover:scale-110 transition-transform" />
+                     <span>{t('loginWithBiometrics')}</span>
+                     <ScanFace size={20} className="text-pink-400 absolute right-6 opacity-0 group-hover:opacity-100 transition-opacity" />
                   </button>
                 )}
               </form>
@@ -345,6 +339,53 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
           </div>
         </div>
       </div>
+
+      {/* BIOMETRIC SIMULATION MODAL */}
+      {showBiometricModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
+            <div className="bg-white rounded-[2.5rem] p-8 w-full max-w-sm text-center relative shadow-2xl border-4 border-white">
+                <button 
+                    onClick={() => setShowBiometricModal(false)}
+                    className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors"
+                >
+                    <X size={20} />
+                </button>
+
+                <h3 className="text-xl font-bold text-gray-800 mb-6 mt-2">Authentication Required</h3>
+                
+                <div 
+                    onClick={() => biometricStatus === 'idle' && startBiometricScan()}
+                    className={`
+                        w-24 h-24 mx-auto rounded-full flex items-center justify-center mb-6 transition-all duration-300
+                        ${biometricStatus === 'idle' ? 'bg-indigo-50 text-indigo-500 cursor-pointer hover:bg-indigo-100 hover:scale-105' : ''}
+                        ${biometricStatus === 'scanning' ? 'bg-indigo-100 text-indigo-600 animate-pulse' : ''}
+                        ${biometricStatus === 'success' ? 'bg-green-100 text-green-600 scale-110' : ''}
+                        ${biometricStatus === 'failed' ? 'bg-red-100 text-red-600 shake' : ''}
+                    `}
+                >
+                    {biometricStatus === 'success' ? (
+                        <CheckCircle size={48} />
+                    ) : (
+                        <Fingerprint size={48} />
+                    )}
+                </div>
+
+                <div className="h-8 mb-4">
+                    {biometricStatus === 'idle' && <p className="text-gray-500 font-medium">Touch the sensor to verify</p>}
+                    {biometricStatus === 'scanning' && <p className="text-indigo-600 font-bold">Scanning...</p>}
+                    {biometricStatus === 'success' && <p className="text-green-600 font-bold">Identity Verified</p>}
+                    {biometricStatus === 'failed' && <p className="text-red-600 font-bold">Not Recognized. Try Again.</p>}
+                </div>
+
+                {biometricStatus === 'idle' && (
+                    <p className="text-xs text-gray-400">
+                        (Simulated Web Demo: Click the fingerprint icon above)
+                    </p>
+                )}
+            </div>
+        </div>
+      )}
+
     </div>
   );
 };
