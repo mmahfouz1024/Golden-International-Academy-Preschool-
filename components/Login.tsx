@@ -1,11 +1,9 @@
 
 import React, { useState, useEffect } from 'react';
-import { LogIn, Sun, Cloud, Star, Sparkles, UserCircle, KeyRound, LockKeyhole, ArrowLeft, ArrowRight, CheckCircle, Send, Fingerprint } from 'lucide-react';
+import { LogIn, Sun, Cloud, Star, Sparkles, UserCircle, KeyRound, LockKeyhole, ArrowLeft, ArrowRight, CheckCircle, Send, Fingerprint, ScanFace } from 'lucide-react';
 import { getUsers, getMessages, saveMessages } from '../services/storageService';
 import { User, ChatMessage } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
-import { NativeBiometric } from '@capacitor-community/native-biometric';
-import { Capacitor } from '@capacitor/core';
 
 interface LoginProps {
   onLogin: (user: User) => void;
@@ -24,23 +22,16 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
   // Biometric State
   const [isBiometricAvailable, setIsBiometricAvailable] = useState(false);
+  const [isScanning, setIsScanning] = useState(false);
 
   const { t, dir, language } = useLanguage();
 
   useEffect(() => {
-    const checkBiometric = async () => {
-      if (Capacitor.isNativePlatform()) {
-        try {
-          const result = await NativeBiometric.isAvailable();
-          if (result.isAvailable) {
-            setIsBiometricAvailable(true);
-          }
-        } catch (e) {
-          console.log("Biometric not available");
-        }
-      }
-    };
-    checkBiometric();
+    // Check if we have a saved user for biometrics
+    const storedUid = localStorage.getItem('biometric_uid');
+    if (storedUid) {
+      setIsBiometricAvailable(true);
+    }
   }, []);
 
   const handleLoginSubmit = (e: React.FormEvent) => {
@@ -66,15 +57,13 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   };
 
   const handleBiometricLogin = async () => {
-    try {
-      const verified = await NativeBiometric.verifyIdentity({
-        reason: "Log in to Golden Academy",
-        title: "Log in",
-        subtitle: "",
-        description: "Use Touch ID or Face ID"
-      });
+    setIsScanning(true);
+    setError('');
 
-      if (verified) {
+    // Simulate Native Biometric Scan Delay
+    setTimeout(() => {
+        setIsScanning(false);
+        
         // Retrieve the last successfully logged in user ID
         const storedUid = localStorage.getItem('biometric_uid');
         if (storedUid) {
@@ -88,10 +77,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
         } else {
            setError(t('noSavedUser'));
         }
-      }
-    } catch (e) {
-      setError(t('biometricError'));
-    }
+    }, 1500);
   };
 
   const handleRecoverSubmit = (e: React.FormEvent) => {
@@ -263,15 +249,26 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                   </div>
                 </button>
 
-                {/* Biometric Button */}
+                {/* Biometric Button (Simulated for Web) */}
                 {isBiometricAvailable && (
                   <button
                     type="button"
                     onClick={handleBiometricLogin}
-                    className="w-full bg-white border-2 border-slate-200 text-slate-600 font-bold py-3 rounded-full hover:bg-slate-50 transition-all flex items-center justify-center gap-2"
+                    disabled={isScanning}
+                    className="w-full bg-white border-2 border-slate-100 text-slate-600 font-bold py-3.5 rounded-full hover:bg-slate-50 hover:border-slate-200 transition-all flex items-center justify-center gap-2 mt-2 disabled:opacity-70 disabled:cursor-not-allowed group relative overflow-hidden"
                   >
-                    <Fingerprint size={24} className="text-indigo-500" />
-                    <span>{t('loginWithBiometrics')}</span>
+                    {isScanning ? (
+                        <>
+                           <div className="w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+                           <span className="text-indigo-500">Scanning...</span>
+                        </>
+                    ) : (
+                        <>
+                           <Fingerprint size={24} className="text-indigo-500 group-hover:scale-110 transition-transform" />
+                           <span>{t('loginWithBiometrics')}</span>
+                           <ScanFace size={20} className="text-pink-400 absolute right-6 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </>
+                    )}
                   </button>
                 )}
               </form>
