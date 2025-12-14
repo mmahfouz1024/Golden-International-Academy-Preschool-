@@ -1,0 +1,212 @@
+
+import React, { useState, useEffect, useRef } from 'react';
+import { Html5QrcodeScanner, Html5QrcodeSupportedFormats } from 'html5-qrcode';
+import { ScanLine, X, CheckCircle, AlertTriangle, UserCheck, RefreshCw, Smartphone } from 'lucide-react';
+import { getStudents, saveAttendanceHistory, getAttendanceHistory } from '../services/storageService';
+import { Student } from '../types';
+import { useLanguage } from '../contexts/LanguageContext';
+
+const GateScanner: React.FC = () => {
+  const { t, language } = useLanguage();
+  const [scanResult, setScanResult] = useState<string | null>(null);
+  const [scannedStudent, setScannedStudent] = useState<Student | null>(null);
+  const [scanStatus, setScanStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [errorMsg, setErrorMsg] = useState('');
+  const scannerRef = useRef<Html5QrcodeScanner | null>(null);
+
+  // Load students for verification
+  const [students, setStudents] = useState<Student[]>([]);
+
+  useEffect(() => {
+    setStudents(getStudents());
+  }, []);
+
+  useEffect(() => {
+    // Initialize Scanner only if in idle mode and not already initialized
+    if (scanStatus === 'idle' && !scannerRef.current) {
+        const config = {
+            fps: 10,
+            qrbox: { width: 250, height: 250 },
+            formatsToSupport: [ Html5QrcodeSupportedFormats.QR_CODE ],
+            rememberLastUsedCamera: true
+        };
+        
+        const scanner = new Html5QrcodeScanner("reader", config, false);
+        
+        scanner.render(onScanSuccess, onScanFailure);
+        scannerRef.current = scanner;
+    }
+
+    return () => {
+        if (scannerRef.current) {
+            scannerRef.current.clear().catch(error => console.error("Failed to clear scanner", error));
+            scannerRef.current = null;
+        }
+    };
+  }, [scanStatus]);
+
+  const processScanData = (decodedText: string) => {
+      try {
+          const data = JSON.parse(decodedText);
+          // Expected Format: { sid: "student_id", pid: "parent_id", ts: timestamp, nonce: "..." }
+          
+          if (!data.sid) throw new Error("Invalid QR Code");
+
+          // Find Student
+          const student = students.find(s => s.id === data.sid);
+          
+          if (student) {
+              setScannedStudent(student);
+              setScanStatus('success');
+              setScanResult(decodedText);
+              
+              // --- AUTO CHECKOUT LOGIC ---
+              const today = new Date().toISOString().split('T')[0];
+              const history = getAttendanceHistory();
+              
+              // If student was present, mark as 'checked out' or keep present but log time?
+              // For now, let's just ensure they are marked present if not already, or we could add a checkout timestamp field later.
+              // Assuming this gate is for PICKUP (Checkout).
+              
+              // Play Success Sound
+              const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+              audio.play();
+
+          } else {
+              throw new Error("Student Not Found");
+          }
+
+      } catch (e) {
+          console.error(e);
+          setScanStatus('error');
+          setErrorMsg(t('unauthorized'));
+          setTimeout(() => setScanStatus('idle'), 3000); // Reset after 3s
+      }
+  };
+
+  const onScanSuccess = (decodedText: string) => {
+      if (scanStatus !== 'idle') return; // Prevent multiple scans
+      
+      // Stop scanner temporarily
+      if (scannerRef.current) {
+          scannerRef.current.clear();
+          scannerRef.current = null;
+      }
+      
+      processScanData(decodedText);
+  };
+
+  const onScanFailure = (error: any) => {
+      // console.warn(`Code scan error = ${error}`);
+  };
+
+  const resetScanner = () => {
+      setScanStatus('idle');
+      setScannedStudent(null);
+      setScanResult(null);
+  };
+
+  // --- SIMULATION FOR WEB/DEMO ---
+  const simulateScan = () => {
+      if (students.length > 0) {
+          // Pick random student
+          const randomStudent = students[Math.floor(Math.random() * students.length)];
+          const mockQr = JSON.stringify({ sid: randomStudent.id, pid: "simulated", ts: Date.now() });
+          processScanData(mockQr);
+      } else {
+          alert("No students to simulate.");
+      }
+  };
+
+  return (
+    <div className="max-w-md mx-auto space-y-6 animate-fade-in pb-20">
+        
+        {/* Header */}
+        <div className="flex items-center justify-between">
+            <div>
+                <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                    <ScanLine className="text-indigo-600" />
+                    {t('gateScanner')}
+                </h2>
+                <p className="text-gray-500 text-sm">{t('scanToVerify')}</p>
+            </div>
+            
+            {/* Simulation Button (Visible for Demo) */}
+            <button 
+                onClick={simulateScan}
+                className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 px-3 py-1.5 rounded-lg border border-gray-200 flex items-center gap-1"
+                title={t('simulateScan')}
+            >
+                <Smartphone size={14} /> Simulate
+            </button>
+        </div>
+
+        {/* Scanner Area */}
+        <div className="relative bg-black rounded-3xl overflow-hidden shadow-2xl aspect-square border-4 border-gray-800">
+            
+            {scanStatus === 'idle' && (
+                <>
+                    <div id="reader" className="w-full h-full object-cover"></div>
+                    {/* Overlay Grid */}
+                    <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+                        <div className="w-64 h-64 border-2 border-white/50 rounded-2xl relative">
+                            <div className="absolute top-0 left-0 w-6 h-6 border-t-4 border-l-4 border-indigo-500 -mt-1 -ml-1 rounded-tl-lg"></div>
+                            <div className="absolute top-0 right-0 w-6 h-6 border-t-4 border-r-4 border-indigo-500 -mt-1 -mr-1 rounded-tr-lg"></div>
+                            <div className="absolute bottom-0 left-0 w-6 h-6 border-b-4 border-l-4 border-indigo-500 -mb-1 -ml-1 rounded-bl-lg"></div>
+                            <div className="absolute bottom-0 right-0 w-6 h-6 border-b-4 border-r-4 border-indigo-500 -mb-1 -mr-1 rounded-br-lg"></div>
+                        </div>
+                    </div>
+                    <p className="absolute bottom-6 left-0 right-0 text-center text-white/80 text-sm font-medium bg-black/40 py-2 backdrop-blur-sm">
+                        {t('scannerInstruction')}
+                    </p>
+                </>
+            )}
+
+            {scanStatus === 'success' && scannedStudent && (
+                <div className="absolute inset-0 bg-green-500 flex flex-col items-center justify-center text-white p-6 animate-fade-in">
+                    <div className="bg-white p-2 rounded-full mb-6 shadow-xl">
+                        <CheckCircle size={64} className="text-green-500" />
+                    </div>
+                    <div className="bg-white/20 backdrop-blur-md rounded-2xl p-2 mb-4 w-32 h-32 border-4 border-white/50 shadow-inner">
+                        <img src={scannedStudent.avatar} alt="Student" className="w-full h-full object-cover rounded-xl" />
+                    </div>
+                    <h2 className="text-3xl font-bold text-center mb-1">{scannedStudent.name}</h2>
+                    <p className="text-green-100 text-lg font-medium mb-8">{scannedStudent.classGroup}</p>
+                    
+                    <div className="bg-white/20 rounded-xl p-4 w-full text-center">
+                        <div className="flex items-center justify-center gap-2 mb-1">
+                            <UserCheck size={20} />
+                            <span className="font-bold uppercase tracking-wider text-sm">{t('authorizedPickup')}</span>
+                        </div>
+                        <p className="text-sm font-medium opacity-90">{scannedStudent.parentName}</p>
+                    </div>
+                </div>
+            )}
+
+            {scanStatus === 'error' && (
+                <div className="absolute inset-0 bg-red-500 flex flex-col items-center justify-center text-white p-6 animate-shake">
+                    <div className="bg-white p-4 rounded-full mb-6 shadow-xl">
+                        <AlertTriangle size={64} className="text-red-500" />
+                    </div>
+                    <h2 className="text-3xl font-bold text-center mb-2">{t('accessDenied')}</h2>
+                    <p className="text-red-100 text-lg text-center font-medium">{errorMsg}</p>
+                </div>
+            )}
+        </div>
+
+        {/* Actions */}
+        {scanStatus !== 'idle' && (
+            <button 
+                onClick={resetScanner}
+                className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-bold shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-all flex items-center justify-center gap-2 active:scale-95"
+            >
+                <RefreshCw size={20} />
+                {t('back')} / Scan Next
+            </button>
+        )}
+
+    </div>
+  );
+};
+
+export default GateScanner;

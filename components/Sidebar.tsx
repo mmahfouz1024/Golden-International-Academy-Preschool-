@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { LayoutDashboard, Users, CalendarCheck, Sparkles, LogOut, Home, Download, UserCog, School, ChevronRight, Contact, FileClock, Palette, Database, FileText, GraduationCap, CalendarDays, Wallet, Image as ImageIcon, Zap, Moon, Sun } from 'lucide-react';
+import { LayoutDashboard, Users, CalendarCheck, Sparkles, LogOut, Home, Download, UserCog, School, ChevronRight, Contact, FileClock, Palette, Database, FileText, GraduationCap, CalendarDays, Wallet, Image as ImageIcon, Zap, Moon, Sun, QrCode, ScanLine } from 'lucide-react';
 import { User, Theme } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -33,6 +33,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   const allMenuItems = [
     { id: 'dashboard', label: t('dashboard'), icon: LayoutDashboard, defaultRoles: ['admin', 'manager', 'teacher', 'parent'] },
     { id: 'focus-mode', label: t('focusMode'), icon: Zap, defaultRoles: ['admin', 'manager', 'teacher'] },
+    { id: 'gate-scanner', label: t('gateScanner'), icon: ScanLine, defaultRoles: ['admin', 'manager', 'teacher'] }, // New Scanner for Staff
+    { id: 'pickup-pass', label: t('pickupPass'), icon: QrCode, defaultRoles: ['parent'] }, // New Pass for Parents
     { id: 'daily-report', label: t('dailyReportMenu'), icon: FileText, defaultRoles: ['admin', 'manager', 'teacher'] },
     { id: 'students', label: t('students'), icon: Users, defaultRoles: ['admin', 'manager', 'teacher'] },
     { id: 'gallery', label: t('gallery'), icon: ImageIcon, defaultRoles: ['admin', 'manager', 'teacher', 'parent'] },
@@ -52,13 +54,13 @@ const Sidebar: React.FC<SidebarProps> = ({
   const hasPermission = (item: any) => {
     if (!user) return false;
     
-    // Admin always sees everything (except parent view usually)
-    if (user.role === 'admin' && item.id !== 'parent-view') return true;
+    // Admin always sees everything (except parent specific items usually)
+    if (user.role === 'admin' && item.id !== 'parent-view' && item.id !== 'pickup-pass') return true;
 
     // Parent Logic
     if (user.role === 'parent') {
       // Basic Parent Pages
-      if (item.id === 'parent-view' || item.id === 'dashboard' || item.id === 'gallery') return true;
+      if (item.id === 'parent-view' || item.id === 'dashboard' || item.id === 'gallery' || item.id === 'pickup-pass') return true;
       
       // Optional Permissions (controlled by Admin via UserManagement)
       if (user.permissions && user.permissions.includes(item.id)) return true;

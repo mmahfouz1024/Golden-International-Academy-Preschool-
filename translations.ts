@@ -1,7 +1,7 @@
 
 export const translations = {
   en: {
-    // General
+    // ... existing translations ...
     appTitle: "Golden International Academy & Pre-school",
     appSubtitle: "Smart Management System",
     welcome: "Welcome",
@@ -28,6 +28,23 @@ export const translations = {
     biometricNotAvailable: "Biometrics not set up on this device",
     biometricError: "Authentication failed",
     noSavedUser: "Please login manually first to enable biometrics",
+
+    // QR & Security
+    pickupPass: "Pickup Pass",
+    gateScanner: "Gate Scanner",
+    securityGate: "Security Gate",
+    scanToVerify: "Scan QR to Verify",
+    digitalId: "Digital Student ID",
+    authorizedPickup: "Authorized Pickup",
+    unauthorized: "Unauthorized / Unknown",
+    accessGranted: "Access Granted",
+    accessDenied: "Access Denied",
+    childCheckedOut: "Child has been checked out successfully.",
+    scannerInstruction: "Point camera at parent's QR code",
+    cameraPermissionError: "Camera permission denied",
+    simulateScan: "Simulate Scan (Demo)",
+    validFor: "Valid for 5 minutes",
+    generatedAt: "Generated at",
 
     // UI/UX Improvements
     darkMode: "Dark Mode",
@@ -519,7 +536,7 @@ export const translations = {
     uploadBackupFile: "Upload .json file",
   },
   ar: {
-    // General
+    // ... existing translations ...
     appTitle: "أكاديمية وروضة جولدن الدولية",
     appSubtitle: "نظام الإدارة الذكي",
     welcome: "مرحباً بك",
@@ -546,6 +563,23 @@ export const translations = {
     biometricNotAvailable: "البصمة غير مفعلة على هذا الجهاز",
     biometricError: "فشل التحقق من الهوية",
     noSavedUser: "يرجى تسجيل الدخول يدوياً أولاً لتفعيل البصمة",
+
+    // QR & Security
+    pickupPass: "بطاقة الاستلام",
+    gateScanner: "ماسح البوابة",
+    securityGate: "بوابة الأمن",
+    scanToVerify: "امسح للتحقق",
+    digitalId: "بطاقة الطالب الرقمية",
+    authorizedPickup: "استلام مصرح به",
+    unauthorized: "غير مصرح / مجهول",
+    accessGranted: "تم السماح بالدخول",
+    accessDenied: "تم رفض الدخول",
+    childCheckedOut: "تم تسجيل خروج الطفل بنجاح.",
+    scannerInstruction: "وجه الكاميرا نحو رمز استلام ولي الأمر",
+    cameraPermissionError: "تم رفض صلاحية الكاميرا",
+    simulateScan: "محاكاة المسح (تجريبي)",
+    validFor: "صالح لمدة 5 دقائق",
+    generatedAt: "تم التوليد في",
 
     // UI/UX Improvements
     darkMode: "الوضع الليلي",

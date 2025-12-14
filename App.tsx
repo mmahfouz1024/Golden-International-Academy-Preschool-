@@ -18,6 +18,8 @@ import DailyReportManagement from './components/DailyReportManagement';
 import FeesManagement from './components/FeesManagement';
 import ClassGallery from './components/ClassGallery';
 import TeacherFocusMode from './components/TeacherFocusMode';
+import PickupPass from './components/PickupPass';
+import GateScanner from './components/GateScanner';
 import Login from './components/Login';
 import Chat from './components/Chat';
 import NotificationDropdown from './components/NotificationDropdown';
@@ -427,6 +429,10 @@ const AppContent: React.FC = () => {
         return <ReportsArchive onViewReport={handleViewHistoricalReport} />;
       case 'database':
         return <DatabaseControl />;
+      case 'pickup-pass':
+        return user ? <PickupPass user={user} /> : null;
+      case 'gate-scanner':
+        return <GateScanner />;
       default:
         return <Dashboard setCurrentView={handleSetView} />;
     }
