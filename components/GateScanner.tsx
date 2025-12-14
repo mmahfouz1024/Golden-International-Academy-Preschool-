@@ -1,14 +1,13 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Html5QrcodeScanner, Html5QrcodeSupportedFormats } from 'html5-qrcode';
-import { ScanLine, X, CheckCircle, AlertTriangle, UserCheck, RefreshCw, Smartphone } from 'lucide-react';
+import { ScanLine, CheckCircle, AlertTriangle, UserCheck, RefreshCw, Smartphone } from 'lucide-react';
 import { getStudents, saveAttendanceHistory, getAttendanceHistory } from '../services/storageService';
 import { Student } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
 
 const GateScanner: React.FC = () => {
-  const { t, language } = useLanguage();
-  const [scanResult, setScanResult] = useState<string | null>(null);
+  const { t } = useLanguage();
   const [scannedStudent, setScannedStudent] = useState<Student | null>(null);
   const [scanStatus, setScanStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [errorMsg, setErrorMsg] = useState('');
@@ -58,19 +57,22 @@ const GateScanner: React.FC = () => {
           if (student) {
               setScannedStudent(student);
               setScanStatus('success');
-              setScanResult(decodedText);
               
-              // --- AUTO CHECKOUT LOGIC ---
+              // --- AUTO CHECKOUT / CHECKIN LOGIC ---
               const today = new Date().toISOString().split('T')[0];
               const history = getAttendanceHistory();
               
-              // If student was present, mark as 'checked out' or keep present but log time?
-              // For now, let's just ensure they are marked present if not already, or we could add a checkout timestamp field later.
-              // Assuming this gate is for PICKUP (Checkout).
+              if (!history[today]) {
+                  history[today] = {};
+              }
+              
+              // Mark student as present if scanned
+              history[today][student.id] = 'present';
+              saveAttendanceHistory(history);
               
               // Play Success Sound
               const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
-              audio.play();
+              audio.play().catch(e => console.log("Audio play error", e));
 
           } else {
               throw new Error("Student Not Found");
@@ -96,14 +98,13 @@ const GateScanner: React.FC = () => {
       processScanData(decodedText);
   };
 
-  const onScanFailure = (error: any) => {
-      // console.warn(`Code scan error = ${error}`);
+  const onScanFailure = (_error: any) => {
+      // console.warn(`Code scan error = ${_error}`);
   };
 
   const resetScanner = () => {
       setScanStatus('idle');
       setScannedStudent(null);
-      setScanResult(null);
   };
 
   // --- SIMULATION FOR WEB/DEMO ---
