@@ -18,24 +18,42 @@ const getAiClient = () => {
   return aiClient;
 };
 
-// --- Arabic Text Normalization Helper ---
+// --- Improved Arabic Text Normalization ---
 const normalizeArabic = (text: string): string => {
   if (!text) return "";
   return text
-    .replace(/[أإآ]/g, 'ا') // Normalize Alif
-    .replace(/ة/g, 'ه')     // Normalize Ta Marbuta to Ha
-    .replace(/ى/g, 'ي')     // Normalize Ya
-    .replace(/[\u064B-\u065F]/g, '') // Remove Tashkeel (diacritics)
-    .replace(/[^\w\s\u0600-\u06FF]/g, '') // Remove special chars
-    .replace(/\s+/g, ' ')   // Collapse whitespace
+    // Normalize Alef forms
+    .replace(/[أإآ]/g, 'ا')
+    // Normalize Ta Marbuta and Ha to the SAME character (h)
+    .replace(/[ةه]/g, 'ه')
+    // Normalize Ya and Alif Maqsura
+    .replace(/[ىي]/g, 'ي')
+    // Remove Tashkeel (Diacritics)
+    .replace(/[\u064B-\u065F]/g, '')
+    // Remove Tatweel (Kashida)
+    .replace(/\u0640/g, '')
+    // Remove non-word characters (keep spaces)
+    .replace(/[^\w\s\u0600-\u06FF]/g, '')
+    // Collapse multiple spaces
+    .replace(/\s+/g, ' ')
     .trim()
     .toLowerCase();
 };
 
 const findBestStudentMatch = (searchName: string, students: {id: string, name: string}[]): string | null => {
   if (!searchName) return null;
-  const normalizedSearch = normalizeArabic(searchName);
-  const searchParts = normalizedSearch.split(' ');
+
+  // 1. Clean the search query (Remove titles like "Student", "Child")
+  const stopWords = ['الطالب', 'طالب', 'الطفل', 'طفل', 'ابن', 'ابني', 'بنت', 'بنتي', 'الولد', 'ولد', 'student', 'child'];
+  let cleanSearch = searchName;
+  stopWords.forEach(word => {
+    cleanSearch = cleanSearch.replace(new RegExp(word, 'gi'), '');
+  });
+
+  const normalizedSearch = normalizeArabic(cleanSearch);
+  const searchParts = normalizedSearch.split(' ').filter(p => p.length > 1); // Filter out single letters
+
+  if (searchParts.length === 0) return null;
 
   let bestMatchId: string | null = null;
   let highestScore = 0;
@@ -44,36 +62,33 @@ const findBestStudentMatch = (searchName: string, students: {id: string, name: s
     const normalizedStudentName = normalizeArabic(student.name);
     const studentParts = normalizedStudentName.split(' ');
     
-    // Scoring System: Count how many parts of the search name appear in the student name
-    let score = 0;
-    for (const part of searchParts) {
-      if (studentParts.includes(part)) {
-        score += 1;
-      } else {
-        // Partial match check (e.g. "Mohamed" matches "Mohammed")
-        for (const sPart of studentParts) {
-           if (sPart.includes(part) || part.includes(sPart)) {
-             if (Math.abs(sPart.length - part.length) <= 1) { // tight length check
-                score += 0.8; 
-             }
-           }
-        }
+    let matches = 0;
+    
+    // Check how many search tokens exist in the student name
+    for (const searchPart of searchParts) {
+      if (studentParts.some(sp => sp === searchPart || sp.startsWith(searchPart))) {
+        matches++;
       }
     }
 
-    // Boost score if the full normalized string is a substring (exact phrase match)
+    // Calculate Score: 
+    // - Full name match (all parts matched) gets highest score
+    // - Partial match gets score based on percentage of words matched
+    const score = matches / searchParts.length;
+
+    // Bonus for exact substring match (e.g. "Hamza Mohamed" inside "Hamza Mohamed Mahfouz")
     if (normalizedStudentName.includes(normalizedSearch)) {
-      score += 2; 
+        // Boost significantly
+        if (score > 0) return student.id; 
     }
 
-    if (score > highestScore) {
+    if (score > highestScore && score >= 0.5) { // Threshold: at least 50% of spoken words must match
       highestScore = score;
       bestMatchId = student.id;
     }
   }
 
-  // Threshold: At least one strong match or partials
-  return highestScore >= 0.8 ? bestMatchId : null;
+  return bestMatchId;
 };
 
 export const generateActivityPlan = async (ageGroup: string, topic: string) => {
@@ -186,30 +201,31 @@ export const interpretVoiceCommand = async (command: string, students: {id: stri
     const ai = getAiClient();
     const model = 'gemini-2.5-flash';
     
-    // NOTE: We do NOT pass the full student list to the AI anymore to avoid token limits or hallucination.
-    // We only ask the AI to extract the name, and we match it locally.
-
+    // Improved Prompt with clearer Intent Mapping
     const prompt = `
-      You are a Kindergarten Voice Assistant.
-      Extract structured data from the following command.
+      You are a Kindergarten Voice Assistant. Extract structured data from the following command.
 
       COMMAND: "${command}"
 
-      MAPPING RULES:
-      1. **Action**:
-         - "mark_attendance" IF command contains words like: حضور, غياب, سجل حضور, تسجيل, موجود, غائب, present, absent, attendance.
-         - "update_meal" IF command contains words like: أكل, وجبة, خلص, eat, meal, food, lunch.
-         - "add_note" IF command is about writing a note/observation.
-         
-      2. **Value** (based on action):
-         - For 'mark_attendance': 
-           - 'absent' IF command implies absent ("غائب", "مجاش", "not here").
-           - 'present' OTHERWISE (default for "سجل حضور", "موجود", "حاضر").
-         - For 'update_meal': 'all' | 'some' | 'none'.
-         - For 'add_note': The actual note content.
+      RULES:
+      1. **Action Extraction**:
+         - "mark_attendance":
+            - Keywords: "حضور" (Attendance), "سجل" (Record/Register), "موجود" (Present), "غائب" (Absent), "غياب", "مجاش".
+            - **CRITICAL**: The phrase "سجل حضور" (Record Attendance) ALONE implies Action="mark_attendance" and Value="present".
+         - "update_meal":
+            - Keywords: "أكل" (Ate), "وجبة", "خلص", "eat", "food".
+         - "add_note":
+            - Only if it's explicitly about a "note", "observation", or "reminder" AND NOT about attendance.
 
-      3. **Target Name**:
-         - Extract the name of the student mentioned. E.g. "حمزه محمد", "Sarah", "Ahmed".
+      2. **Value Extraction**:
+         - For 'mark_attendance': 
+           - IF command contains "غائب" or "مجاش" or "not here" -> 'absent'.
+           - ELSE (default) -> 'present'.
+         - For 'update_meal': 'all' | 'some' | 'none'.
+         - For 'add_note': The note content.
+
+      3. **Name Extraction**:
+         - Extract the student name. Remove titles like "الطالب" or "الطفل".
 
       OUTPUT JSON:
       {
@@ -237,9 +253,7 @@ export const interpretVoiceCommand = async (command: string, students: {id: stri
 
     const result = JSON.parse(response.text || '{}');
     
-    // --- CLIENT-SIDE FUZZY MATCHING ---
-    // This solves the Arabic spelling issues (e.g. Hamza with Ha vs Ta Marbuta)
-    // deterministically in code rather than relying on the LLM.
+    // --- ROBUST CLIENT-SIDE MATCHING ---
     let matchedStudentId = null;
     if (result.extractedName) {
         matchedStudentId = findBestStudentMatch(result.extractedName, students);
@@ -249,7 +263,7 @@ export const interpretVoiceCommand = async (command: string, students: {id: stri
         action: result.action || 'unknown',
         studentId: matchedStudentId,
         value: result.value,
-        extractedName: result.extractedName // Passed back for debugging or error messages
+        extractedName: result.extractedName
     };
 
   } catch (error) {
