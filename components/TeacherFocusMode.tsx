@@ -1,10 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
-import { Check, X, Save, Coffee, ChevronDown, CheckCircle, Circle } from 'lucide-react';
+import { Check, X, Save, Coffee, ChevronDown, CheckCircle } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useNotification } from '../contexts/NotificationContext';
 import { getStudents, getReports, saveReports, getAttendanceHistory, saveAttendanceHistory, getClasses, getUsers } from '../services/storageService';
-import { Student, DailyReport, AttendanceStatus, MealStatus } from '../types';
+import { Student, AttendanceStatus, MealStatus } from '../types';
 
 const TeacherFocusMode: React.FC = () => {
   const { t, language } = useLanguage();
