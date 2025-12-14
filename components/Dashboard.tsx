@@ -265,7 +265,7 @@ const Dashboard: React.FC<DashboardProps> = ({ setCurrentView }) => {
     <div className="space-y-8 animate-fade-in">
       
       {/* Header Section: Title + Date Inline */}
-      <div className="flex flex-col gap-2 pb-2">
+      <div className="flex flex-col gap-1 pb-4">
         <div className="flex flex-wrap items-center gap-4">
           <h2 className="text-4xl font-display font-bold text-slate-800 tracking-tight">{t('dashboard')}</h2>
           <div className="flex items-center gap-2 bg-white/60 backdrop-blur-md px-4 py-2 rounded-full border border-white/50 shadow-sm text-indigo-700">
@@ -275,7 +275,8 @@ const Dashboard: React.FC<DashboardProps> = ({ setCurrentView }) => {
              </span>
           </div>
         </div>
-        <p className="text-slate-500 font-medium">Welcome back, {currentUser?.name}</p>
+        <h3 className="text-lg font-bold text-indigo-900 opacity-80 mt-1">Golden International Academy & Preschool</h3>
+        <p className="text-slate-500 font-medium text-sm">Welcome back, {currentUser?.name}</p>
       </div>
 
       {/* Permission Banner */}
