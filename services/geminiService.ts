@@ -18,19 +18,92 @@ const getAiClient = () => {
   return aiClient;
 };
 
-// Helper strictly for other functions if needed, but interpretVoiceCommand now relies on AI
-const normalizeArabic = (text: string): string => {
+// --- ROBUST ARABIC NORMALIZATION ---
+const normalizeText = (text: string): string => {
   if (!text) return "";
   return text
+    .toLowerCase()
+    // Normalize Alef
     .replace(/[أإآ]/g, 'ا')
-    .replace(/[ةه]/g, 'ه')
-    .replace(/[ىي]/g, 'ي')
+    // Normalize Ta Marbuta to Ha (Critical for Hamza/Hamzah matching)
+    .replace(/[ة]/g, 'ه')
+    // Normalize Ya/Alif Maqsura
+    .replace(/[ى]/g, 'ي')
+    // Remove Tashkeel (Diacritics)
     .replace(/[\u064B-\u065F]/g, '')
+    // Remove Tatweel
     .replace(/\u0640/g, '')
+    // Remove non-word chars (keep spaces and arabic/english letters)
     .replace(/[^\w\s\u0600-\u06FF]/g, '')
     .replace(/\s+/g, ' ')
-    .trim()
-    .toLowerCase();
+    .trim();
+};
+
+const findBestStudentMatch = (searchName: string, students: {id: string, name: string}[]): string | null => {
+  if (!searchName) return null;
+
+  // 1. Clean the search query (Remove titles)
+  const stopWords = ['الطالب', 'طالب', 'الطفل', 'طفل', 'ابن', 'ابني', 'بنت', 'بنتي', 'student', 'child'];
+  let cleanSearch = searchName;
+  stopWords.forEach(word => {
+    cleanSearch = cleanSearch.replace(new RegExp(word, 'gi'), '');
+  });
+
+  const normalizedSearch = normalizeText(cleanSearch);
+  const searchParts = normalizedSearch.split(' ').filter(p => p.length > 1);
+
+  if (searchParts.length === 0) return null;
+
+  let bestMatchId: string | null = null;
+  let maxMatchedParts = 0;
+  let bestScore = 0;
+
+  for (const student of students) {
+    const normalizedStudentName = normalizeText(student.name);
+    const studentParts = normalizedStudentName.split(' ');
+    
+    let matchedPartsCount = 0;
+    
+    // Check how many search tokens exist in the student name
+    for (const searchPart of searchParts) {
+      if (studentParts.some(sp => sp.includes(searchPart) || searchPart.includes(sp))) {
+        matchedPartsCount++;
+      }
+    }
+
+    // Exact full match bonus
+    if (normalizedStudentName === normalizedSearch) {
+        return student.id;
+    }
+
+    // Substring match bonus (e.g. "Hamza" inside "Hamza Mohamed")
+    if (normalizedStudentName.includes(normalizedSearch)) {
+        matchedPartsCount += 0.5;
+    }
+
+    // Score calculation
+    if (matchedPartsCount > maxMatchedParts) {
+        maxMatchedParts = matchedPartsCount;
+        bestMatchId = student.id;
+        bestScore = matchedPartsCount / searchParts.length;
+    } else if (matchedPartsCount === maxMatchedParts && matchedPartsCount > 0) {
+        // Tie-breaker: prefer shorter name difference (more exact match)
+        const currentDiff = Math.abs(normalizedStudentName.length - normalizedSearch.length);
+        const bestStudent = students.find(s => s.id === bestMatchId);
+        const bestDiff = bestStudent ? Math.abs(normalizeText(bestStudent.name).length - normalizedSearch.length) : 999;
+        
+        if (currentDiff < bestDiff) {
+            bestMatchId = student.id;
+        }
+    }
+  }
+
+  // Threshold: Match at least one word strongly or 50% of tokens
+  if (maxMatchedParts >= 1 || bestScore >= 0.5) {
+      return bestMatchId;
+  }
+
+  return null;
 };
 
 export const generateActivityPlan = async (ageGroup: string, topic: string) => {
@@ -143,39 +216,29 @@ export const interpretVoiceCommand = async (command: string, students: {id: stri
     const ai = getAiClient();
     const model = 'gemini-2.5-flash';
     
-    // Strategy: Pass the context (list of students) to the AI.
-    // This allows the AI to handle fuzzy matching, Arabic <-> English transliteration, and typo correction directly.
-    const studentContextJSON = JSON.stringify(students.slice(0, 50)); // Limit context to 50 students to be safe, though 1M window allows more.
-
     const prompt = `
-      You are a Smart Kindergarten Assistant.
-      
-      CONTEXT (List of Students in current class):
-      ${studentContextJSON}
-      
-      USER AUDIO COMMAND: "${command}"
+      You are a Kindergarten Voice Assistant. Extract structured data from the command.
 
-      TASK:
-      1. Match the spoken name in the command to a unique "id" from the CONTEXT list.
-         - Be flexible: "Hamza" matches "Hamza Mohamed", "حمزة" matches "Hamza".
-         - Handle Arabic/English differences intelligently.
-         - If multiple partial matches exist, pick the most likely one based on the full name.
-      
-      2. Determine the Intent (Action) & Value:
-         - "mark_attendance":
-            - Keywords: "سجل حضور", "حضور", "موجود", "غائب", "attendance", "present", "absent".
-            - Value: 'present' (default if not specified) OR 'absent' (if "غائب"/"absent" mentioned).
-         - "update_meal":
-            - Keywords: "أكل", "وجبة", "خلص", "eat", "meal", "lunch".
-            - Value: 'all', 'some', 'none'.
-         - "add_note":
-            - Keywords: "ملاحظة", "note".
-            - Value: The content of the note.
+      COMMAND: "${command}"
+
+      1. Identify the ACTION:
+         - "mark_attendance": Keywords like "حضور" (Attendance), "سجل" (Record), "موجود" (Present), "غائب" (Absent), "غياب".
+           * Note: "سجل حضور" implies "present" unless "absent" is explicitly mentioned.
+         - "update_meal": Keywords like "أكل" (Ate), "وجبة", "خلص", "eat".
+         - "add_note": Keywords like "ملاحظة", "note".
+
+      2. Identify the VALUE:
+         - For Attendance: 'present' (default) or 'absent'.
+         - For Meals: 'all' (default if completed), 'some', 'none'.
+         - For Note: The note text.
+
+      3. Identify the NAME:
+         - Extract the student name mentioned. Remove titles like "الطالب", "الطفل".
 
       OUTPUT JSON:
       {
         "action": "mark_attendance" | "update_meal" | "add_note" | "unknown",
-        "studentId": "string" | null,
+        "extractedName": "string",
         "value": "string"
       }
     `;
@@ -189,7 +252,7 @@ export const interpretVoiceCommand = async (command: string, students: {id: stri
           type: Type.OBJECT,
           properties: {
             action: { type: Type.STRING },
-            studentId: { type: Type.STRING, nullable: true },
+            extractedName: { type: Type.STRING },
             value: { type: Type.STRING }
           }
         }
@@ -198,11 +261,19 @@ export const interpretVoiceCommand = async (command: string, students: {id: stri
 
     const result = JSON.parse(response.text || '{}');
     
+    // --- CLIENT SIDE MATCHING ---
+    // This is more robust for Arabic spelling variations (Hamza vs Hamzah vs حمزة vs حمزه)
+    // than relying on the AI to match against a list, especially for small typos.
+    let matchedStudentId = null;
+    if (result.extractedName) {
+        matchedStudentId = findBestStudentMatch(result.extractedName, students);
+    }
+
     return {
         action: result.action || 'unknown',
-        studentId: result.studentId,
+        studentId: matchedStudentId,
         value: result.value,
-        extractedName: '' // Legacy field, not strictly needed with ID
+        extractedName: result.extractedName
     };
 
   } catch (error) {

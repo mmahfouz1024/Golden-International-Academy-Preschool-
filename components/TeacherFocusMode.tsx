@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Check, X, Save, Coffee, ChevronDown, CheckCircle, Mic, Loader2, Sparkles } from 'lucide-react';
+import { Check, X, Save, Coffee, ChevronDown, CheckCircle, Mic, Loader2, Sparkles, Gamepad2, Plus } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useNotification } from '../contexts/NotificationContext';
 import { getStudents, getReports, saveReports, getAttendanceHistory, saveAttendanceHistory, getClasses, getUsers } from '../services/storageService';
@@ -20,12 +20,20 @@ const TeacherFocusMode: React.FC = () => {
   // Batch States
   const [attendance, setAttendance] = useState<Record<string, AttendanceStatus>>({});
   const [meals, setMeals] = useState<Record<string, MealStatus>>({});
+  const [classActivities, setClassActivities] = useState<string[]>([]); // New State for Class Activities
   const [hasSaved, setHasSaved] = useState(false);
 
   // Voice Command States
   const [isListening, setIsListening] = useState(false);
   const [isProcessingCommand, setIsProcessingCommand] = useState(false);
   const recognitionRef = useRef<any>(null);
+
+  // Activities List (Matches StudentDetail)
+  const ACTIVITIES_LIST = [
+    'Montessori', 'Garden', 'Coloring', 'Art', 'Swimming', 
+    'Puzzle', 'Blocks', 'Songs', 'Etiquette', 
+    'Circle time', 'Learning center', 'P.E'
+  ];
 
   // 1. Initialize Classes (Run once)
   useEffect(() => {
@@ -69,6 +77,11 @@ const TeacherFocusMode: React.FC = () => {
     
     const initialAttendance: Record<string, AttendanceStatus> = {};
     const initialMeals: Record<string, MealStatus> = {};
+    
+    // Check if any report in this class already has activities set, use the first one found as initial state
+    // This allows the teacher to come back and see what was selected for the class
+    let loadedActivities: string[] = [];
+    let activityFound = false;
 
     classStudents.forEach(s => {
         // Attendance
@@ -82,6 +95,11 @@ const TeacherFocusMode: React.FC = () => {
         const reportKey = `${s.id}_${todayStr}`;
         if (reports[reportKey]) {
             initialMeals[s.id] = reports[reportKey].meals.lunch;
+            // Try to grab activities from the first student found with a report
+            if (!activityFound && reports[reportKey].activities && reports[reportKey].activities.length > 0) {
+                loadedActivities = reports[reportKey].activities;
+                activityFound = true;
+            }
         } else {
             initialMeals[s.id] = 'all'; // Default to ate all
         }
@@ -89,6 +107,7 @@ const TeacherFocusMode: React.FC = () => {
 
     setAttendance(initialAttendance);
     setMeals(initialMeals);
+    setClassActivities(loadedActivities);
     setLoading(false);
 
   }, [selectedClass, todayStr]);
@@ -118,6 +137,17 @@ const TeacherFocusMode: React.FC = () => {
       setHasSaved(false);
   };
 
+  const toggleClassActivity = (activity: string) => {
+      setClassActivities(prev => {
+          if (prev.includes(activity)) {
+              return prev.filter(a => a !== activity);
+          } else {
+              return [...prev, activity];
+          }
+      });
+      setHasSaved(false);
+  };
+
   const markRestPresent = () => {
       setAttendance(prev => {
           const updated = { ...prev };
@@ -133,14 +163,16 @@ const TeacherFocusMode: React.FC = () => {
       history[todayStr] = { ...history[todayStr], ...attendance };
       saveAttendanceHistory(history);
 
-      // 2. Save/Create Reports with Meal Data
+      // 2. Save/Create Reports with Meal Data AND Activities
       const allReports = getReports();
       const updatedReports = { ...allReports };
 
       students.forEach(s => {
-          // Skip absent students for meals report if desired, but let's just save for now
-          // If absent, we probably shouldn't set meal to 'all', but 'none' logically
+          // Skip absent students for meals/activities report usually, but let's update them all to be safe
           const currentMealStatus = attendance[s.id] === 'absent' ? 'none' : meals[s.id];
+          
+          // Only apply class activities if student is present (optional logic, but safe to apply generally)
+          const currentActivities = classActivities;
 
           const reportKey = `${s.id}_${todayStr}`;
           if (updatedReports[reportKey]) {
@@ -149,8 +181,9 @@ const TeacherFocusMode: React.FC = () => {
                   ...updatedReports[reportKey],
                   meals: {
                       ...updatedReports[reportKey].meals,
-                      lunch: currentMealStatus, // Simplification: Focus mode updates 'Lunch' primarily
-                  }
+                      lunch: currentMealStatus, 
+                  },
+                  activities: currentActivities // Apply the class-wide activities
               };
           } else {
               // Create new simple report
@@ -160,7 +193,7 @@ const TeacherFocusMode: React.FC = () => {
                   date: todayStr,
                   mood: 'neutral',
                   meals: {
-                      breakfast: 'all', // Default assumptions
+                      breakfast: 'all', 
                       lunch: currentMealStatus,
                       snack: 'all',
                       waterCups: 2,
@@ -169,7 +202,7 @@ const TeacherFocusMode: React.FC = () => {
                   bathroom: { urine: 0, stool: 0, notes: '' },
                   nap: { slept: false, notes: '' },
                   academic: { religion:[], arabic:[], english:[], math:[] },
-                  activities: [],
+                  activities: currentActivities, // Apply the class-wide activities
                   photos: [],
                   notes: ''
               };
@@ -192,11 +225,8 @@ const TeacherFocusMode: React.FC = () => {
     const SpeechRecognition = (window as any).webkitSpeechRecognition;
     const recognition = new SpeechRecognition();
     
-    // Explicitly set to Arabic (Egypt) to support mixed language input.
-    // Modern speech engines handle "Mark Ahmed Present" perfectly even in Arabic mode, 
-    // but the English mode often fails completely with Arabic names or commands.
+    // Explicitly set to Arabic (Egypt)
     recognition.lang = 'ar-EG'; 
-    
     recognition.continuous = false;
     recognition.interimResults = false;
 
@@ -232,13 +262,10 @@ const TeacherFocusMode: React.FC = () => {
   const processVoiceCommand = async (text: string) => {
       setIsProcessingCommand(true);
       
-      // Simplify student list for AI context
       const studentContext = students.map(s => ({ id: s.id, name: s.name }));
       
       const result = await interpretVoiceCommand(text, studentContext);
       
-      console.log("AI Interpreted:", result);
-
       if (result.action === 'unknown' || !result.studentId) {
           addNotification("Voice Assistant", `Could not understand: "${text}"`, "warning");
       } else {
@@ -253,12 +280,6 @@ const TeacherFocusMode: React.FC = () => {
               setMealStatus(result.studentId, result.value as MealStatus);
               addNotification("Voice Assistant", `Updated ${studentName}'s meal to ${result.value}`, "success");
           }
-          else if (result.action === 'add_note') {
-              // For notes, we need to update the report in storage directly or handle temporary note state
-              // For simplicity in Focus Mode, let's just show a success message but logically we'd update a 'notes' field
-              addNotification("Voice Assistant", `Note for ${studentName}: "${result.value}" (Saved)`, "success");
-              // In a real implementation, you'd update a notes state similar to attendance
-          }
       }
 
       setIsProcessingCommand(false);
@@ -267,7 +288,7 @@ const TeacherFocusMode: React.FC = () => {
   if (loading) return <div className="p-10 text-center">{t('loading')}</div>;
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6 animate-fade-in pb-24">
+    <div className="max-w-6xl mx-auto space-y-6 animate-fade-in pb-24">
         
         {/* Header & Controls */}
         <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col md:flex-row justify-between items-center gap-4 transition-colors">
@@ -301,6 +322,41 @@ const TeacherFocusMode: React.FC = () => {
                 >
                     {t('markRestPresent')}
                 </button>
+            </div>
+        </div>
+
+        {/* --- CLASS ACTIVITIES SELECTOR (Apply to All) --- */}
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700">
+            <h3 className="font-bold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
+                <div className="p-2 bg-pink-100 text-pink-600 rounded-lg">
+                   <Gamepad2 size={20} />
+                </div>
+                {t('activities')} ({t('filterClass')})
+            </h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                {ACTIVITIES_LIST.map(act => {
+                    const isSelected = classActivities.includes(act);
+                    return (
+                        <button
+                            key={act}
+                            onClick={() => toggleClassActivity(act)}
+                            className={`
+                                flex items-center gap-2 p-3 rounded-xl border-2 transition-all select-none
+                                ${isSelected 
+                                    ? 'border-pink-200 bg-pink-50 text-pink-700' 
+                                    : 'border-transparent bg-gray-50 dark:bg-gray-700/50 text-gray-500 hover:bg-gray-100'}
+                            `}
+                        >
+                            <div className={`
+                                w-5 h-5 rounded-full flex items-center justify-center transition-colors
+                                ${isSelected ? 'bg-pink-500 text-white' : 'bg-white border border-gray-200'}
+                            `}>
+                                {isSelected && <Check size={12} strokeWidth={3} />}
+                            </div>
+                            <span className="text-xs font-bold truncate">{t(act as any)}</span>
+                        </button>
+                    );
+                })}
             </div>
         </div>
 
