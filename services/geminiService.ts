@@ -72,17 +72,19 @@ const findBestStudentMatch = (searchName: string, students: {id: string, name: s
     }
 
     // Calculate Score: 
-    // - Full name match (all parts matched) gets highest score
-    // - Partial match gets score based on percentage of words matched
-    const score = matches / searchParts.length;
+    // Use the length of the *shorter* name to allow for:
+    // 1. Nicknames/First Name only (Speech: "Hamza", Record: "Hamza Mohamed")
+    // 2. Extra details in speech (Speech: "Hamza Mohamed Mahfouz", Record: "Hamza Mohamed")
+    const minLen = Math.min(searchParts.length, studentParts.length);
+    const score = minLen > 0 ? matches / minLen : 0;
 
     // Bonus for exact substring match (e.g. "Hamza Mohamed" inside "Hamza Mohamed Mahfouz")
-    if (normalizedStudentName.includes(normalizedSearch)) {
+    if (normalizedStudentName.includes(normalizedSearch) || normalizedSearch.includes(normalizedStudentName)) {
         // Boost significantly
-        if (score > 0) return student.id; 
+        if (score >= 0.5) return student.id; 
     }
 
-    if (score > highestScore && score >= 0.5) { // Threshold: at least 50% of spoken words must match
+    if (score > highestScore && score >= 0.6) { // Lower threshold slightly to allow for partial mismatches
       highestScore = score;
       bestMatchId = student.id;
     }
