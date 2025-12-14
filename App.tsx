@@ -533,6 +533,15 @@ const AppContent: React.FC = () => {
           <div className="max-w-7xl mx-auto pt-2">
              {renderContent()}
           </div>
+
+          {/* Added Footer to Main Layout */}
+          <div className="text-center pt-6 mt-4 border-t border-gray-200 dark:border-gray-800 pb-8">
+             <p className="text-xs text-gray-500 dark:text-gray-400 font-bold mb-1">Powered by Mohamed Mahfouz</p>
+             <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5 font-mono" dir="ltr">eMail: M.mahfouz1024@gmail.com</p>
+             <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5 font-mono" dir="ltr">Phone: 01063743345</p>
+             <p className="text-[10px] text-gray-300 dark:text-gray-600 mt-2">All rights reserved @ 2025</p>
+             <p className="text-[10px] text-gray-300 dark:text-gray-600">Version 1.00</p>
+          </div>
         </main>
 
       </div>

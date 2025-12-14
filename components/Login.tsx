@@ -275,12 +275,12 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
               </form>
           )}
 
-          <div className="text-center pt-6">
-             <p className="text-xs text-gray-400 font-medium">Powered by Mohamed Mahfouz</p>
-             <p className="text-[10px] text-gray-300 mt-0.5">eMail: M.mahfouz1024@gmail.com</p>
-             <p className="text-[10px] text-gray-300 mt-0.5">Phone: 01063743345</p>
-             <p className="text-[10px] text-gray-300 mt-0.5">All rights reserved @ 2025</p>
-             <p className="text-[10px] text-gray-300 mt-0.5">Version 1.00</p>
+          <div className="text-center pt-6 mt-4 border-t border-gray-100">
+             <p className="text-xs text-gray-500 font-bold mb-1">Powered by Mohamed Mahfouz</p>
+             <p className="text-[10px] text-gray-400 mt-0.5 font-mono" dir="ltr">eMail: M.mahfouz1024@gmail.com</p>
+             <p className="text-[10px] text-gray-400 mt-0.5 font-mono" dir="ltr">Phone: 01063743345</p>
+             <p className="text-[10px] text-gray-300 mt-2">All rights reserved @ 2025</p>
+             <p className="text-[10px] text-gray-300">Version 1.00</p>
           </div>
         </div>
       </div>
