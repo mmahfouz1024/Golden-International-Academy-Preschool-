@@ -9,7 +9,6 @@ import {
   forceSyncFromCloud,
   createBackupData,
   restoreBackupData,
-  getStudents,
   saveStudents,
   getUsers,
   saveUsers
