@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Database, Save, UploadCloud, DownloadCloud, CheckCircle, AlertTriangle, Copy, Code, Lock, Unlock, FileDown, FileUp, HardDrive } from 'lucide-react';
+import { Database, Save, UploadCloud, DownloadCloud, CheckCircle, AlertTriangle, Copy, Code, Lock, Unlock, FileDown, FileUp, HardDrive, Trash2, UserX, Baby } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { 
   getDatabaseConfig, 
@@ -8,7 +8,11 @@ import {
   forceSyncToCloud, 
   forceSyncFromCloud,
   createBackupData,
-  restoreBackupData
+  restoreBackupData,
+  getStudents,
+  saveStudents,
+  getUsers,
+  saveUsers
 } from '../services/storageService';
 import { checkConnection, generateSQLSchema } from '../services/supabaseClient';
 import { DatabaseConfig } from '../types';
@@ -157,6 +161,48 @@ const DatabaseControl: React.FC = () => {
     }
     // Reset input so same file can be selected again if needed
     if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  // --- DANGER ZONE HANDLERS ---
+
+  const handleClearChildren = () => {
+    if (window.confirm('WARNING: Are you sure you want to delete ALL Children/Students? This cannot be undone.')) {
+        saveStudents([]);
+        setMsg({ type: 'success', text: 'All students have been deleted.' });
+        setTimeout(() => setMsg(null), 3000);
+    }
+  };
+
+  const handleClearParents = () => {
+    if (window.confirm('WARNING: Are you sure you want to delete ALL Parent accounts?')) {
+        const allUsers = getUsers();
+        const remainingUsers = allUsers.filter(u => u.role !== 'parent');
+        saveUsers(remainingUsers);
+        setMsg({ type: 'success', text: 'All parent accounts deleted.' });
+        setTimeout(() => setMsg(null), 3000);
+    }
+  };
+
+  const handleClearUsers = () => {
+    if (window.confirm('WARNING: Are you sure you want to delete users? (Manager, Admin, and Gehan will be kept).')) {
+        const allUsers = getUsers();
+        const protectedUsernames = ['manager', 'gehan'];
+        
+        const remainingUsers = allUsers.filter(u => {
+            const username = u.username.toLowerCase().trim();
+            // Keep Admin role (General Manager)
+            if (u.role === 'admin') return true;
+            // Keep Specific Protected Usernames
+            if (protectedUsernames.includes(username)) return true;
+            
+            // Delete everyone else (Teachers, Managers who aren't 'manager', etc.)
+            return false;
+        });
+
+        saveUsers(remainingUsers);
+        setMsg({ type: 'success', text: 'Users cleaned. Protected accounts preserved.' });
+        setTimeout(() => setMsg(null), 3000);
+    }
   };
 
   if (!isAuthenticated) {
@@ -369,6 +415,49 @@ const DatabaseControl: React.FC = () => {
         </div>
       )}
 
+      {/* 3. DANGER ZONE */}
+      <div className="bg-white p-6 rounded-2xl shadow-sm border border-red-100">
+         <div className="flex items-center gap-4 mb-6">
+            <div className="p-3 bg-red-50 text-red-600 rounded-xl">
+               <AlertTriangle size={32} />
+            </div>
+            <div>
+               <h2 className="text-2xl font-bold text-gray-800">Danger Zone</h2>
+               <p className="text-gray-500">Bulk delete operations (Irreversible)</p>
+            </div>
+         </div>
+
+         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <button 
+               onClick={handleClearChildren}
+               className="p-4 bg-red-50 hover:bg-red-100 border border-red-200 rounded-xl flex flex-col items-center gap-2 transition-all group"
+            >
+               <Baby size={28} className="text-red-500 group-hover:scale-110 transition-transform" />
+               <span className="font-bold text-red-700">Delete All Children</span>
+               <span className="text-[10px] text-red-500 font-medium">Removes all students</span>
+            </button>
+
+            <button 
+               onClick={handleClearParents}
+               className="p-4 bg-red-50 hover:bg-red-100 border border-red-200 rounded-xl flex flex-col items-center gap-2 transition-all group"
+            >
+               <UserX size={28} className="text-red-500 group-hover:scale-110 transition-transform" />
+               <span className="font-bold text-red-700">Delete All Parents</span>
+               <span className="text-[10px] text-red-500 font-medium">Removes users with role 'Parent'</span>
+            </button>
+
+            <button 
+               onClick={handleClearUsers}
+               className="p-4 bg-red-50 hover:bg-red-100 border border-red-200 rounded-xl flex flex-col items-center gap-2 transition-all group"
+            >
+               <Trash2 size={28} className="text-red-500 group-hover:scale-110 transition-transform" />
+               <span className="font-bold text-red-700">Delete Users</span>
+               <span className="text-[10px] text-red-500 font-medium">Except 'manager', 'gehan', 'admin'</span>
+            </button>
+         </div>
+      </div>
+
+      {/* SQL Generation */}
       <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
          <button 
            onClick={() => setShowSql(!showSql)}
