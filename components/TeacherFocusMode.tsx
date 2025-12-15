@@ -44,6 +44,10 @@ const TeacherFocusMode: React.FC = () => {
   const [isProcessingCommand, setIsProcessingCommand] = useState(false);
   const recognitionRef = useRef<any>(null);
 
+  // Scroll & Highlight
+  const studentRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const [highlightedStudentId, setHighlightedStudentId] = useState<string | null>(null);
+
   // Activities List (Matches StudentDetail)
   const ACTIVITIES_LIST = [
     'Montessori', 'Garden', 'Coloring', 'Art', 'Swimming', 
@@ -276,6 +280,16 @@ const TeacherFocusMode: React.FC = () => {
       setTimeout(() => setHasSaved(false), 3000);
   };
 
+  // --- Scroll & Highlight Logic ---
+  const scrollToStudent = (studentId: string) => {
+      const element = studentRefs.current[studentId];
+      if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          setHighlightedStudentId(studentId);
+          setTimeout(() => setHighlightedStudentId(null), 2000);
+      }
+  };
+
   // --- Voice Command Logic ---
   const startListening = () => {
     if (!('webkitSpeechRecognition' in window)) {
@@ -330,6 +344,11 @@ const TeacherFocusMode: React.FC = () => {
       if (result.action === 'unknown' || !result.studentId) {
           addNotification("Voice Assistant", `Could not understand: "${text}"`, "warning");
       } else {
+          // Scroll to student immediately
+          if (result.studentId) {
+              scrollToStudent(result.studentId);
+          }
+
           const student = students.find(s => s.id === result.studentId);
           const studentName = student ? student.name : "Student";
 
@@ -500,15 +519,18 @@ const TeacherFocusMode: React.FC = () => {
             {students.map(student => {
                 const isPresent = attendance[student.id] === 'present';
                 const mealStatus = meals[student.id];
+                const isHighlighted = highlightedStudentId === student.id;
                 
                 return (
                     <div 
                         key={student.id} 
+                        ref={el => studentRefs.current[student.id] = el}
                         className={`
-                            relative p-4 rounded-2xl border-2 transition-all duration-200
+                            relative p-4 rounded-2xl border-2 transition-all duration-300
                             ${isPresent 
                                 ? 'bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700' 
                                 : 'bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700 opacity-75'}
+                            ${isHighlighted ? 'ring-4 ring-yellow-400 scale-105 z-10 shadow-xl' : ''}
                         `}
                     >
                         {/* Student Info */}
