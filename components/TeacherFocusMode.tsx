@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Check, X, Save, Coffee, CheckCircle, Mic, Loader2, Sparkles, Gamepad2, BookOpen, Plus, Utensils, CheckSquare, Square } from 'lucide-react';
+import { Check, X, Save, Coffee, CheckCircle, Mic, Loader2, Sparkles, Gamepad2, BookOpen, Plus, Utensils, CheckSquare, Square, Calendar } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useNotification } from '../contexts/NotificationContext';
 import { getStudents, getReports, saveReports, getAttendanceHistory, saveAttendanceHistory, getClasses, getUsers } from '../services/storageService';
@@ -16,7 +16,7 @@ const TeacherFocusMode: React.FC = () => {
   const [selectedClasses, setSelectedClasses] = useState<string[]>([]);
   const [classes, setClasses] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
-  const [todayStr] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
 
   // Batch States
   const [attendance, setAttendance] = useState<Record<string, AttendanceStatus>>({});
@@ -110,7 +110,7 @@ const TeacherFocusMode: React.FC = () => {
     
     setStudents(classStudents);
 
-    // Load Existing Data for Today
+    // Load Existing Data for selectedDate
     const history = getAttendanceHistory();
     const reports = getReports();
     
@@ -138,14 +138,14 @@ const TeacherFocusMode: React.FC = () => {
 
     classStudents.forEach(s => {
         // Attendance
-        if (history[todayStr] && history[todayStr][s.id]) {
-            initialAttendance[s.id] = history[todayStr][s.id];
+        if (history[selectedDate] && history[selectedDate][s.id]) {
+            initialAttendance[s.id] = history[selectedDate][s.id];
         } else {
             initialAttendance[s.id] = 'present'; // Default to present
         }
 
         // Meals (Check report for lunch status as main indicator)
-        const reportKey = `${s.id}_${todayStr}`;
+        const reportKey = `${s.id}_${selectedDate}`;
         if (reports[reportKey]) {
             initialMeals[s.id] = reports[reportKey].meals.lunch;
             
@@ -196,13 +196,15 @@ const TeacherFocusMode: React.FC = () => {
     setMeals(initialMeals);
     
     // Only overwrite local state if we actually found data from existing reports
-    if (activitiesFound) setClassActivities(loadedActivities);
-    if (academicFound) setClassAcademic(loadedAcademic);
-    if (mealsFound) setClassMeals(loadedMeals);
+    // Otherwise keep current local state (allows carrying over data when switching classes if user wants, 
+    // though usually we might want to reset. For now, let's reset if nothing found to avoid confusion)
+    if (activitiesFound) setClassActivities(loadedActivities); else setClassActivities([]);
+    if (academicFound) setClassAcademic(loadedAcademic); else setClassAcademic({ religion: [], arabic: [], english: [], math: [] });
+    if (mealsFound) setClassMeals(loadedMeals); else setClassMeals({ breakfast: [], lunch: [], snack: [] });
     
     setLoading(false);
 
-  }, [selectedClasses, todayStr]);
+  }, [selectedClasses, selectedDate]);
 
   // --- Multi-Class Selection Handlers ---
   const toggleClassSelection = (className: string) => {
@@ -313,7 +315,8 @@ const TeacherFocusMode: React.FC = () => {
   const saveAll = () => {
       // 1. Save Attendance
       const history = getAttendanceHistory();
-      history[todayStr] = { ...history[todayStr], ...attendance };
+      if (!history[selectedDate]) history[selectedDate] = {};
+      history[selectedDate] = { ...history[selectedDate], ...attendance };
       saveAttendanceHistory(history);
 
       // 2. Save/Create Reports with Meal Data, Activities, AND Academic
@@ -324,7 +327,7 @@ const TeacherFocusMode: React.FC = () => {
           // Skip absent students for meals/activities report usually, but let's update them all to be safe
           const currentMealStatus = attendance[s.id] === 'absent' ? 'none' : meals[s.id];
           
-          const reportKey = `${s.id}_${todayStr}`;
+          const reportKey = `${s.id}_${selectedDate}`;
           if (updatedReports[reportKey]) {
               // Update existing
               updatedReports[reportKey] = {
@@ -344,7 +347,7 @@ const TeacherFocusMode: React.FC = () => {
               updatedReports[reportKey] = {
                   id: `rep-${Date.now()}-${s.id}`,
                   studentId: s.id,
-                  date: todayStr,
+                  date: selectedDate,
                   mood: 'neutral',
                   meals: {
                       breakfast: 'all', 
@@ -549,6 +552,25 @@ const TeacherFocusMode: React.FC = () => {
             </div>
 
             <div className="flex flex-col sm:flex-row items-center gap-4 w-full xl:w-auto">
+                {/* Date Picker */}
+                <div className="relative group">
+                    <div className={`absolute inset-y-0 ${language === 'ar' ? 'right-0 pr-3' : 'left-0 pl-3'} flex items-center pointer-events-none`}>
+                        <Calendar className="text-gray-400 group-focus-within:text-indigo-500 transition-colors" size={18} />
+                    </div>
+                    <input 
+                        type="date"
+                        value={selectedDate}
+                        onChange={(e) => setSelectedDate(e.target.value)}
+                        className={`
+                            ${language === 'ar' ? 'pr-10 pl-4' : 'pl-10 pr-4'} 
+                            py-2.5 rounded-xl border-2 border-gray-100 dark:border-gray-600 
+                            bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 
+                            focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 
+                            font-bold text-sm shadow-sm transition-all cursor-pointer
+                        `}
+                    />
+                </div>
+
                 {classes.length > 0 && (
                     <div className="flex flex-wrap items-center gap-2 bg-gray-50 dark:bg-gray-700/50 p-2 rounded-2xl border border-gray-100 dark:border-gray-600 w-full sm:w-auto">
                         <button
