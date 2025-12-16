@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Check, X, Save, Coffee, CheckCircle, Mic, Loader2, Sparkles, Gamepad2, BookOpen, Plus, Utensils, CheckSquare, Square, Calendar } from 'lucide-react';
+import { Check, X, Save, Coffee, CheckCircle, Mic, Loader2, Sparkles, Gamepad2, BookOpen, Plus, Utensils, CheckSquare, Square, Calendar, ChevronDown } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useNotification } from '../contexts/NotificationContext';
 import { getStudents, getReports, saveReports, getAttendanceHistory, saveAttendanceHistory, getClasses, getUsers } from '../services/storageService';
@@ -16,7 +16,7 @@ const TeacherFocusMode: React.FC = () => {
   const [selectedClasses, setSelectedClasses] = useState<string[]>([]);
   const [classes, setClasses] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState<string>(''); // Empty initially to force selection
 
   // Batch States
   const [attendance, setAttendance] = useState<Record<string, AttendanceStatus>>({});
@@ -69,6 +69,19 @@ const TeacherFocusMode: React.FC = () => {
     'Circle time', 'Learning center', 'P.E'
   ];
 
+  // Helper for English Date Format (Day Month Year)
+  const getFormattedDate = (dateStr: string) => {
+    if (!dateStr) return '';
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
+    // Force English Locale for consistent Day Month Year format
+    return date.toLocaleDateString('en-GB', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+    });
+  };
+
   // 1. Initialize Classes (Run once)
   useEffect(() => {
     const currentUser = getUsers().find(u => u.id === localStorage.getItem('golden_session_uid'));
@@ -94,7 +107,7 @@ const TeacherFocusMode: React.FC = () => {
 
   // 2. Load Data when Selected Classes or Date changes
   useEffect(() => {
-    if (selectedClasses.length === 0) {
+    if (!selectedDate || selectedClasses.length === 0) {
         setStudents([]);
         setLoading(false);
         return;
@@ -534,6 +547,33 @@ const TeacherFocusMode: React.FC = () => {
       </div>
   );
 
+  // --- Initial Selection Screen ---
+  if (!selectedDate) {
+      return (
+          <div className="flex flex-col items-center justify-center min-h-[60vh] animate-fade-in p-6">
+              <div className="bg-white dark:bg-gray-800 p-10 rounded-[2.5rem] shadow-xl border border-gray-100 dark:border-gray-700 text-center max-w-md w-full">
+                  <div className="w-24 h-24 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+                      <Calendar size={48} />
+                  </div>
+                  <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-2">{t('selectDate')}</h2>
+                  <p className="text-gray-500 dark:text-gray-400 mb-8 text-sm">Please choose a date to start managing the class.</p>
+                  
+                  <div className="relative group">
+                      <input 
+                          type="date"
+                          className="w-full px-6 py-4 text-lg font-bold text-center bg-gray-50 dark:bg-gray-700 border-2 border-indigo-100 dark:border-indigo-900 rounded-2xl focus:outline-none focus:border-indigo-500 focus:bg-white dark:focus:bg-gray-600 transition-all cursor-pointer text-gray-700 dark:text-gray-200"
+                          onChange={(e) => setSelectedDate(e.target.value)}
+                      />
+                      <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-indigo-400">
+                          <ChevronDown />
+                      </div>
+                  </div>
+              </div>
+          </div>
+      );
+  }
+
+  // --- Main Focus View ---
   if (loading && selectedClasses.length > 0) return <div className="p-10 text-center">{t('loading')}</div>;
 
   return (
@@ -552,22 +592,20 @@ const TeacherFocusMode: React.FC = () => {
             </div>
 
             <div className="flex flex-col sm:flex-row items-center gap-4 w-full xl:w-auto">
-                {/* Date Picker */}
-                <div className="relative group">
-                    <div className={`absolute inset-y-0 ${language === 'ar' ? 'right-0 pr-3' : 'left-0 pl-3'} flex items-center pointer-events-none`}>
-                        <Calendar className="text-gray-400 group-focus-within:text-indigo-500 transition-colors" size={18} />
+                {/* Date Display (Click to Change) */}
+                <div className="relative group w-full sm:w-auto">
+                    <div className="flex items-center gap-3 bg-white dark:bg-gray-700 px-5 py-2.5 rounded-2xl border border-gray-200 dark:border-gray-600 shadow-sm cursor-pointer w-full justify-between sm:justify-start">
+                        <Calendar size={20} className="text-indigo-500" />
+                        <span className="font-bold text-gray-700 dark:text-gray-200 text-sm sm:text-lg min-w-[120px] text-center" dir="ltr">
+                            {getFormattedDate(selectedDate)}
+                        </span>
+                        <ChevronDown size={16} className="text-gray-400 group-hover:text-indigo-500" />
                     </div>
                     <input 
                         type="date"
                         value={selectedDate}
                         onChange={(e) => setSelectedDate(e.target.value)}
-                        className={`
-                            ${language === 'ar' ? 'pr-10 pl-4' : 'pl-10 pr-4'} 
-                            py-2.5 rounded-xl border-2 border-gray-100 dark:border-gray-600 
-                            bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 
-                            focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 
-                            font-bold text-sm shadow-sm transition-all cursor-pointer
-                        `}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                     />
                 </div>
 
