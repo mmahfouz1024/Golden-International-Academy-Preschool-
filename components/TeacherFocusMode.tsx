@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Check, X, Save, Coffee, ChevronDown, CheckCircle, Mic, Loader2, Sparkles, Gamepad2, BookOpen, Plus } from 'lucide-react';
+import { Check, X, Save, Coffee, ChevronDown, CheckCircle, Mic, Loader2, Sparkles, Gamepad2, BookOpen, Plus, Utensils, Pizza, Apple } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useNotification } from '../contexts/NotificationContext';
 import { getStudents, getReports, saveReports, getAttendanceHistory, saveAttendanceHistory, getClasses, getUsers } from '../services/storageService';
@@ -35,6 +35,19 @@ const TeacherFocusMode: React.FC = () => {
     arabic: '',
     english: '',
     math: ''
+  });
+
+  // Class Meals State
+  const [classMeals, setClassMeals] = useState<{
+    breakfast: string[];
+    lunch: string[];
+    snack: string[];
+  }>({ breakfast: [], lunch: [], snack: [] });
+
+  const [mealInputs, setMealInputs] = useState({
+    breakfast: '',
+    lunch: '',
+    snack: ''
   });
 
   const [hasSaved, setHasSaved] = useState(false);
@@ -106,9 +119,16 @@ const TeacherFocusMode: React.FC = () => {
         english: string[];
         math: string[];
     } = { religion: [], arabic: [], english: [], math: [] };
+
+    let loadedMeals: {
+        breakfast: string[];
+        lunch: string[];
+        snack: string[];
+    } = { breakfast: [], lunch: [], snack: [] };
     
     let activitiesFound = false;
     let academicFound = false;
+    let mealsFound = false;
 
     classStudents.forEach(s => {
         // Attendance
@@ -145,6 +165,22 @@ const TeacherFocusMode: React.FC = () => {
                     academicFound = true;
                 }
             }
+
+            // Try to grab meal details
+            if (!mealsFound && reports[reportKey].meals) {
+                const rMeals = reports[reportKey].meals;
+                const hasMealData = (rMeals.breakfastDetails?.length || 0) + (rMeals.lunchDetails?.length || 0) + (rMeals.snackDetails?.length || 0) > 0;
+                
+                if (hasMealData) {
+                    loadedMeals = {
+                        breakfast: rMeals.breakfastDetails || [],
+                        lunch: rMeals.lunchDetails || [],
+                        snack: rMeals.snackDetails || []
+                    };
+                    mealsFound = true;
+                }
+            }
+
         } else {
             initialMeals[s.id] = 'all'; // Default to ate all
         }
@@ -154,6 +190,7 @@ const TeacherFocusMode: React.FC = () => {
     setMeals(initialMeals);
     setClassActivities(loadedActivities);
     setClassAcademic(loadedAcademic);
+    setClassMeals(loadedMeals);
     setLoading(false);
 
   }, [selectedClass, todayStr]);
@@ -215,6 +252,27 @@ const TeacherFocusMode: React.FC = () => {
       setHasSaved(false);
   };
 
+  // Meal Details Handlers
+  const handleAddMeal = (type: keyof typeof classMeals) => {
+      const val = mealInputs[type].trim();
+      if (!val) return;
+
+      setClassMeals(prev => ({
+          ...prev,
+          [type]: [...prev[type], val]
+      }));
+      setMealInputs(prev => ({ ...prev, [type]: '' }));
+      setHasSaved(false);
+  };
+
+  const handleRemoveMeal = (type: keyof typeof classMeals, index: number) => {
+      setClassMeals(prev => ({
+          ...prev,
+          [type]: prev[type].filter((_, i) => i !== index)
+      }));
+      setHasSaved(false);
+  };
+
   const markRestPresent = () => {
       setAttendance(prev => {
           const updated = { ...prev };
@@ -245,7 +303,10 @@ const TeacherFocusMode: React.FC = () => {
                   ...updatedReports[reportKey],
                   meals: {
                       ...updatedReports[reportKey].meals,
-                      lunch: currentMealStatus, 
+                      lunch: currentMealStatus,
+                      breakfastDetails: classMeals.breakfast,
+                      lunchDetails: classMeals.lunch,
+                      snackDetails: classMeals.snack
                   },
                   activities: classActivities, // Apply class-wide activities
                   academic: classAcademic      // Apply class-wide academic
@@ -262,7 +323,10 @@ const TeacherFocusMode: React.FC = () => {
                       lunch: currentMealStatus,
                       snack: 'all',
                       waterCups: 2,
-                      breakfastDetails: [], lunchDetails: [], snackDetails: []
+                      breakfastDetails: classMeals.breakfast,
+                      lunchDetails: classMeals.lunch,
+                      snackDetails: classMeals.snack,
+                      notes: ''
                   },
                   bathroom: { urine: 0, stool: 0, notes: '' },
                   nap: { slept: false, notes: '' },
@@ -402,6 +466,43 @@ const TeacherFocusMode: React.FC = () => {
       </div>
   );
 
+  const renderMealBlock = (mealType: keyof typeof classMeals, title: string, colorClass: string) => (
+      <div className={`p-4 rounded-2xl border-2 ${colorClass} bg-white dark:bg-gray-800 h-full flex flex-col`}>
+          <h4 className="font-bold text-sm mb-3 uppercase opacity-80 flex items-center gap-2">
+             {title}
+          </h4>
+          
+          <div className="flex gap-2 mb-3">
+              <input 
+                  value={mealInputs[mealType]}
+                  onChange={e => setMealInputs({...mealInputs, [mealType]: e.target.value})}
+                  onKeyDown={e => e.key === 'Enter' && handleAddMeal(mealType)}
+                  placeholder={t('add')}
+                  className="flex-1 bg-gray-50 dark:bg-gray-700 rounded-xl px-3 py-2 text-sm border-transparent focus:bg-white focus:ring-2 focus:ring-orange-500/20 outline-none transition-all"
+              />
+              <button 
+                  onClick={() => handleAddMeal(mealType)} 
+                  disabled={!mealInputs[mealType].trim()}
+                  className="p-2 bg-orange-500 text-white rounded-xl hover:bg-orange-600 transition-colors shadow-sm disabled:opacity-50"
+              >
+                  <Plus size={18} />
+              </button>
+          </div>
+          
+          <div className="flex flex-wrap gap-2 content-start flex-1 min-h-[40px]">
+              {classMeals[mealType].map((item, idx) => (
+                  <span key={idx} className="flex items-center gap-1.5 bg-gray-100 dark:bg-gray-700 px-2.5 py-1 rounded-lg text-xs font-bold text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-600 animate-fade-in">
+                      {item}
+                      <button onClick={() => handleRemoveMeal(mealType, idx)} className="hover:text-red-500 transition-colors p-0.5 rounded-full hover:bg-red-50"><X size={12}/></button>
+                  </span>
+              ))}
+              {classMeals[mealType].length === 0 && (
+                  <span className="text-xs text-gray-400 italic self-center w-full text-center py-2">{t('noResults')}</span>
+              )}
+          </div>
+      </div>
+  );
+
   if (loading) return <div className="p-10 text-center">{t('loading')}</div>;
 
   return (
@@ -491,26 +592,52 @@ const TeacherFocusMode: React.FC = () => {
             </div>
         </div>
 
-        {/* --- CLASS ACADEMIC SELECTOR --- */}
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border-2 border-teal-50 dark:border-gray-700 relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
-                <BookOpen size={100} className="text-teal-500" />
-            </div>
+        {/* --- CLASS MEALS & ACADEMIC GRID --- */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             
-            <h3 className="font-bold text-gray-800 dark:text-white mb-4 flex items-center gap-2 text-lg">
-                <div className="p-2 bg-teal-100 text-teal-600 rounded-lg">
-                   <BookOpen size={24} />
+            {/* --- CLASS MEALS SELECTOR --- */}
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border-2 border-orange-50 dark:border-gray-700 relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
+                    <Utensils size={100} className="text-orange-500" />
                 </div>
-                {t('academic')}
-                <span className="text-gray-400 mx-1">|</span>
-                <span className="text-teal-600 dark:text-teal-400 underline decoration-wavy decoration-teal-300 underline-offset-4">{selectedClass}</span>
-            </h3>
+                
+                <h3 className="font-bold text-gray-800 dark:text-white mb-4 flex items-center gap-2 text-lg">
+                    <div className="p-2 bg-orange-100 text-orange-600 rounded-lg">
+                    <Utensils size={24} />
+                    </div>
+                    {t('meals')}
+                    <span className="text-gray-400 mx-1">|</span>
+                    <span className="text-orange-600 dark:text-orange-400 underline decoration-wavy decoration-orange-300 underline-offset-4">{selectedClass}</span>
+                </h3>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {renderAcademicBlock('religion', t('religion'), 'border-purple-100')}
-                {renderAcademicBlock('arabic', t('arabicSubject'), 'border-emerald-100')}
-                {renderAcademicBlock('english', t('englishSubject'), 'border-blue-100')}
-                {renderAcademicBlock('math', t('mathSubject'), 'border-orange-100')}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
+                    {renderMealBlock('breakfast', t('breakfast'), 'border-orange-100')}
+                    {renderMealBlock('lunch', t('lunch'), 'border-red-100')}
+                    {renderMealBlock('snack', t('snack'), 'border-yellow-100')}
+                </div>
+            </div>
+
+            {/* --- CLASS ACADEMIC SELECTOR --- */}
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border-2 border-teal-50 dark:border-gray-700 relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
+                    <BookOpen size={100} className="text-teal-500" />
+                </div>
+                
+                <h3 className="font-bold text-gray-800 dark:text-white mb-4 flex items-center gap-2 text-lg">
+                    <div className="p-2 bg-teal-100 text-teal-600 rounded-lg">
+                    <BookOpen size={24} />
+                    </div>
+                    {t('academic')}
+                    <span className="text-gray-400 mx-1">|</span>
+                    <span className="text-teal-600 dark:text-teal-400 underline decoration-wavy decoration-teal-300 underline-offset-4">{selectedClass}</span>
+                </h3>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
+                    {renderAcademicBlock('religion', t('religion'), 'border-purple-100')}
+                    {renderAcademicBlock('arabic', t('arabicSubject'), 'border-emerald-100')}
+                    {renderAcademicBlock('english', t('englishSubject'), 'border-blue-100')}
+                    {renderAcademicBlock('math', t('mathSubject'), 'border-orange-100')}
+                </div>
             </div>
         </div>
 
