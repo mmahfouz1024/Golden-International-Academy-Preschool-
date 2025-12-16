@@ -651,59 +651,84 @@ const TeacherFocusMode: React.FC = () => {
             </div>
         </div>
 
-        {/* --- CLASS ACTIVITIES SELECTOR --- */}
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border-2 border-indigo-50 dark:border-gray-700 relative overflow-hidden">
+        {/* --- CLASS ACADEMIC SELECTOR (FIRST) --- */}
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border-2 border-teal-50 dark:border-gray-700 relative overflow-hidden">
             <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
-                <Gamepad2 size={100} className="text-indigo-500" />
+                <BookOpen size={100} className="text-teal-500" />
             </div>
             
             <h3 className="font-bold text-gray-800 dark:text-white mb-4 flex items-center gap-2 text-lg">
-                <div className="p-2 bg-pink-100 text-pink-600 rounded-lg">
-                   <Gamepad2 size={24} />
+                <div className="p-2 bg-teal-100 text-teal-600 rounded-lg">
+                <BookOpen size={24} />
                 </div>
-                {t('activities')}
+                {t('academic')}
                 <span className="text-gray-400 mx-1">|</span>
-                <span className="text-indigo-600 dark:text-indigo-400 underline decoration-wavy decoration-indigo-300 underline-offset-4">
-                    {selectedClasses.length === 0 ? "No Class Selected" : selectedClasses.length === 1 ? selectedClasses[0] : `${selectedClasses.length} Classes`}
+                <span className="text-teal-600 dark:text-teal-400 underline decoration-wavy decoration-teal-300 underline-offset-4">
+                    {selectedClasses.length === 0 ? "..." : selectedClasses.length === 1 ? selectedClasses[0] : "Multiple"}
                 </span>
             </h3>
-            
-            <p className="text-sm text-gray-500 mb-4 bg-gray-50 dark:bg-gray-700/50 p-3 rounded-xl border border-gray-100 dark:border-gray-600 inline-block">
-                Select activities below to apply them to <b>all present students</b> in the selected classes.
-            </p>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-                {ACTIVITIES_LIST.map(act => {
-                    const isSelected = classActivities.includes(act);
-                    return (
-                        <button
-                            key={act}
-                            onClick={() => toggleClassActivity(act)}
-                            disabled={selectedClasses.length === 0}
-                            className={`
-                                flex items-center gap-2 p-3 rounded-xl border-2 transition-all select-none
-                                ${isSelected 
-                                    ? 'border-pink-200 bg-pink-50 text-pink-700 transform scale-105 shadow-sm' 
-                                    : 'border-transparent bg-gray-50 dark:bg-gray-700/50 text-gray-500 hover:bg-gray-100'}
-                                ${selectedClasses.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}
-                            `}
-                        >
-                            <div className={`
-                                w-5 h-5 rounded-full flex items-center justify-center transition-colors
-                                ${isSelected ? 'bg-pink-500 text-white' : 'bg-white border border-gray-200'}
-                            `}>
-                                {isSelected && <Check size={12} strokeWidth={3} />}
-                            </div>
-                            <span className="text-xs font-bold truncate">{t(act as any)}</span>
-                        </button>
-                    );
-                })}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {renderAcademicBlock('religion', t('religion'), 'border-purple-100')}
+                {renderAcademicBlock('arabic', t('arabicSubject'), 'border-emerald-100')}
+                {renderAcademicBlock('english', t('englishSubject'), 'border-blue-100')}
+                {renderAcademicBlock('math', t('mathSubject'), 'border-orange-100')}
             </div>
         </div>
 
-        {/* --- CLASS MEALS & ACADEMIC GRID --- */}
+        {/* --- CLASS ACTIVITIES & MEALS GRID --- */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             
+            {/* --- CLASS ACTIVITIES SELECTOR --- */}
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border-2 border-indigo-50 dark:border-gray-700 relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
+                    <Gamepad2 size={100} className="text-indigo-500" />
+                </div>
+                
+                <h3 className="font-bold text-gray-800 dark:text-white mb-4 flex items-center gap-2 text-lg">
+                    <div className="p-2 bg-pink-100 text-pink-600 rounded-lg">
+                    <Gamepad2 size={24} />
+                    </div>
+                    {t('activities')}
+                    <span className="text-gray-400 mx-1">|</span>
+                    <span className="text-indigo-600 dark:text-indigo-400 underline decoration-wavy decoration-indigo-300 underline-offset-4">
+                        {selectedClasses.length === 0 ? "No Class Selected" : selectedClasses.length === 1 ? selectedClasses[0] : `${selectedClasses.length} Classes`}
+                    </span>
+                </h3>
+                
+                <p className="text-sm text-gray-500 mb-4 bg-gray-50 dark:bg-gray-700/50 p-3 rounded-xl border border-gray-100 dark:border-gray-600 inline-block">
+                    Select activities below to apply them to <b>all present students</b> in the selected classes.
+                </p>
+
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {ACTIVITIES_LIST.map(act => {
+                        const isSelected = classActivities.includes(act);
+                        return (
+                            <button
+                                key={act}
+                                onClick={() => toggleClassActivity(act)}
+                                disabled={selectedClasses.length === 0}
+                                className={`
+                                    flex items-center gap-2 p-3 rounded-xl border-2 transition-all select-none
+                                    ${isSelected 
+                                        ? 'border-pink-200 bg-pink-50 text-pink-700 transform scale-105 shadow-sm' 
+                                        : 'border-transparent bg-gray-50 dark:bg-gray-700/50 text-gray-500 hover:bg-gray-100'}
+                                    ${selectedClasses.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}
+                                `}
+                            >
+                                <div className={`
+                                    w-5 h-5 rounded-full flex items-center justify-center transition-colors
+                                    ${isSelected ? 'bg-pink-500 text-white' : 'bg-white border border-gray-200'}
+                                `}>
+                                    {isSelected && <Check size={12} strokeWidth={3} />}
+                                </div>
+                                <span className="text-xs font-bold truncate">{t(act as any)}</span>
+                            </button>
+                        );
+                    })}
+                </div>
+            </div>
+
             {/* --- CLASS MEALS SELECTOR --- */}
             <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border-2 border-orange-50 dark:border-gray-700 relative overflow-hidden">
                 <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
@@ -721,35 +746,10 @@ const TeacherFocusMode: React.FC = () => {
                     </span>
                 </h3>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {renderMealBlock('breakfast', t('breakfast'), 'border-orange-100')}
                     {renderMealBlock('lunch', t('lunch'), 'border-red-100')}
                     {renderMealBlock('snack', t('snack'), 'border-yellow-100')}
-                </div>
-            </div>
-
-            {/* --- CLASS ACADEMIC SELECTOR --- */}
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border-2 border-teal-50 dark:border-gray-700 relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
-                    <BookOpen size={100} className="text-teal-500" />
-                </div>
-                
-                <h3 className="font-bold text-gray-800 dark:text-white mb-4 flex items-center gap-2 text-lg">
-                    <div className="p-2 bg-teal-100 text-teal-600 rounded-lg">
-                    <BookOpen size={24} />
-                    </div>
-                    {t('academic')}
-                    <span className="text-gray-400 mx-1">|</span>
-                    <span className="text-teal-600 dark:text-teal-400 underline decoration-wavy decoration-teal-300 underline-offset-4">
-                        {selectedClasses.length === 0 ? "..." : selectedClasses.length === 1 ? selectedClasses[0] : "Multiple"}
-                    </span>
-                </h3>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
-                    {renderAcademicBlock('religion', t('religion'), 'border-purple-100')}
-                    {renderAcademicBlock('arabic', t('arabicSubject'), 'border-emerald-100')}
-                    {renderAcademicBlock('english', t('englishSubject'), 'border-blue-100')}
-                    {renderAcademicBlock('math', t('mathSubject'), 'border-orange-100')}
                 </div>
             </div>
         </div>
