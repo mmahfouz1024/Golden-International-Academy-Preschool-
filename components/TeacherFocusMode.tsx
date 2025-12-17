@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Check, X, Save, Coffee, CheckCircle, Mic, Loader2, Sparkles, Gamepad2, BookOpen, Plus, Utensils, CheckSquare, Square, Calendar, ChevronDown, ArrowDown } from 'lucide-react';
+import { Check, X, Save, Coffee, CheckCircle, Mic, Loader2, Gamepad2, BookOpen, Plus, Utensils, CheckSquare, Square, Calendar, ChevronDown, ArrowDown } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useNotification } from '../contexts/NotificationContext';
 import { getStudents, getReports, saveReports, getAttendanceHistory, saveAttendanceHistory, getClasses, getUsers } from '../services/storageService';
