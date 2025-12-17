@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Check, X, Save, Coffee, CheckCircle, Mic, Loader2, Sparkles, Gamepad2, BookOpen, Plus, Utensils, CheckSquare, Square, Calendar, ChevronDown } from 'lucide-react';
+import { Check, X, Save, Coffee, CheckCircle, Mic, Loader2, Sparkles, Gamepad2, BookOpen, Plus, Utensils, CheckSquare, Square, Calendar, ChevronDown, ArrowDown } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useNotification } from '../contexts/NotificationContext';
 import { getStudents, getReports, saveReports, getAttendanceHistory, saveAttendanceHistory, getClasses, getUsers } from '../services/storageService';
@@ -60,6 +60,7 @@ const TeacherFocusMode: React.FC = () => {
 
   // Scroll & Highlight
   const studentRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const attendanceRef = useRef<HTMLDivElement>(null); // Ref for the attendance section
   const [highlightedStudentId, setHighlightedStudentId] = useState<string | null>(null);
 
   // Activities List (Matches StudentDetail)
@@ -388,7 +389,7 @@ const TeacherFocusMode: React.FC = () => {
       setTimeout(() => setHasSaved(false), 3000);
   };
 
-  // --- Scroll & Highlight Logic ---
+  // --- Scroll Functions ---
   const scrollToStudent = (studentId: string) => {
       const element = studentRefs.current[studentId];
       if (element) {
@@ -396,6 +397,10 @@ const TeacherFocusMode: React.FC = () => {
           setHighlightedStudentId(studentId);
           setTimeout(() => setHighlightedStudentId(null), 2000);
       }
+  };
+
+  const scrollToAttendance = () => {
+      attendanceRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   // --- Voice Command Logic ---
@@ -581,17 +586,7 @@ const TeacherFocusMode: React.FC = () => {
         
         {/* Header & Controls */}
         <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 transition-colors">
-            <div>
-                <h2 className="text-2xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
-                    {t('focusMode')}
-                    <div className="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded-full flex items-center gap-1">
-                        <Sparkles size={12} /> AI Voice
-                    </div>
-                </h2>
-                <p className="text-gray-500 dark:text-gray-400 text-sm">{t('focusModeDesc')}</p>
-            </div>
-
-            <div className="flex flex-col sm:flex-row items-center gap-4 w-full xl:w-auto">
+            <div className="flex flex-col sm:flex-row items-center gap-4 w-full xl:w-auto order-2 xl:order-1">
                 {/* Date Display (Click to Change) */}
                 <div className="relative group w-full sm:w-auto">
                     <div className="flex items-center gap-3 bg-white dark:bg-gray-700 px-5 py-2.5 rounded-2xl border border-gray-200 dark:border-gray-600 shadow-sm cursor-pointer w-full justify-between sm:justify-start">
@@ -640,8 +635,20 @@ const TeacherFocusMode: React.FC = () => {
                         ))}
                     </div>
                 )}
-                
-                <button 
+            </div>
+
+            <div className="flex items-center gap-3 w-full xl:w-auto justify-end order-1 xl:order-2 mb-4 xl:mb-0">
+               {/* Quick Attendance Scroll Button */}
+               <button 
+                    onClick={scrollToAttendance}
+                    className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2.5 rounded-xl font-bold shadow-md hover:bg-indigo-700 transition-colors text-sm"
+               >
+                   <CheckCircle size={18} />
+                   {t('attendance')}
+                   <ArrowDown size={16} />
+               </button>
+
+               <button 
                     onClick={markRestPresent}
                     disabled={selectedClasses.length === 0}
                     className="hidden xl:block text-sm text-indigo-600 dark:text-indigo-400 font-bold hover:bg-indigo-50 dark:hover:bg-gray-700 px-4 py-2 rounded-xl transition-colors whitespace-nowrap"
@@ -651,7 +658,31 @@ const TeacherFocusMode: React.FC = () => {
             </div>
         </div>
 
-        {/* --- CLASS ACADEMIC SELECTOR (FIRST) --- */}
+        {/* 1. CLASS MEALS SELECTOR (FIRST) */}
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border-2 border-orange-50 dark:border-gray-700 relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
+                <Utensils size={100} className="text-orange-500" />
+            </div>
+            
+            <h3 className="font-bold text-gray-800 dark:text-white mb-4 flex items-center gap-2 text-lg">
+                <div className="p-2 bg-orange-100 text-orange-600 rounded-lg">
+                <Utensils size={24} />
+                </div>
+                {t('meals')}
+                <span className="text-gray-400 mx-1">|</span>
+                <span className="text-orange-600 dark:text-orange-400 underline decoration-wavy decoration-orange-300 underline-offset-4">
+                    {selectedClasses.length === 0 ? "..." : selectedClasses.length === 1 ? selectedClasses[0] : "Multiple"}
+                </span>
+            </h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {renderMealBlock('breakfast', t('breakfast'), 'border-orange-100')}
+                {renderMealBlock('lunch', t('lunch'), 'border-red-100')}
+                {renderMealBlock('snack', t('snack'), 'border-yellow-100')}
+            </div>
+        </div>
+
+        {/* 2. CLASS ACADEMIC SELECTOR (SECOND) */}
         <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border-2 border-teal-50 dark:border-gray-700 relative overflow-hidden">
             <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
                 <BookOpen size={100} className="text-teal-500" />
@@ -676,162 +707,136 @@ const TeacherFocusMode: React.FC = () => {
             </div>
         </div>
 
-        {/* --- CLASS ACTIVITIES & MEALS GRID --- */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* 3. CLASS ACTIVITIES SELECTOR (THIRD) */}
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border-2 border-indigo-50 dark:border-gray-700 relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
+                <Gamepad2 size={100} className="text-indigo-500" />
+            </div>
             
-            {/* --- CLASS ACTIVITIES SELECTOR --- */}
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border-2 border-indigo-50 dark:border-gray-700 relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
-                    <Gamepad2 size={100} className="text-indigo-500" />
+            <h3 className="font-bold text-gray-800 dark:text-white mb-4 flex items-center gap-2 text-lg">
+                <div className="p-2 bg-pink-100 text-pink-600 rounded-lg">
+                <Gamepad2 size={24} />
                 </div>
-                
-                <h3 className="font-bold text-gray-800 dark:text-white mb-4 flex items-center gap-2 text-lg">
-                    <div className="p-2 bg-pink-100 text-pink-600 rounded-lg">
-                    <Gamepad2 size={24} />
-                    </div>
-                    {t('activities')}
-                    <span className="text-gray-400 mx-1">|</span>
-                    <span className="text-indigo-600 dark:text-indigo-400 underline decoration-wavy decoration-indigo-300 underline-offset-4">
-                        {selectedClasses.length === 0 ? "No Class Selected" : selectedClasses.length === 1 ? selectedClasses[0] : `${selectedClasses.length} Classes`}
-                    </span>
-                </h3>
-                
-                <p className="text-sm text-gray-500 mb-4 bg-gray-50 dark:bg-gray-700/50 p-3 rounded-xl border border-gray-100 dark:border-gray-600 inline-block">
-                    Select activities below to apply them to <b>all present students</b> in the selected classes.
-                </p>
+                {t('activities')}
+                <span className="text-gray-400 mx-1">|</span>
+                <span className="text-indigo-600 dark:text-indigo-400 underline decoration-wavy decoration-indigo-300 underline-offset-4">
+                    {selectedClasses.length === 0 ? "No Class Selected" : selectedClasses.length === 1 ? selectedClasses[0] : `${selectedClasses.length} Classes`}
+                </span>
+            </h3>
+            
+            <p className="text-sm text-gray-500 mb-4 bg-gray-50 dark:bg-gray-700/50 p-3 rounded-xl border border-gray-100 dark:border-gray-600 inline-block">
+                Select activities below to apply them to <b>all present students</b> in the selected classes.
+            </p>
 
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                    {ACTIVITIES_LIST.map(act => {
-                        const isSelected = classActivities.includes(act);
-                        return (
-                            <button
-                                key={act}
-                                onClick={() => toggleClassActivity(act)}
-                                disabled={selectedClasses.length === 0}
-                                className={`
-                                    flex items-center gap-2 p-3 rounded-xl border-2 transition-all select-none
-                                    ${isSelected 
-                                        ? 'border-pink-200 bg-pink-50 text-pink-700 transform scale-105 shadow-sm' 
-                                        : 'border-transparent bg-gray-50 dark:bg-gray-700/50 text-gray-500 hover:bg-gray-100'}
-                                    ${selectedClasses.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}
-                                `}
-                            >
-                                <div className={`
-                                    w-5 h-5 rounded-full flex items-center justify-center transition-colors
-                                    ${isSelected ? 'bg-pink-500 text-white' : 'bg-white border border-gray-200'}
-                                `}>
-                                    {isSelected && <Check size={12} strokeWidth={3} />}
-                                </div>
-                                <span className="text-xs font-bold truncate">{t(act as any)}</span>
-                            </button>
-                        );
-                    })}
-                </div>
-            </div>
-
-            {/* --- CLASS MEALS SELECTOR --- */}
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border-2 border-orange-50 dark:border-gray-700 relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
-                    <Utensils size={100} className="text-orange-500" />
-                </div>
-                
-                <h3 className="font-bold text-gray-800 dark:text-white mb-4 flex items-center gap-2 text-lg">
-                    <div className="p-2 bg-orange-100 text-orange-600 rounded-lg">
-                    <Utensils size={24} />
-                    </div>
-                    {t('meals')}
-                    <span className="text-gray-400 mx-1">|</span>
-                    <span className="text-orange-600 dark:text-orange-400 underline decoration-wavy decoration-orange-300 underline-offset-4">
-                        {selectedClasses.length === 0 ? "..." : selectedClasses.length === 1 ? selectedClasses[0] : "Multiple"}
-                    </span>
-                </h3>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {renderMealBlock('breakfast', t('breakfast'), 'border-orange-100')}
-                    {renderMealBlock('lunch', t('lunch'), 'border-red-100')}
-                    {renderMealBlock('snack', t('snack'), 'border-yellow-100')}
-                </div>
-            </div>
-        </div>
-
-        {/* Student Grid */}
-        {selectedClasses.length === 0 ? (
-            <div className="p-12 text-center text-gray-400 bg-white dark:bg-gray-800 rounded-3xl border border-dashed border-gray-200 dark:border-gray-700">
-                <p>Select a class above to start.</p>
-            </div>
-        ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {students.map(student => {
-                    const isPresent = attendance[student.id] === 'present';
-                    const mealStatus = meals[student.id];
-                    const isHighlighted = highlightedStudentId === student.id;
-                    
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                {ACTIVITIES_LIST.map(act => {
+                    const isSelected = classActivities.includes(act);
                     return (
-                        <div 
-                            key={student.id} 
-                            ref={el => studentRefs.current[student.id] = el}
+                        <button
+                            key={act}
+                            onClick={() => toggleClassActivity(act)}
+                            disabled={selectedClasses.length === 0}
                             className={`
-                                relative p-4 rounded-2xl border-2 transition-all duration-300
-                                ${isPresent 
-                                    ? 'bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700' 
-                                    : 'bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700 opacity-75'}
-                                ${isHighlighted ? 'ring-4 ring-yellow-400 scale-105 z-10 shadow-xl' : ''}
+                                flex items-center gap-2 p-3 rounded-xl border-2 transition-all select-none
+                                ${isSelected 
+                                    ? 'border-pink-200 bg-pink-50 text-pink-700 transform scale-105 shadow-sm' 
+                                    : 'border-transparent bg-gray-50 dark:bg-gray-700/50 text-gray-500 hover:bg-gray-100'}
+                                ${selectedClasses.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}
                             `}
                         >
-                            {/* Student Info */}
-                            <div className="flex items-center gap-3 mb-4">
-                                <img 
-                                    src={student.avatar} 
-                                    alt={student.name} 
-                                    className={`w-12 h-12 rounded-full object-cover border-2 ${isPresent ? 'border-green-400' : 'border-gray-300'}`} 
-                                />
-                                <div className="min-w-0">
-                                    <h3 className="font-bold text-gray-800 dark:text-white truncate text-sm">{student.name}</h3>
-                                    <p className="text-xs text-gray-400 dark:text-gray-500">{student.classGroup}</p>
-                                </div>
+                            <div className={`
+                                w-5 h-5 rounded-full flex items-center justify-center transition-colors
+                                ${isSelected ? 'bg-pink-500 text-white' : 'bg-white border border-gray-200'}
+                            `}>
+                                {isSelected && <Check size={12} strokeWidth={3} />}
                             </div>
-
-                            {/* Quick Actions */}
-                            <div className="grid grid-cols-2 gap-3">
-                                {/* Attendance Toggle */}
-                                <button
-                                    onClick={() => toggleAttendance(student.id)}
-                                    className={`
-                                        flex flex-col items-center justify-center p-3 rounded-xl transition-all
-                                        ${isPresent 
-                                            ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' 
-                                            : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'}
-                                    `}
-                                >
-                                    {isPresent ? <CheckCircle size={24} /> : <X size={24} />}
-                                    <span className="text-[10px] font-bold mt-1 uppercase">
-                                        {isPresent ? t('present') : t('absent')}
-                                    </span>
-                                </button>
-
-                                {/* Meal Toggle */}
-                                <button
-                                    onClick={() => cycleMeal(student.id)}
-                                    disabled={!isPresent}
-                                    className={`
-                                        flex flex-col items-center justify-center p-3 rounded-xl transition-all
-                                        ${!isPresent ? 'opacity-30 cursor-not-allowed bg-gray-100 dark:bg-gray-800 text-gray-400' : ''}
-                                        ${isPresent && mealStatus === 'all' ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400' : ''}
-                                        ${isPresent && mealStatus === 'some' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400' : ''}
-                                        ${isPresent && mealStatus === 'none' ? 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400' : ''}
-                                    `}
-                                >
-                                    <Coffee size={24} />
-                                    <span className="text-[10px] font-bold mt-1 uppercase truncate w-full text-center">
-                                        {mealStatus === 'all' ? t('ateAll') : mealStatus === 'some' ? t('ateSome') : t('ateNone')}
-                                    </span>
-                                </button>
-                            </div>
-                        </div>
+                            <span className="text-xs font-bold truncate">{t(act as any)}</span>
+                        </button>
                     );
                 })}
             </div>
-        )}
+        </div>
+
+        {/* 4. STUDENT GRID (ATTENDANCE) (LAST) */}
+        <div ref={attendanceRef}>
+            {selectedClasses.length === 0 ? (
+                <div className="p-12 text-center text-gray-400 bg-white dark:bg-gray-800 rounded-3xl border border-dashed border-gray-200 dark:border-gray-700">
+                    <p>Select a class above to start.</p>
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    {students.map(student => {
+                        const isPresent = attendance[student.id] === 'present';
+                        const mealStatus = meals[student.id];
+                        const isHighlighted = highlightedStudentId === student.id;
+                        
+                        return (
+                            <div 
+                                key={student.id} 
+                                ref={el => studentRefs.current[student.id] = el}
+                                className={`
+                                    relative p-4 rounded-2xl border-2 transition-all duration-300
+                                    ${isPresent 
+                                        ? 'bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700' 
+                                        : 'bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700 opacity-75'}
+                                    ${isHighlighted ? 'ring-4 ring-yellow-400 scale-105 z-10 shadow-xl' : ''}
+                                `}
+                            >
+                                {/* Student Info */}
+                                <div className="flex items-center gap-3 mb-4">
+                                    <img 
+                                        src={student.avatar} 
+                                        alt={student.name} 
+                                        className={`w-12 h-12 rounded-full object-cover border-2 ${isPresent ? 'border-green-400' : 'border-gray-300'}`} 
+                                    />
+                                    <div className="min-w-0">
+                                        <h3 className="font-bold text-gray-800 dark:text-white truncate text-sm">{student.name}</h3>
+                                        <p className="text-xs text-gray-400 dark:text-gray-500">{student.classGroup}</p>
+                                    </div>
+                                </div>
+
+                                {/* Quick Actions */}
+                                <div className="grid grid-cols-2 gap-3">
+                                    {/* Attendance Toggle */}
+                                    <button
+                                        onClick={() => toggleAttendance(student.id)}
+                                        className={`
+                                            flex flex-col items-center justify-center p-3 rounded-xl transition-all
+                                            ${isPresent 
+                                                ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' 
+                                                : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'}
+                                        `}
+                                    >
+                                        {isPresent ? <CheckCircle size={24} /> : <X size={24} />}
+                                        <span className="text-[10px] font-bold mt-1 uppercase">
+                                            {isPresent ? t('present') : t('absent')}
+                                        </span>
+                                    </button>
+
+                                    {/* Meal Toggle */}
+                                    <button
+                                        onClick={() => cycleMeal(student.id)}
+                                        disabled={!isPresent}
+                                        className={`
+                                            flex flex-col items-center justify-center p-3 rounded-xl transition-all
+                                            ${!isPresent ? 'opacity-30 cursor-not-allowed bg-gray-100 dark:bg-gray-800 text-gray-400' : ''}
+                                            ${isPresent && mealStatus === 'all' ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400' : ''}
+                                            ${isPresent && mealStatus === 'some' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400' : ''}
+                                            ${isPresent && mealStatus === 'none' ? 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400' : ''}
+                                        `}
+                                    >
+                                        <Coffee size={24} />
+                                        <span className="text-[10px] font-bold mt-1 uppercase truncate w-full text-center">
+                                            {mealStatus === 'all' ? t('ateAll') : mealStatus === 'some' ? t('ateSome') : t('ateNone')}
+                                        </span>
+                                    </button>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
+        </div>
 
         {/* Floating Controls (Save + Mic) - Positioned opposite to Chat Widget */}
         <div className={`fixed bottom-6 ${language === 'ar' ? 'right-6' : 'left-6'} z-30 flex flex-col gap-3 ${language === 'ar' ? 'items-end' : 'items-start'}`}>
