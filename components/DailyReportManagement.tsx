@@ -17,6 +17,7 @@ const DailyReportManagement: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [warning, setWarning] = useState<string | null>(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [showNotFoundDialog, setShowNotFoundDialog] = useState(false);
 
   const dateInputRef = useRef<HTMLInputElement>(null);
 
@@ -51,6 +52,7 @@ const DailyReportManagement: React.FC = () => {
     setSearchTerm('');
     setSelectedStudent(null);
     setShowConfirmDialog(false);
+    setShowNotFoundDialog(false);
   };
 
   const handleStartReport = () => {
@@ -66,10 +68,10 @@ const DailyReportManagement: React.FC = () => {
         return;
     } 
     
-    // Case 2: Trying to EDIT but report MISSING -> Warn then Create New
+    // Case 2: Trying to EDIT but report MISSING -> Warn then Ask to Create New
     if (action === 'edit' && !exists) {
-        setWarning(t('reportNotFoundWarning'));
-        setTimeout(() => setWarning(null), 3000);
+        setShowNotFoundDialog(true);
+        return;
     }
 
     // Default Case: New Report or Editing Existing (Normal flow)
@@ -85,6 +87,17 @@ const DailyReportManagement: React.FC = () => {
   const handleCancelEdit = () => {
       // User chose "No", close dialog and stay on selection screen to pick another date
       setShowConfirmDialog(false);
+  };
+
+  const handleConfirmCreate = () => {
+      // Switch action to 'add' conceptually, close dialog, and open form
+      setAction('add');
+      setShowNotFoundDialog(false);
+      setMode('form');
+  };
+
+  const handleCancelCreate = () => {
+      setShowNotFoundDialog(false);
   };
 
   const filteredStudents = students.filter(s => 
@@ -237,7 +250,7 @@ const DailyReportManagement: React.FC = () => {
          </div>
       )}
 
-      {/* Confirmation Dialog */}
+      {/* Confirmation Dialog: Exists when adding */}
       {showConfirmDialog && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
             <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-sm w-full text-center transform transition-all scale-100 animate-fade-in border-4 border-white">
@@ -260,6 +273,35 @@ const DailyReportManagement: React.FC = () => {
                         className="w-full py-3 bg-white text-gray-600 border-2 border-gray-200 rounded-xl font-bold hover:bg-gray-50 transition-colors"
                     >
                         {t('chooseAnotherDate')} ({t('no')})
+                    </button>
+                </div>
+            </div>
+        </div>
+      )}
+
+      {/* Confirmation Dialog: Not Found when editing */}
+      {showNotFoundDialog && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+            <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-sm w-full text-center transform transition-all scale-100 animate-fade-in border-4 border-white">
+                <div className="w-16 h-16 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <AlertTriangle size={36} />
+                </div>
+                <h3 className="text-xl font-bold text-gray-800 mb-2">{t('reportNotFoundConfirmTitle')}</h3>
+                <p className="text-gray-600 mb-6 text-sm leading-relaxed">
+                    {t('reportNotFoundConfirmMsg')}
+                </p>
+                <div className="flex flex-col gap-3">
+                    <button 
+                        onClick={handleConfirmCreate}
+                        className="w-full py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200"
+                    >
+                        {t('createNewReport')} ({t('yes')})
+                    </button>
+                    <button 
+                        onClick={handleCancelCreate}
+                        className="w-full py-3 bg-white text-gray-600 border-2 border-gray-200 rounded-xl font-bold hover:bg-gray-50 transition-colors"
+                    >
+                        {t('cancel')} ({t('no')})
                     </button>
                 </div>
             </div>

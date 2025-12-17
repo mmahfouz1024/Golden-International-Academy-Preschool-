@@ -252,7 +252,10 @@ export const translations = {
     reportNotFoundWarning: "No report found for this date. Switching to Add mode.",
     reportExistsConfirmTitle: "Report Exists",
     reportExistsConfirmMsg: "A report has already been added for this child on this date. Do you want to edit it?",
+    reportNotFoundConfirmTitle: "Report Not Found",
+    reportNotFoundConfirmMsg: "No report exists for this date. Do you want to create a new one?",
     editReport: "Edit Report",
+    createNewReport: "Create New Report",
     chooseAnotherDate: "Choose Another Date",
     selectOption: "Select an Option",
 
@@ -790,7 +793,10 @@ export const translations = {
     reportNotFoundWarning: "لا يوجد تقرير لهذا التاريخ. سيتم التبديل لوضع الإضافة.",
     reportExistsConfirmTitle: "التقرير موجود",
     reportExistsConfirmMsg: "تم إضافة التقرير لهذا الطفل في هذا التاريخ من قبل. هل تريد تعديله؟",
+    reportNotFoundConfirmTitle: "التقرير غير موجود",
+    reportNotFoundConfirmMsg: "لا يوجد تقرير فى هذا التاريخ هل تريد انشاء تقرير؟",
     editReport: "نعم، تعديل",
+    createNewReport: "إنشاء جديد",
     chooseAnotherDate: "لا، العودة للتاريخ",
     selectOption: "اختر عملية",
 
