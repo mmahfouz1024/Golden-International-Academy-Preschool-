@@ -474,6 +474,12 @@ export const translations = {
     excused: "Excused",
     markAllPresent: "Mark All Present",
     stats: "Statistics",
+    attendanceRecords: "Attendance Records",
+    monthlyView: "Monthly View",
+    markTab: "Mark Attendance",
+    viewTab: "View Records",
+    daysInMonth: "Days",
+    totalPresent: "Total Present",
 
     // Profile
     profileSettings: "Profile Settings",
@@ -1015,6 +1021,12 @@ export const translations = {
     excused: "معذور",
     markAllPresent: "تحديد الكل حاضر",
     stats: "إحصائيات",
+    attendanceRecords: "سجلات الحضور",
+    monthlyView: "عرض شهري",
+    markTab: "تسجيل الحضور",
+    viewTab: "عرض السجلات",
+    daysInMonth: "يوم",
+    totalPresent: "أيام الحضور",
 
     // Profile
     profileSettings: "إعدادات الملف الشخصي",
