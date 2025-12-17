@@ -12,11 +12,10 @@ const TeacherFocusMode: React.FC = () => {
   const { addNotification } = useNotification();
   
   const [students, setStudents] = useState<Student[]>([]);
-  // Changed from single string to array of strings for multi-selection
   const [selectedClasses, setSelectedClasses] = useState<string[]>([]);
   const [classes, setClasses] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedDate, setSelectedDate] = useState<string>(''); // Empty initially to force selection
+  const [selectedDate, setSelectedDate] = useState<string>(''); 
 
   // Batch States
   const [attendance, setAttendance] = useState<Record<string, AttendanceStatus>>({});
@@ -60,10 +59,10 @@ const TeacherFocusMode: React.FC = () => {
 
   // Scroll & Highlight
   const studentRefs = useRef<Record<string, HTMLDivElement | null>>({});
-  const attendanceRef = useRef<HTMLDivElement>(null); // Ref for the attendance section
+  const attendanceRef = useRef<HTMLDivElement>(null);
   const [highlightedStudentId, setHighlightedStudentId] = useState<string | null>(null);
 
-  // Activities List (Matches StudentDetail)
+  // Activities List
   const ACTIVITIES_LIST = [
     'Montessori', 'Garden', 'Coloring', 'Art', 'Swimming', 
     'Puzzle', 'Blocks', 'Songs', 'Etiquette', 
@@ -75,7 +74,6 @@ const TeacherFocusMode: React.FC = () => {
     if (!dateStr) return '';
     const [year, month, day] = dateStr.split('-').map(Number);
     const date = new Date(year, month - 1, day);
-    // Force English Locale for consistent Day Month Year format
     return date.toLocaleDateString('en-GB', {
         day: 'numeric',
         month: 'long',
@@ -83,7 +81,7 @@ const TeacherFocusMode: React.FC = () => {
     });
   };
 
-  // 1. Initialize Classes (Run once)
+  // 1. Initialize Classes
   useEffect(() => {
     const currentUser = getUsers().find(u => u.id === localStorage.getItem('golden_session_uid'));
     const allClasses = getClasses();
@@ -91,7 +89,6 @@ const TeacherFocusMode: React.FC = () => {
     let relevantClassNames: string[] = [];
     if (currentUser?.role === 'teacher') {
        relevantClassNames = allClasses.filter(c => c.teacherId === currentUser.id).map(c => c.name);
-       // If no explicitly assigned classes, fallback to all (demo mode)
        if (relevantClassNames.length === 0) relevantClassNames = allClasses.map(c => c.name);
     } else {
        relevantClassNames = allClasses.map(c => c.name);
@@ -99,14 +96,13 @@ const TeacherFocusMode: React.FC = () => {
     
     setClasses(relevantClassNames);
     if (relevantClassNames.length > 0) {
-        // Default to selecting ALL available classes for convenience
         setSelectedClasses(relevantClassNames);
     } else {
-        setLoading(false); // No classes to load
+        setLoading(false);
     }
   }, []);
 
-  // 2. Load Data when Selected Classes or Date changes
+  // 2. Load Data
   useEffect(() => {
     if (!selectedDate || selectedClasses.length === 0) {
         setStudents([]);
@@ -116,35 +112,20 @@ const TeacherFocusMode: React.FC = () => {
 
     setLoading(true);
     
-    // Load Student Data
     const allStudents = getStudents();
-    
-    // Filter by MULTIPLE selected classes
     const classStudents = allStudents.filter(s => selectedClasses.includes(s.classGroup));
     
     setStudents(classStudents);
 
-    // Load Existing Data for selectedDate
     const history = getAttendanceHistory();
     const reports = getReports();
     
     const initialAttendance: Record<string, AttendanceStatus> = {};
     const initialMeals: Record<string, MealStatus> = {};
     
-    // Check if any report in this class already has data, use the first one found as initial state
     let loadedActivities: string[] = [];
-    let loadedAcademic: {
-        religion: string[];
-        arabic: string[];
-        english: string[];
-        math: string[];
-    } = { religion: [], arabic: [], english: [], math: [] };
-
-    let loadedMeals: {
-        breakfast: string[];
-        lunch: string[];
-        snack: string[];
-    } = { breakfast: [], lunch: [], snack: [] };
+    let loadedAcademic: any = { religion: [], arabic: [], english: [], math: [] };
+    let loadedMeals: any = { breakfast: [], lunch: [], snack: [] };
     
     let activitiesFound = false;
     let academicFound = false;
@@ -155,26 +136,22 @@ const TeacherFocusMode: React.FC = () => {
         if (history[selectedDate] && history[selectedDate][s.id]) {
             initialAttendance[s.id] = history[selectedDate][s.id];
         } else {
-            initialAttendance[s.id] = 'present'; // Default to present
+            initialAttendance[s.id] = 'present';
         }
 
-        // Meals (Check report for lunch status as main indicator)
+        // Meals
         const reportKey = `${s.id}_${selectedDate}`;
         if (reports[reportKey]) {
             initialMeals[s.id] = reports[reportKey].meals.lunch;
             
-            // Try to grab activities from the first student found with a report
             if (!activitiesFound && reports[reportKey].activities && reports[reportKey].activities.length > 0) {
                 loadedActivities = reports[reportKey].activities;
                 activitiesFound = true;
             }
 
-            // Try to grab academic data
             if (!academicFound && reports[reportKey].academic) {
                 const rAc = reports[reportKey].academic!;
-                // Ensure we get arrays (handle potential undefined or legacy data)
                 const hasData = (rAc.religion?.length || 0) + (rAc.arabic?.length || 0) + (rAc.english?.length || 0) + (rAc.math?.length || 0) > 0;
-                
                 if (hasData) {
                     loadedAcademic = {
                         religion: rAc.religion || [],
@@ -186,11 +163,9 @@ const TeacherFocusMode: React.FC = () => {
                 }
             }
 
-            // Try to grab meal details
             if (!mealsFound && reports[reportKey].meals) {
                 const rMeals = reports[reportKey].meals;
                 const hasMealData = (rMeals.breakfastDetails?.length || 0) + (rMeals.lunchDetails?.length || 0) + (rMeals.snackDetails?.length || 0) > 0;
-                
                 if (hasMealData) {
                     loadedMeals = {
                         breakfast: rMeals.breakfastDetails || [],
@@ -202,16 +177,13 @@ const TeacherFocusMode: React.FC = () => {
             }
 
         } else {
-            initialMeals[s.id] = 'all'; // Default to ate all
+            initialMeals[s.id] = 'all';
         }
     });
 
     setAttendance(initialAttendance);
     setMeals(initialMeals);
     
-    // Only overwrite local state if we actually found data from existing reports
-    // Otherwise keep current local state (allows carrying over data when switching classes if user wants, 
-    // though usually we might want to reset. For now, let's reset if nothing found to avoid confusion)
     if (activitiesFound) setClassActivities(loadedActivities); else setClassActivities([]);
     if (academicFound) setClassAcademic(loadedAcademic); else setClassAcademic({ religion: [], arabic: [], english: [], math: [] });
     if (mealsFound) setClassMeals(loadedMeals); else setClassMeals({ breakfast: [], lunch: [], snack: [] });
@@ -220,7 +192,7 @@ const TeacherFocusMode: React.FC = () => {
 
   }, [selectedClasses, selectedDate]);
 
-  // --- Multi-Class Selection Handlers ---
+  // Handlers
   const toggleClassSelection = (className: string) => {
     setSelectedClasses(prev => {
         if (prev.includes(className)) {
@@ -233,9 +205,9 @@ const TeacherFocusMode: React.FC = () => {
 
   const toggleSelectAllClasses = () => {
       if (selectedClasses.length === classes.length) {
-          setSelectedClasses([]); // Deselect All
+          setSelectedClasses([]);
       } else {
-          setSelectedClasses(classes); // Select All
+          setSelectedClasses(classes);
       }
   };
 
@@ -275,7 +247,6 @@ const TeacherFocusMode: React.FC = () => {
       setHasSaved(false);
   };
 
-  // Academic Handlers
   const handleAddAcademic = (subject: keyof typeof classAcademic) => {
       const val = academicInputs[subject].trim();
       if (!val) return;
@@ -296,7 +267,6 @@ const TeacherFocusMode: React.FC = () => {
       setHasSaved(false);
   };
 
-  // Meal Details Handlers
   const handleAddMeal = (type: keyof typeof classMeals) => {
       const val = mealInputs[type].trim();
       if (!val) return;
@@ -327,23 +297,19 @@ const TeacherFocusMode: React.FC = () => {
   };
 
   const saveAll = () => {
-      // 1. Save Attendance
       const history = getAttendanceHistory();
       if (!history[selectedDate]) history[selectedDate] = {};
       history[selectedDate] = { ...history[selectedDate], ...attendance };
       saveAttendanceHistory(history);
 
-      // 2. Save/Create Reports with Meal Data, Activities, AND Academic
       const allReports = getReports();
       const updatedReports = { ...allReports };
 
       students.forEach(s => {
-          // Skip absent students for meals/activities report usually, but let's update them all to be safe
           const currentMealStatus = attendance[s.id] === 'absent' ? 'none' : meals[s.id];
-          
           const reportKey = `${s.id}_${selectedDate}`;
+          
           if (updatedReports[reportKey]) {
-              // Update existing
               updatedReports[reportKey] = {
                   ...updatedReports[reportKey],
                   meals: {
@@ -353,11 +319,10 @@ const TeacherFocusMode: React.FC = () => {
                       lunchDetails: classMeals.lunch,
                       snackDetails: classMeals.snack
                   },
-                  activities: classActivities, // Apply class-wide activities
-                  academic: classAcademic      // Apply class-wide academic
+                  activities: classActivities,
+                  academic: classAcademic
               };
           } else {
-              // Create new simple report
               updatedReports[reportKey] = {
                   id: `rep-${Date.now()}-${s.id}`,
                   studentId: s.id,
@@ -375,8 +340,8 @@ const TeacherFocusMode: React.FC = () => {
                   },
                   bathroom: { urine: 0, stool: 0, notes: '' },
                   nap: { slept: false, notes: '' },
-                  academic: classAcademic,     // Apply class-wide academic
-                  activities: classActivities, // Apply class-wide activities
+                  academic: classAcademic,
+                  activities: classActivities,
                   photos: [],
                   notes: ''
               };
@@ -389,7 +354,6 @@ const TeacherFocusMode: React.FC = () => {
       setTimeout(() => setHasSaved(false), 3000);
   };
 
-  // --- Scroll Functions ---
   const scrollToStudent = (studentId: string) => {
       const element = studentRefs.current[studentId];
       if (element) {
@@ -403,65 +367,40 @@ const TeacherFocusMode: React.FC = () => {
       attendanceRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  // --- Voice Command Logic ---
+  // Voice Logic (unchanged but included)
   const startListening = () => {
     if (!('webkitSpeechRecognition' in window)) {
-        alert("Voice commands are not supported in this browser. Please use Chrome.");
+        alert("Voice commands are not supported in this browser.");
         return;
     }
-
     const SpeechRecognition = (window as any).webkitSpeechRecognition;
     const recognition = new SpeechRecognition();
-    
-    // Explicitly set to Arabic (Egypt)
     recognition.lang = 'ar-EG'; 
     recognition.continuous = false;
     recognition.interimResults = false;
-
-    recognition.onstart = () => {
-        setIsListening(true);
-    };
-
-    recognition.onend = () => {
-        setIsListening(false);
-    };
-
+    recognition.onstart = () => setIsListening(true);
+    recognition.onend = () => setIsListening(false);
     recognition.onresult = async (event: any) => {
         const transcript = event.results[0][0].transcript;
-        console.log("Voice Command:", transcript);
         await processVoiceCommand(transcript);
     };
-
-    recognition.onerror = (event: any) => {
-        console.error("Speech error", event.error);
-        setIsListening(false);
-    };
-
     recognitionRef.current = recognition;
     recognition.start();
   };
 
   const stopListening = () => {
-      if (recognitionRef.current) {
-          recognitionRef.current.stop();
-      }
+      if (recognitionRef.current) recognitionRef.current.stop();
   };
 
   const processVoiceCommand = async (text: string) => {
       setIsProcessingCommand(true);
-      
       const studentContext = students.map(s => ({ id: s.id, name: s.name }));
-      
       const result = await interpretVoiceCommand(text, studentContext);
       
       if (result.action === 'unknown' || !result.studentId) {
           addNotification("Voice Assistant", `Could not understand: "${text}"`, "warning");
       } else {
-          // Scroll to student immediately
-          if (result.studentId) {
-              scrollToStudent(result.studentId);
-          }
-
+          if (result.studentId) scrollToStudent(result.studentId);
           const student = students.find(s => s.id === result.studentId);
           const studentName = student ? student.name : "Student";
 
@@ -474,16 +413,15 @@ const TeacherFocusMode: React.FC = () => {
               addNotification("Voice Assistant", `Updated ${studentName}'s meal to ${result.value}`, "success");
           }
       }
-
       setIsProcessingCommand(false);
   };
 
+  // Render Helpers
   const renderAcademicBlock = (subject: keyof typeof classAcademic, title: string, colorClass: string) => (
       <div className={`p-4 rounded-2xl border-2 ${colorClass} bg-white dark:bg-gray-800 h-full flex flex-col`}>
           <h4 className="font-bold text-sm mb-3 uppercase opacity-80 flex items-center gap-2">
              {title}
           </h4>
-          
           <div className="flex gap-2 mb-3">
               <input 
                   value={academicInputs[subject]}
@@ -500,7 +438,6 @@ const TeacherFocusMode: React.FC = () => {
                   <Plus size={18} />
               </button>
           </div>
-          
           <div className="flex flex-wrap gap-2 content-start flex-1 min-h-[40px]">
               {classAcademic[subject].map((item, idx) => (
                   <span key={idx} className="flex items-center gap-1.5 bg-gray-100 dark:bg-gray-700 px-2.5 py-1 rounded-lg text-xs font-bold text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-600 animate-fade-in">
@@ -520,7 +457,6 @@ const TeacherFocusMode: React.FC = () => {
           <h4 className="font-bold text-sm mb-3 uppercase opacity-80 flex items-center gap-2">
              {title}
           </h4>
-          
           <div className="flex gap-2 mb-3">
               <input 
                   value={mealInputs[mealType]}
@@ -537,7 +473,6 @@ const TeacherFocusMode: React.FC = () => {
                   <Plus size={18} />
               </button>
           </div>
-          
           <div className="flex flex-wrap gap-2 content-start flex-1 min-h-[40px]">
               {classMeals[mealType].map((item, idx) => (
                   <span key={idx} className="flex items-center gap-1.5 bg-gray-100 dark:bg-gray-700 px-2.5 py-1 rounded-lg text-xs font-bold text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-600 animate-fade-in">
@@ -552,7 +487,7 @@ const TeacherFocusMode: React.FC = () => {
       </div>
   );
 
-  // --- Initial Selection Screen ---
+  // Initial View
   if (!selectedDate) {
       return (
           <div className="flex flex-col items-center justify-center min-h-[60vh] animate-fade-in p-6">
@@ -578,16 +513,15 @@ const TeacherFocusMode: React.FC = () => {
       );
   }
 
-  // --- Main Focus View ---
   if (loading && selectedClasses.length > 0) return <div className="p-10 text-center">{t('loading')}</div>;
 
   return (
     <div className="max-w-6xl mx-auto space-y-6 animate-fade-in pb-24">
         
-        {/* Header & Controls */}
+        {/* Header */}
         <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 transition-colors">
             <div className="flex flex-col sm:flex-row items-center gap-4 w-full xl:w-auto order-2 xl:order-1">
-                {/* Date Display (Click to Change) */}
+                {/* Date Display */}
                 <div className="relative group w-full sm:w-auto">
                     <div className="flex items-center gap-3 bg-white dark:bg-gray-700 px-5 py-2.5 rounded-2xl border border-gray-200 dark:border-gray-600 shadow-sm cursor-pointer w-full justify-between sm:justify-start">
                         <Calendar size={20} className="text-indigo-500" />
@@ -658,7 +592,7 @@ const TeacherFocusMode: React.FC = () => {
             </div>
         </div>
 
-        {/* 1. CLASS MEALS SELECTOR (FIRST) */}
+        {/* 1. MEALS (Top Priority) */}
         <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border-2 border-orange-50 dark:border-gray-700 relative overflow-hidden">
             <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
                 <Utensils size={100} className="text-orange-500" />
@@ -682,7 +616,7 @@ const TeacherFocusMode: React.FC = () => {
             </div>
         </div>
 
-        {/* 2. CLASS ACADEMIC SELECTOR (SECOND) */}
+        {/* 2. ACADEMIC */}
         <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border-2 border-teal-50 dark:border-gray-700 relative overflow-hidden">
             <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
                 <BookOpen size={100} className="text-teal-500" />
@@ -707,7 +641,7 @@ const TeacherFocusMode: React.FC = () => {
             </div>
         </div>
 
-        {/* 3. CLASS ACTIVITIES SELECTOR (THIRD) */}
+        {/* 3. ACTIVITIES */}
         <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border-2 border-indigo-50 dark:border-gray-700 relative overflow-hidden">
             <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
                 <Gamepad2 size={100} className="text-indigo-500" />
@@ -757,7 +691,7 @@ const TeacherFocusMode: React.FC = () => {
             </div>
         </div>
 
-        {/* 4. STUDENT GRID (ATTENDANCE) (LAST) */}
+        {/* 4. STUDENT GRID (ATTENDANCE) */}
         <div ref={attendanceRef}>
             {selectedClasses.length === 0 ? (
                 <div className="p-12 text-center text-gray-400 bg-white dark:bg-gray-800 rounded-3xl border border-dashed border-gray-200 dark:border-gray-700">
@@ -782,7 +716,6 @@ const TeacherFocusMode: React.FC = () => {
                                     ${isHighlighted ? 'ring-4 ring-yellow-400 scale-105 z-10 shadow-xl' : ''}
                                 `}
                             >
-                                {/* Student Info */}
                                 <div className="flex items-center gap-3 mb-4">
                                     <img 
                                         src={student.avatar} 
@@ -795,9 +728,7 @@ const TeacherFocusMode: React.FC = () => {
                                     </div>
                                 </div>
 
-                                {/* Quick Actions */}
                                 <div className="grid grid-cols-2 gap-3">
-                                    {/* Attendance Toggle */}
                                     <button
                                         onClick={() => toggleAttendance(student.id)}
                                         className={`
@@ -813,7 +744,6 @@ const TeacherFocusMode: React.FC = () => {
                                         </span>
                                     </button>
 
-                                    {/* Meal Toggle */}
                                     <button
                                         onClick={() => cycleMeal(student.id)}
                                         disabled={!isPresent}
@@ -838,10 +768,8 @@ const TeacherFocusMode: React.FC = () => {
             )}
         </div>
 
-        {/* Floating Controls (Save + Mic) - Positioned opposite to Chat Widget */}
+        {/* Footer Controls */}
         <div className={`fixed bottom-6 ${language === 'ar' ? 'right-6' : 'left-6'} z-30 flex flex-col gap-3 ${language === 'ar' ? 'items-end' : 'items-start'}`}>
-            
-            {/* Mic Button */}
             <button
                 onClick={isListening ? stopListening : startListening}
                 disabled={isProcessingCommand}
@@ -856,7 +784,6 @@ const TeacherFocusMode: React.FC = () => {
                 {isProcessingCommand ? <Loader2 size={24} className="animate-spin" /> : <Mic size={24} />}
             </button>
 
-            {/* Save Button */}
             <button 
                 onClick={saveAll}
                 className={`
@@ -869,7 +796,6 @@ const TeacherFocusMode: React.FC = () => {
             </button>
         </div>
 
-        {/* Listening Indicator Overlay */}
         {isListening && (
             <div className="fixed inset-x-0 top-0 p-4 flex justify-center z-50 pointer-events-none">
                 <div className="bg-black/80 backdrop-blur-md text-white px-6 py-2 rounded-full flex items-center gap-3 shadow-xl animate-fade-in">
