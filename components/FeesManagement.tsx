@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Search, X, Save, Plus, AlertCircle, Banknote, Building2, History, User, Calendar, Settings2 } from 'lucide-react';
+import { Search, X, Save, Plus, AlertCircle, Banknote, Building2, History, User, Calendar, Settings2, Trash2 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useNotification } from '../contexts/NotificationContext';
 import { getUsers, getStudents, getFees, saveFees } from '../services/storageService';
@@ -63,7 +63,6 @@ const FeesManagement: React.FC = () => {
     if (type === 'tuition') {
       setAmount(record?.monthlyAmount.toString() || '');
     } else {
-      // Payment Mode: Amount is LOCKED to what was set in 'tuition'
       setAmount(record?.monthlyAmount.toString() || '0');
       setNote('');
       setForMonth(new Date().toISOString().slice(0, 7));
@@ -98,7 +97,6 @@ const FeesManagement: React.FC = () => {
         });
       }
     } else {
-      // DUPLICATE CHECK
       if (recordIndex >= 0) {
         const alreadyPaid = updatedFees[recordIndex].history.some(p => p.forMonth === forMonth);
         if (alreadyPaid) {
@@ -143,6 +141,28 @@ const FeesManagement: React.FC = () => {
     addNotification(t('savedSuccessfully'), t('changesSaved'), 'success');
   };
 
+  const handleDeleteTransaction = (studentId: string, transactionId: string) => {
+    if (!window.confirm(language === 'ar' ? 'هل أنت متأكد من حذف هذه العملية؟ سيتم تعديل الرصيد تلقائياً.' : 'Are you sure you want to delete this transaction? Balance will be adjusted.')) return;
+
+    const updatedFees = fees.map(f => {
+      if (f.studentId === studentId) {
+        const transactionToDelete = f.history.find(t => t.id === transactionId);
+        if (!transactionToDelete) return f;
+        
+        return {
+          ...f,
+          paidAmount: f.paidAmount - transactionToDelete.amount,
+          history: f.history.filter(t => t.id !== transactionId)
+        };
+      }
+      return f;
+    });
+
+    setFees(updatedFees);
+    saveFees(updatedFees);
+    addNotification(t('delete'), t('changesSaved'), 'success');
+  };
+
   const filteredStudents = students.filter(s => 
     s.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
     s.parentName.toLowerCase().includes(searchTerm.toLowerCase())
@@ -150,8 +170,15 @@ const FeesManagement: React.FC = () => {
 
   const allTransactions = fees.flatMap(f => {
     const student = students.find(s => s.id === f.studentId);
-    return f.history.map(h => ({ ...h, studentName: student?.name || 'Unknown', studentAvatar: student?.avatar }));
+    return f.history.map(h => ({ 
+      ...h, 
+      studentId: f.studentId,
+      studentName: student?.name || 'Unknown', 
+      studentAvatar: student?.avatar 
+    }));
   }).sort((a, b) => new Date(b.id.split('-')[1]).getTime() - new Date(a.id.split('-')[1]).getTime());
+
+  const canManage = currentUser?.role === 'admin' || currentUser?.role === 'manager';
 
   return (
     <div className="space-y-6 animate-fade-in pb-20">
@@ -164,7 +191,7 @@ const FeesManagement: React.FC = () => {
 
       <div className="flex bg-gray-100 p-1 rounded-2xl w-fit">
         <button onClick={() => setActiveTab('students')} className={`px-6 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${activeTab === 'students' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-500'}`}><User size={16} />{t('students')}</button>
-        {currentUser?.role !== 'parent' && (
+        {canManage && (
           <button onClick={() => setActiveTab('setup')} className={`px-6 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${activeTab === 'setup' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-500'}`}><Settings2 size={16} />{language === 'ar' ? 'إعداد الرسوم' : 'Setup Fees'}</button>
         )}
         <button onClick={() => setActiveTab('history')} className={`px-6 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${activeTab === 'history' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-500'}`}><History size={16} />{t('paymentHistory')}</button>
@@ -250,19 +277,41 @@ const FeesManagement: React.FC = () => {
                 <th className="px-6 py-4 font-semibold text-gray-600">{t('amount')}</th>
                 <th className="px-6 py-4 font-semibold text-gray-600">{t('forMonth')}</th>
                 <th className="px-6 py-4 font-semibold text-gray-600">{t('paymentDate')}</th>
+                <th className="px-6 py-4 font-semibold text-gray-600"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {allTransactions.map(tr => (
+              {allTransactions.filter(tr => tr.studentName.toLowerCase().includes(searchTerm.toLowerCase())).map(tr => (
                 <tr key={tr.id} className="hover:bg-gray-50/50">
-                  <td className="px-6 py-4 font-bold text-gray-800 text-xs">{tr.studentName}</td>
+                  <td className="px-6 py-4 font-bold text-gray-800 text-xs">
+                    <div className="flex items-center gap-2">
+                      <img src={tr.studentAvatar} className="w-8 h-8 rounded-full" alt="" />
+                      <span>{tr.studentName}</span>
+                    </div>
+                  </td>
                   <td className="px-6 py-4 font-bold text-emerald-600 text-sm">{tr.amount} {t('currency')}</td>
                   <td className="px-6 py-4 font-bold text-gray-700 text-xs">{tr.forMonth}</td>
                   <td className="px-6 py-4 text-xs text-gray-500" dir="ltr">{formatLongDate(tr.date)}</td>
+                  <td className="px-6 py-4 text-left flex justify-end">
+                    {canManage && (
+                      <button 
+                        onClick={() => handleDeleteTransaction(tr.studentId, tr.id)}
+                        className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
+          {allTransactions.length === 0 && (
+            <div className="p-20 text-center text-gray-400">
+               <History size={40} className="mx-auto mb-4 opacity-10" />
+               <p>{language === 'ar' ? 'لا توجد عمليات مسجلة' : 'No records found'}</p>
+            </div>
+          )}
         </div>
       )}
 
@@ -303,11 +352,26 @@ const FeesManagement: React.FC = () => {
                 <div key={tr.id} className="bg-white border border-gray-100 p-4 rounded-2xl shadow-sm hover:shadow-md transition-shadow relative">
                   <div className="flex justify-between items-start mb-2"><span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-lg flex items-center gap-1.5"><Calendar size={12} /> {tr.forMonth}</span><span className="font-bold text-gray-800">{tr.amount} {t('currency')}</span></div>
                   <div className="flex justify-between items-end">
-                    <div className="space-y-1"><p className="text-[10px] text-gray-400 flex items-center gap-1"><Banknote size={10} /> {tr.method === 'Cash' ? t('cash') : t('bank')}</p>{tr.note && <p className="text-[11px] text-gray-600 italic">"{tr.note}"</p>}</div>
-                    <div className="text-right text-[10px] text-gray-400" dir="ltr">{formatLongDate(tr.date)}</div>
+                    <div className="space-y-1">
+                      <p className="text-[10px] text-gray-400 flex items-center gap-1"><Banknote size={10} /> {tr.method === 'Cash' ? t('cash') : t('bank')}</p>
+                      {tr.note && <p className="text-[11px] text-gray-600 italic">"{tr.note}"</p>}
+                    </div>
+                    <div className="flex flex-col items-end gap-2">
+                      <div className="text-right text-[10px] text-gray-400" dir="ltr">{formatLongDate(tr.date)}</div>
+                      {canManage && (
+                        <button 
+                          onClick={() => handleDeleteTransaction(selectedStudent.id, tr.id)}
+                          className="text-rose-400 hover:text-rose-600 transition-colors"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
-              ))}
+              )) || (
+                <div className="p-10 text-center text-gray-400 italic">{language === 'ar' ? 'لا يوجد سجل مدفوعات' : 'No history'}</div>
+              )}
             </div>
             <div className="p-4 bg-gray-50 border-t border-gray-100"><button onClick={() => setIsHistoryModalOpen(false)} className="w-full py-3 bg-white border border-gray-200 rounded-xl font-bold text-gray-600 hover:bg-gray-100 transition-all shadow-sm">{t('close')}</button></div>
           </div>
