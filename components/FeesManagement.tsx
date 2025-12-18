@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Search, X, Save, Plus, AlertCircle, Banknote, Building2, History, User, Calendar, FileText, Settings2 } from 'lucide-react';
+import { Search, X, Save, Plus, AlertCircle, Banknote, Building2, History, User, Calendar, Settings2 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useNotification } from '../contexts/NotificationContext';
 import { getUsers, getStudents, getFees, saveFees } from '../services/storageService';
