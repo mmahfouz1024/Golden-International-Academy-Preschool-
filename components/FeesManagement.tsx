@@ -25,7 +25,6 @@ const FeesManagement: React.FC = () => {
   const [amount, setAmount] = useState('');
   const [note, setNote] = useState('');
   const [method, setMethod] = useState<PaymentMethod>('Cash');
-  // Changed from YYYY-MM to full YYYY-MM-DD
   const [forMonth, setForMonth] = useState(new Date().toISOString().split('T')[0]);
   const [date] = useState(new Date().toISOString().split('T')[0]);
 
@@ -33,7 +32,6 @@ const FeesManagement: React.FC = () => {
   const formatFullDate = (dateStr: string) => {
     if (!dateStr) return '';
     const d = new Date(dateStr);
-    // Explicitly use en-GB for Day Month Year order in English
     return d.toLocaleDateString('en-GB', { 
       day: '2-digit', 
       month: 'long', 
@@ -104,12 +102,21 @@ const FeesManagement: React.FC = () => {
       }
     } else {
       // In payment mode
+      // Check if this specific due date already exists in history to avoid duplication
+      if (recordIndex >= 0) {
+        const alreadyPaid = updatedFees[recordIndex].history.some(p => p.forMonth === forMonth);
+        if (alreadyPaid) {
+          setModalError(t('paymentExistsError'));
+          return;
+        }
+      }
+
       const transaction: PaymentTransaction = {
         id: `tr-${Date.now()}`,
         date: date,
         amount: numericAmount,
         method: method,
-        forMonth: forMonth, // Now a full date string
+        forMonth: forMonth,
         note: note,
         recordedBy: currentUser?.name || 'System'
       };
@@ -316,6 +323,12 @@ const FeesManagement: React.FC = () => {
               <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-red-500"><X size={24} /></button>
             </div>
             <div className="p-6 space-y-5">
+              {modalError && (
+                <div className="bg-rose-50 border-2 border-rose-100 p-4 rounded-2xl flex items-start gap-3 text-rose-700 font-bold text-sm animate-fade-in">
+                  <AlertCircle size={20} className="shrink-0" />
+                  {modalError}
+                </div>
+              )}
               <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-2xl border border-gray-100"><img src={selectedStudent.avatar} className="w-12 h-12 rounded-full border-2 border-white shadow-sm" alt="" /><div><p className="font-bold text-gray-900">{selectedStudent.name}</p><p className="text-xs text-gray-500">{selectedStudent.classGroup}</p></div></div>
               <div>
                 <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">{t('amount')} ({t('currency')})</label>
@@ -330,7 +343,7 @@ const FeesManagement: React.FC = () => {
                             <Calendar size={14} className="text-indigo-500" />
                             <span className="font-bold text-xs text-gray-700 whitespace-nowrap" dir="ltr">{formatFullDate(forMonth)}</span>
                         </div>
-                        <input type="date" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" value={forMonth} onChange={e => setForMonth(e.target.value)} />
+                        <input type="date" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" value={forMonth} onChange={e => {setForMonth(e.target.value); setModalError(null);}} />
                     </div>
                   </div>
                   <div><label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">{t('paymentMethod')}</label><div className="flex bg-gray-100 p-1 rounded-xl gap-1"><button onClick={() => setMethod('Cash')} className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-[10px] font-bold transition-all ${method === 'Cash' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-400'}`}><Banknote size={14}/>{t('cash')}</button><button onClick={() => setMethod('Bank')} className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-[10px] font-bold transition-all ${method === 'Bank' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-400'}`}><Building2 size={14}/>{t('bank')}</button></div></div>
