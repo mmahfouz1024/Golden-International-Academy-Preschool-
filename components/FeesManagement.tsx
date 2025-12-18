@@ -32,8 +32,12 @@ const FeesManagement: React.FC = () => {
   const formatLongDate = (dateStr: string) => {
     if (!dateStr) return '';
     const d = new Date(dateStr);
-    // Explicitly force en-GB for English display regardless of UI language
-    return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+    // Force en-GB to get "Day Month Year" order
+    return d.toLocaleDateString('en-GB', { 
+      day: '2-digit', 
+      month: 'long', 
+      year: 'numeric' 
+    });
   };
 
   // English Month Formatter: "October 2025"
@@ -311,7 +315,7 @@ const FeesManagement: React.FC = () => {
                   </td>
                   <td className="px-6 py-4 font-bold text-emerald-600 text-sm">{tr.amount} {t('currency')}</td>
                   <td className="px-6 py-4 font-bold text-gray-700 text-xs" dir="ltr">{formatMonthYear(tr.forMonth)}</td>
-                  <td className="px-6 py-4 text-xs text-gray-500" dir="ltr">{formatLongDate(tr.date)}</td>
+                  <td className="px-6 py-4 text-sm text-gray-600 font-medium" dir="ltr">{formatLongDate(tr.date)}</td>
                   <td className="px-6 py-4 text-left flex justify-end">
                     {canManage && (
                       <button 
@@ -377,7 +381,7 @@ const FeesManagement: React.FC = () => {
                       {tr.note && <p className="text-[11px] text-gray-600 italic">"{tr.note}"</p>}
                     </div>
                     <div className="flex flex-col items-end gap-2">
-                      <div className="text-right text-[10px] text-gray-400" dir="ltr">{formatLongDate(tr.date)}</div>
+                      <div className="text-right text-sm text-gray-600 font-medium" dir="ltr">{formatLongDate(tr.date)}</div>
                       {canManage && (
                         <button 
                           onClick={() => handleDeleteTransaction(selectedStudent.id, tr.id)}
