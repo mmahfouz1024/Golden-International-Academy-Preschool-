@@ -30,9 +30,10 @@ const LoginHistory: React.FC = () => {
     log.userRole.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Force English formatting for login timestamps
   const getRelativeTime = (timestamp: string) => {
     const date = new Date(timestamp);
-    return date.toLocaleString(language === 'ar' ? 'ar-EG' : 'en-GB', {
+    return date.toLocaleString('en-GB', {
       day: 'numeric',
       month: 'short',
       hour: '2-digit',
@@ -78,7 +79,7 @@ const LoginHistory: React.FC = () => {
           <input 
             type="text" 
             placeholder={t('search')}
-            className={`w-full ${language === 'ar' ? 'pl-4 pr-10' : 'pr-4 pl-10'} py-2.5 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all`}
+            className={`w-full ${language === 'ar' ? 'pl-4 pr-10' : 'pr-4 pl-10'} py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all`}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -118,7 +119,7 @@ const LoginHistory: React.FC = () => {
                     </span>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="flex items-center gap-2 text-sm text-gray-600 font-medium">
+                    <div className="flex items-center gap-2 text-sm text-gray-600 font-bold" dir="ltr">
                         <Clock size={14} className="text-indigo-400" />
                         <span dir="ltr">{getRelativeTime(log.timestamp)}</span>
                     </div>

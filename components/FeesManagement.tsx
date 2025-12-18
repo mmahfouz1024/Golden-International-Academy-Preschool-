@@ -32,8 +32,16 @@ const FeesManagement: React.FC = () => {
   const formatLongDate = (dateStr: string) => {
     if (!dateStr) return '';
     const d = new Date(dateStr);
-    // Hardcoded to en-GB to force English month names as requested
+    // Explicitly force en-GB for English display regardless of UI language
     return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+  };
+
+  // English Month Formatter: "October 2025"
+  const formatMonthYear = (monthStr: string) => {
+    if (!monthStr) return '';
+    const [year, month] = monthStr.split('-').map(Number);
+    const date = new Date(year, month - 1, 1);
+    return date.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
   };
 
   useEffect(() => {
@@ -64,7 +72,6 @@ const FeesManagement: React.FC = () => {
     if (type === 'tuition') {
       setAmount(record?.monthlyAmount.toString() || '');
     } else {
-      // Payment Mode: Amount is LOCKED to what was set in 'tuition'
       setAmount(record?.monthlyAmount.toString() || '0');
       setNote('');
       setForMonth(new Date().toISOString().slice(0, 7));
@@ -99,7 +106,6 @@ const FeesManagement: React.FC = () => {
         });
       }
     } else {
-      // DUPLICATE CHECK
       if (recordIndex >= 0) {
         const alreadyPaid = updatedFees[recordIndex].history.some(p => p.forMonth === forMonth);
         if (alreadyPaid) {
@@ -304,7 +310,7 @@ const FeesManagement: React.FC = () => {
                     </div>
                   </td>
                   <td className="px-6 py-4 font-bold text-emerald-600 text-sm">{tr.amount} {t('currency')}</td>
-                  <td className="px-6 py-4 font-bold text-gray-700 text-xs">{tr.forMonth}</td>
+                  <td className="px-6 py-4 font-bold text-gray-700 text-xs" dir="ltr">{formatMonthYear(tr.forMonth)}</td>
                   <td className="px-6 py-4 text-xs text-gray-500" dir="ltr">{formatLongDate(tr.date)}</td>
                   <td className="px-6 py-4 text-left flex justify-end">
                     {canManage && (
@@ -364,7 +370,7 @@ const FeesManagement: React.FC = () => {
             <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
               {fees.find(f => f.studentId === selectedStudent.id)?.history.map(tr => (
                 <div key={tr.id} className="bg-white border border-gray-100 p-4 rounded-2xl shadow-sm hover:shadow-md transition-shadow relative">
-                  <div className="flex justify-between items-start mb-2"><span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-lg flex items-center gap-1.5"><Calendar size={12} /> {tr.forMonth}</span><span className="font-bold text-gray-800">{tr.amount} {t('currency')}</span></div>
+                  <div className="flex justify-between items-start mb-2"><span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-lg flex items-center gap-1.5" dir="ltr"><Calendar size={12} /> {formatMonthYear(tr.forMonth)}</span><span className="font-bold text-gray-800">{tr.amount} {t('currency')}</span></div>
                   <div className="flex justify-between items-end">
                     <div className="space-y-1">
                       <p className="text-[10px] text-gray-400 flex items-center gap-1"><Banknote size={10} /> {tr.method === 'Cash' ? t('cash') : t('bank')}</p>

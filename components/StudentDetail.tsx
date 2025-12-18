@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   Smile, Frown, Meh, Sun, Cloud, Moon, 
@@ -159,8 +158,8 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
       setMealInputs({ breakfast: '', lunch: '', snack: '' });
       setAcademicInputs({ religion: '', arabic: '', english: '', math: '' });
       setIsSaved(true);
-      // Fix: Wrapping translation calls in String() ensures they are treated as strings in template literals
-      addNotification(t('savedSuccessfully'), `${String(t('newReportMsg'))} ${student.name}`, 'success');
+      // Fix: Wrap translation results in String() to prevent implicit symbol to string conversion in template literals
+      addNotification(String(t('savedSuccessfully')), `${String(t('newReportMsg'))} ${student.name}`, 'success');
       setTimeout(() => setIsSaved(false), 2000);
     } catch (e: any) {
       alert("Failed to save report.");
@@ -269,7 +268,8 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
               <div className="space-y-5">
                 {[{ key: 'breakfast', label: t('breakfast'), icon: Coffee }, { key: 'lunch', label: t('lunch'), icon: Pizza }, { key: 'snack', label: t('snack'), icon: Apple }].map(meal => {
                   const mk = meal.key as keyof typeof mealInputs; 
-                  const dkey = `${mk}Details` as MealDetailsKey;
+                  // Fix: Wrap mk in String() to ensure it is treated as a string in template literals (prevents symbol error)
+                  const dkey = `${String(mk)}Details` as MealDetailsKey;
                   const currentMealStatus = (report.meals as any)[mk] as MealStatus;
                   const currentDetails = (report.meals[dkey] || []) as string[];
                   
@@ -371,11 +371,11 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, readOnly = false
             </div>
           </div>
           {!readOnly && (
-            // Fix: Wrapping the comparison expression in String() or ensuring the entire template literal is safe
+            // Fix: Explicitly wrap labels in String() to prevent symbol to string conversion errors in ternary/template literal
             <div className={`fixed bottom-6 ${String(t('saveReport')) === 'Save Report' ? 'right-6' : 'left-6'} z-30 flex flex-col gap-3`}>
               <button onClick={handleSave} className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-8 py-4 rounded-full shadow-2xl font-bold flex items-center gap-3 transition-all hover:scale-105 active:scale-95">
                 {isSaved ? <Check size={24} /> : <Save size={24} />}
-                <span>{isSaved ? t('savedSuccessfully') : t('saveReport')}</span>
+                <span>{isSaved ? String(t('savedSuccessfully')) : String(t('saveReport'))}</span>
               </button>
             </div>
           )}

@@ -20,12 +20,13 @@ const ReportsArchive: React.FC<ReportsArchiveProps> = ({ onViewReport }) => {
   const [selectedStudentId, setSelectedStudentId] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Helper to format date
+  // Helper to format date strictly in English
   const getFormattedDate = (dateStr: string) => {
     if (!dateStr) return '';
     const [year, month, day] = dateStr.split('-').map(Number);
     const date = new Date(year, month - 1, day);
-    return date.toLocaleDateString(language === 'ar' ? 'ar-EG' : 'en-GB', {
+    // Force English months and numbers
+    return date.toLocaleDateString('en-GB', {
         day: 'numeric',
         month: 'long',
         year: 'numeric'
@@ -33,16 +34,12 @@ const ReportsArchive: React.FC<ReportsArchiveProps> = ({ onViewReport }) => {
   };
 
   useEffect(() => {
-    // Load data
     setStudents(getStudents());
     const allReportsMap = getReports();
-    // Convert Record<string, Report> to Array
     const reportsArray = Object.values(allReportsMap);
-    // Sort by date desc
     reportsArray.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     setReports(reportsArray);
     
-    // Extract unique dates for dropdown
     const dates = Array.from(new Set(reportsArray.map(r => r.date))).sort().reverse();
     setAvailableDates(dates);
   }, []);
@@ -51,7 +48,6 @@ const ReportsArchive: React.FC<ReportsArchiveProps> = ({ onViewReport }) => {
     const matchesDate = selectedDate ? report.date === selectedDate : true;
     const matchesStudent = selectedStudentId !== 'all' ? report.studentId === selectedStudentId : true;
     
-    // Search by student name
     const student = students.find(s => s.id === report.studentId);
     const matchesSearch = student ? student.name.toLowerCase().includes(searchTerm.toLowerCase()) : false;
 
@@ -145,7 +141,7 @@ const ReportsArchive: React.FC<ReportsArchiveProps> = ({ onViewReport }) => {
                     <p className="text-xs text-gray-500">{student.classGroup}</p>
                   </div>
                 </div>
-                <div className="text-sm bg-gray-50 px-2 py-1 rounded text-gray-600 font-medium" dir="ltr">
+                <div className="text-sm bg-gray-50 px-2 py-1 rounded text-gray-600 font-bold" dir="ltr">
                   {getFormattedDate(report.date)}
                 </div>
               </div>

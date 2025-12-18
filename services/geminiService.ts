@@ -1,4 +1,3 @@
-
 import { GoogleGenAI, Type } from "@google/genai";
 
 // Declaration to satisfy TypeScript if @types/node is missing
@@ -6,16 +5,6 @@ declare var process: {
   env: {
     API_KEY: string;
   };
-};
-
-let aiClient: GoogleGenAI | null = null;
-
-const getAiClient = () => {
-  if (!aiClient) {
-    // Correctly initialize with API key from process.env.API_KEY as per guidelines
-    aiClient = new GoogleGenAI({ apiKey: process.env.API_KEY });
-  }
-  return aiClient;
 };
 
 // --- ROBUST ARABIC NORMALIZATION ---
@@ -108,7 +97,8 @@ const findBestStudentMatch = (searchName: string, students: {id: string, name: s
 
 export const generateActivityPlan = async (ageGroup: string, topic: string) => {
   try {
-    const ai = getAiClient();
+    // Correctly initialize with API key from process.env.API_KEY right before making an API call as per guidelines
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     // Using gemini-3-flash-preview as recommended for basic text tasks
     const model = 'gemini-3-flash-preview';
     const prompt = `
@@ -152,7 +142,8 @@ export const generateActivityPlan = async (ageGroup: string, topic: string) => {
 
 export const draftParentMessage = async (studentName: string, type: 'praise' | 'issue' | 'announcement', details: string) => {
   try {
-    const ai = getAiClient();
+    // Correctly initialize with API key from process.env.API_KEY right before making an API call as per guidelines
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     // Using gemini-3-flash-preview as recommended for basic text tasks
     const model = 'gemini-3-flash-preview';
     const prompt = `
@@ -178,7 +169,8 @@ export const draftParentMessage = async (studentName: string, type: 'praise' | '
 
 export const generateMonthlyProgress = async (studentName: string, month: string, reportSummary: any, lang: 'en' | 'ar') => {
   try {
-    const ai = getAiClient();
+    // Correctly initialize with API key from process.env.API_KEY right before making an API call as per guidelines
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     // Using gemini-3-pro-preview as recommended for complex text tasks (analysis)
     const model = 'gemini-3-pro-preview';
     
@@ -216,7 +208,8 @@ export const generateMonthlyProgress = async (studentName: string, month: string
 
 export const interpretVoiceCommand = async (command: string, students: {id: string, name: string}[]) => {
   try {
-    const ai = getAiClient();
+    // Correctly initialize with API key from process.env.API_KEY right before making an API call as per guidelines
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     // Using gemini-3-flash-preview as recommended for basic extraction tasks
     const model = 'gemini-3-flash-preview';
     
