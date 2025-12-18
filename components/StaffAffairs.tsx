@@ -4,7 +4,7 @@ import {
   DollarSign, Plus, History, Check, Trash2, Calendar, 
   UserCog, AlertCircle, ShieldAlert, 
   Wallet, Settings2, X, Users, TrendingUp, Search,
-  ArrowUpRight, CreditCard
+  ArrowUpRight, CreditCard, Lock
 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { getUsers, saveUsers, getPayroll, savePayroll } from '../services/storageService';
@@ -202,6 +202,7 @@ const StaffAffairs: React.FC = () => {
                                     setFormError(null);
                                     const s = staff.find(u => u.id === e.target.value);
                                     if (s && s.salary) setAmount(s.salary.toString());
+                                    else setAmount('0');
                                 }}
                             >
                                 <option value="">{t('selectOption')}</option>
@@ -226,14 +227,19 @@ const StaffAffairs: React.FC = () => {
                             </div>
                         </div>
                         <div className="space-y-1">
-                            <label className="block text-[10px] font-bold text-gray-400 uppercase ml-1">{t('salaryAmount')}</label>
-                            <div className="relative">
+                            <label className="block text-[10px] font-bold text-gray-400 uppercase ml-1 flex items-center gap-1">
+                                {t('salaryAmount')}
+                                <Lock size={10} className="text-gray-300" />
+                            </label>
+                            <div className="relative group">
                                 <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
                                 <input 
-                                    type="number" 
-                                    className="w-full pl-8 pr-3 py-2.5 bg-gray-50 rounded-xl border border-gray-100 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all text-sm font-bold"
+                                    type="text" 
+                                    readOnly
+                                    className="w-full pl-8 pr-3 py-2.5 bg-gray-100 border border-gray-200 rounded-xl text-sm font-bold text-indigo-700 cursor-not-allowed select-none focus:outline-none"
                                     value={amount}
-                                    onChange={e => setAmount(e.target.value)}
+                                    dir="ltr"
+                                    style={{ fontVariantNumeric: 'tabular-nums' }}
                                 />
                             </div>
                         </div>
