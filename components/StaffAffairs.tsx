@@ -115,58 +115,58 @@ const StaffAffairs: React.FC = () => {
   const filteredStaff = staff.filter(s => s.name.toLowerCase().includes(searchTerm.toLowerCase()));
 
   return (
-    <div className="space-y-6 animate-fade-in pb-20 max-w-7xl mx-auto">
+    <div className="space-y-5 animate-fade-in pb-20 max-w-7xl mx-auto">
         
-        {/* Header Section */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        {/* Header Section - Compact */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
             <div>
-                <h2 className="text-3xl font-display font-bold text-gray-800">{t('staffAffairs')}</h2>
-                <p className="text-gray-500 font-medium">{t('hrSubtitle')}</p>
+                <h2 className="text-2xl font-display font-bold text-gray-800">{t('staffAffairs')}</h2>
+                <p className="text-xs text-gray-500 font-medium">{t('hrSubtitle')}</p>
             </div>
 
-            <div className="flex bg-gray-100 p-1.5 rounded-[1.2rem] shadow-inner w-full md:w-auto">
+            <div className="flex bg-gray-100 p-1 rounded-xl shadow-inner w-full md:w-auto">
                 <button 
                     onClick={() => setActiveTab('payroll')}
-                    className={`flex-1 md:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 ${
+                    className={`flex-1 md:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 ${
                         activeTab === 'payroll' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'
                     }`}
                 >
-                    <Wallet size={18} />
+                    <Wallet size={16} />
                     {t('recordSalaryTab' as any)}
                 </button>
                 <button 
                     onClick={() => setActiveTab('base-salary')}
-                    className={`flex-1 md:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 ${
+                    className={`flex-1 md:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 ${
                         activeTab === 'base-salary' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'
                     }`}
                 >
-                    <Settings2 size={18} />
+                    <Settings2 size={16} />
                     {t('baseSalaryTab' as any)}
                 </button>
             </div>
         </div>
 
-        {/* Stats Overview Bar */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-             <div className="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm flex items-center gap-4 group hover:border-indigo-200 transition-colors">
-                 <div className="p-3 bg-indigo-50 text-indigo-600 rounded-2xl group-hover:scale-110 transition-transform"><Users size={24}/></div>
+        {/* Stats Overview Bar - Smaller */}
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+             <div className="bg-white p-3 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-3">
+                 <div className="p-2 bg-indigo-50 text-indigo-600 rounded-xl"><Users size={18}/></div>
                  <div>
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">{t('statsTeachers')}</p>
-                    <p className="text-2xl font-bold text-gray-800">{staff.length}</p>
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tight">{t('statsTeachers')}</p>
+                    <p className="text-lg font-bold text-gray-800">{staff.length}</p>
                  </div>
              </div>
-             <div className="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm flex items-center gap-4 group hover:border-emerald-200 transition-colors">
-                 <div className="p-3 bg-emerald-50 text-emerald-600 rounded-2xl group-hover:scale-110 transition-transform"><TrendingUp size={24}/></div>
+             <div className="bg-white p-3 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-3">
+                 <div className="p-2 bg-emerald-50 text-emerald-600 rounded-xl"><TrendingUp size={18}/></div>
                  <div>
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Total Est. Payroll</p>
-                    <p className="text-2xl font-bold text-gray-800">{totalMonthlyBase} <span className="text-sm font-normal">{t('currency')}</span></p>
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tight">Monthly Est.</p>
+                    <p className="text-lg font-bold text-gray-800">{totalMonthlyBase} <span className="text-[10px] font-normal">{t('currency')}</span></p>
                  </div>
              </div>
-             <div className="bg-gradient-to-br from-indigo-600 to-purple-600 p-5 rounded-3xl text-white shadow-lg shadow-indigo-100 flex items-center gap-4">
-                 <div className="p-3 bg-white/20 rounded-2xl"><DollarSign size={24}/></div>
+             <div className="col-span-2 md:col-span-1 bg-gradient-to-br from-indigo-600 to-purple-600 p-3 rounded-2xl text-white shadow-md flex items-center gap-3">
+                 <div className="p-2 bg-white/20 rounded-xl"><DollarSign size={18}/></div>
                  <div>
-                    <p className="text-xs font-bold opacity-80 uppercase tracking-wider">Paid this Month</p>
-                    <p className="text-2xl font-bold">{currentMonthPaid} <span className="text-sm font-normal">{t('currency')}</span></p>
+                    <p className="text-[10px] font-bold opacity-80 uppercase tracking-tight">Paid this Month</p>
+                    <p className="text-lg font-bold">{currentMonthPaid} <span className="text-[10px] font-normal">{t('currency')}</span></p>
                  </div>
              </div>
         </div>
@@ -174,35 +174,28 @@ const StaffAffairs: React.FC = () => {
         {activeTab === 'payroll' ? (
             <div className="space-y-6">
                 {/* Record New Payment Form */}
-                <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-gray-100 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-3 bg-indigo-50 rounded-bl-3xl">
-                        <ArrowUpRight size={20} className="text-indigo-400" />
+                <div className="bg-white p-5 rounded-[2rem] shadow-sm border border-gray-100 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-2.5 bg-indigo-50 rounded-bl-2xl">
+                        <ArrowUpRight size={16} className="text-indigo-400" />
                     </div>
 
-                    <h3 className="font-bold text-lg text-gray-800 mb-6 flex items-center gap-2">
-                        <CreditCard className="text-indigo-500" size={24} />
+                    <h3 className="font-bold text-base text-gray-800 mb-4 flex items-center gap-2">
+                        <CreditCard className="text-indigo-500" size={20} />
                         {t('recordSalary')}
                     </h3>
 
-                    <div className="mb-6 flex items-start gap-3 bg-indigo-50/50 p-4 rounded-2xl border border-indigo-100">
-                        <ShieldAlert size={20} className="text-indigo-500 shrink-0" />
-                        <p className="text-xs font-bold text-indigo-700 leading-relaxed">
-                            {t('payrollNote' as any)}
-                        </p>
-                    </div>
-
                     {formError && (
-                        <div className="mb-6 bg-rose-50 text-rose-600 p-4 rounded-2xl border border-rose-100 flex items-center gap-2 text-sm font-bold animate-shake">
-                            <AlertCircle size={20} />
+                        <div className="mb-4 bg-rose-50 text-rose-600 p-3 rounded-xl border border-rose-100 flex items-center gap-2 text-xs font-bold animate-shake">
+                            <AlertCircle size={16} />
                             {formError}
                         </div>
                     )}
 
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-end">
-                        <div className="space-y-2">
-                            <label className="block text-xs font-bold text-gray-400 uppercase ml-2">{t('staffMember')}</label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 items-end">
+                        <div className="space-y-1">
+                            <label className="block text-[10px] font-bold text-gray-400 uppercase ml-1">{t('staffMember')}</label>
                             <select 
-                                className="w-full p-3.5 bg-gray-50 rounded-2xl border border-gray-100 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all text-sm font-bold"
+                                className="w-full p-2.5 bg-gray-50 rounded-xl border border-gray-100 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all text-sm font-bold"
                                 value={selectedStaffId}
                                 onChange={e => {
                                     setSelectedStaffId(e.target.value);
@@ -213,17 +206,16 @@ const StaffAffairs: React.FC = () => {
                             >
                                 <option value="">{t('selectOption')}</option>
                                 {staff.map(s => (
-                                    <option key={s.id} value={s.id}>{s.name} ({t(`role${s.role.charAt(0).toUpperCase() + s.role.slice(1)}` as any)})</option>
+                                    <option key={s.id} value={s.id}>{s.name}</option>
                                 ))}
                             </select>
                         </div>
-                        <div className="space-y-2">
-                            <label className="block text-xs font-bold text-gray-400 uppercase ml-2">{t('paymentMonth')}</label>
+                        <div className="space-y-1">
+                            <label className="block text-[10px] font-bold text-gray-400 uppercase ml-1">{t('paymentMonth')}</label>
                             <div className="relative">
-                                <div className="flex items-center gap-3 bg-gray-50 border border-gray-100 rounded-2xl px-4 py-3.5 cursor-pointer hover:bg-gray-100 transition-all">
-                                    <Calendar size={18} className="text-indigo-500" />
-                                    <span className="font-bold text-sm text-gray-700">{formatMonthYear(month)}</span>
-                                    <ChevronDown size={14} className="text-gray-400 ml-auto" />
+                                <div className="flex items-center gap-2 bg-gray-50 border border-gray-100 rounded-xl px-3 py-2.5 cursor-pointer hover:bg-gray-100 transition-all">
+                                    <Calendar size={14} className="text-indigo-500" />
+                                    <span className="font-bold text-xs text-gray-700">{formatMonthYear(month)}</span>
                                 </div>
                                 <input 
                                     type="month" 
@@ -233,13 +225,13 @@ const StaffAffairs: React.FC = () => {
                                 />
                             </div>
                         </div>
-                        <div className="space-y-2">
-                            <label className="block text-xs font-bold text-gray-400 uppercase ml-2">{t('salaryAmount')}</label>
+                        <div className="space-y-1">
+                            <label className="block text-[10px] font-bold text-gray-400 uppercase ml-1">{t('salaryAmount')}</label>
                             <div className="relative">
-                                <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
                                 <input 
                                     type="number" 
-                                    className="w-full pl-10 pr-4 py-3.5 bg-gray-50 rounded-2xl border border-gray-100 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all text-sm font-bold"
+                                    className="w-full pl-8 pr-3 py-2.5 bg-gray-50 rounded-xl border border-gray-100 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all text-sm font-bold"
                                     value={amount}
                                     onChange={e => setAmount(e.target.value)}
                                 />
@@ -247,123 +239,121 @@ const StaffAffairs: React.FC = () => {
                         </div>
                         <button 
                             onClick={handleRecordPayment}
-                            className="py-3.5 bg-slate-900 text-white rounded-2xl font-bold hover:bg-black transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2"
+                            className="py-2.5 bg-slate-900 text-white rounded-xl font-bold hover:bg-black transition-all shadow-md active:scale-95 flex items-center justify-center gap-2 text-sm"
                         >
-                            <Check size={18} />
+                            <Check size={16} />
                             {t('save')}
                         </button>
                     </div>
                 </div>
 
-                {/* Payroll History */}
-                <div className="space-y-4">
-                    <div className="flex items-center justify-between px-2">
-                        <h3 className="font-bold text-gray-800 flex items-center gap-2">
-                            <History className="text-gray-400" size={20} />
-                            {t('paymentHistory')}
-                        </h3>
-                    </div>
+                {/* Payroll History - List */}
+                <div className="space-y-3">
+                    <h3 className="font-bold text-gray-800 flex items-center gap-2 px-2 text-sm">
+                        <History className="text-gray-400" size={18} />
+                        {t('paymentHistory')}
+                    </h3>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         {history.map((record) => (
-                            <div key={record.id} className="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition-all group flex items-center justify-between">
-                                <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
+                            <div key={record.id} className="bg-white p-3 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all group flex items-center justify-between">
+                                <div className="flex items-center gap-3 min-w-0">
+                                    <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold shrink-0">
                                         {record.staffName.charAt(0)}
                                     </div>
-                                    <div>
-                                        <p className="font-bold text-gray-800">{record.staffName}</p>
-                                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider flex items-center gap-1">
-                                            <Calendar size={10}/> {record.date}
+                                    <div className="min-w-0">
+                                        <p className="font-bold text-gray-800 text-sm truncate">{record.staffName}</p>
+                                        <p className="text-[9px] text-gray-400 font-bold uppercase flex items-center gap-1">
+                                            <Calendar size={8}/> {record.date}
                                         </p>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-6">
+                                <div className="flex items-center gap-4 shrink-0">
                                     <div className="text-right">
-                                        <p className="font-bold text-indigo-600">{record.amount} <span className="text-[10px]">{t('currency')}</span></p>
-                                        <span className="text-[10px] bg-green-100 text-green-700 px-2.5 py-0.5 rounded-full font-bold uppercase" dir="ltr">
+                                        <p className="font-bold text-indigo-600 text-sm">{record.amount} <span className="text-[9px]">{t('currency')}</span></p>
+                                        <span className="text-[9px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold" dir="ltr">
                                             {formatMonthYear(record.month)}
                                         </span>
                                     </div>
                                     <button 
                                         onClick={() => handleDeleteHistoryItem(record.id)}
-                                        className="p-2.5 text-gray-300 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all opacity-0 group-hover:opacity-100"
+                                        className="p-1.5 text-gray-300 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all opacity-0 group-hover:opacity-100"
                                     >
-                                        <Trash2 size={18} />
+                                        <Trash2 size={16} />
                                     </button>
                                 </div>
                             </div>
                         ))}
                     </div>
                     {history.length === 0 && (
-                        <div className="py-20 text-center text-gray-300">
-                           <History size={48} className="mx-auto mb-3 opacity-20" />
-                           <p className="font-medium">No payroll records yet.</p>
+                        <div className="py-12 text-center text-gray-300">
+                           <History size={32} className="mx-auto mb-2 opacity-20" />
+                           <p className="text-xs font-medium">No payroll records yet.</p>
                         </div>
                     )}
                 </div>
             </div>
         ) : (
-            /* Redesigned Base Salary Management (Card Grid) */
-            <div className="space-y-6 animate-fade-in">
-                <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-3">
-                    <Search className="text-gray-400" size={20} />
+            /* Redesigned Base Salary Management (COMPACT CARD GRID) */
+            <div className="space-y-4 animate-fade-in">
+                <div className="bg-white p-3 rounded-xl border border-gray-100 shadow-sm flex items-center gap-2">
+                    <Search className="text-gray-400" size={18} />
                     <input 
                         type="text"
                         placeholder={t('searchPlaceholder')}
-                        className="flex-1 bg-transparent border-none outline-none text-sm font-medium"
+                        className="flex-1 bg-transparent border-none outline-none text-xs font-medium"
                         value={searchTerm}
                         onChange={e => setSearchTerm(e.target.value)}
                     />
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
                     {filteredStaff.map(s => (
-                        <div key={s.id} className="bg-white rounded-[2.5rem] p-6 shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition-all group relative overflow-hidden">
+                        <div key={s.id} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-lg transition-all group relative overflow-hidden flex flex-col">
                             
-                            {/* Decorative Background Icon */}
-                            <div className="absolute -bottom-4 -right-4 opacity-5 pointer-events-none group-hover:scale-125 transition-transform">
-                                <DollarSign size={120} />
+                            {/* Decorative Background Icon - Smaller */}
+                            <div className="absolute -bottom-2 -right-2 opacity-5 pointer-events-none group-hover:scale-110 transition-transform">
+                                <DollarSign size={60} />
                             </div>
 
-                            <div className="flex flex-col items-center text-center mb-6">
+                            <div className="flex flex-col items-center text-center mb-3">
                                 <div className="relative">
-                                    <img src={s.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(s.name)}&background=random`} alt={s.name} className="w-20 h-20 rounded-[2rem] object-cover border-4 border-white shadow-md" />
-                                    <div className={`absolute -bottom-1 -right-1 w-6 h-6 rounded-lg border-2 border-white flex items-center justify-center ${s.role === 'teacher' ? 'bg-blue-500' : 'bg-orange-500'} text-white shadow-sm`}>
-                                        <UserCog size={12}/>
+                                    <img src={s.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(s.name)}&background=random`} alt={s.name} className="w-14 h-14 rounded-2xl object-cover border-2 border-white shadow-sm" />
+                                    <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-lg border-2 border-white flex items-center justify-center ${s.role === 'teacher' ? 'bg-blue-500' : 'bg-orange-500'} text-white shadow-sm`}>
+                                        <UserCog size={10}/>
                                     </div>
                                 </div>
-                                <h4 className="mt-4 font-bold text-gray-800">{s.name}</h4>
-                                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">
+                                <h4 className="mt-2 font-bold text-gray-800 text-xs line-clamp-1">{s.name}</h4>
+                                <span className="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">
                                     {t(`role${s.role.charAt(0).toUpperCase() + s.role.slice(1)}` as any)}
                                 </span>
                             </div>
 
-                            <div className="bg-gray-50 dark:bg-gray-700/50 rounded-2xl p-4 flex flex-col items-center gap-1 border border-gray-100">
+                            <div className="bg-gray-50/80 rounded-xl p-2.5 flex flex-col items-center gap-0.5 border border-gray-100 mt-auto relative z-10">
                                 {editingBaseId === s.id ? (
-                                    <div className="flex items-center gap-2 w-full animate-fade-in">
+                                    <div className="flex items-center gap-1.5 w-full animate-fade-in">
                                         <input 
-                                            className="flex-1 p-2 bg-white rounded-xl border border-indigo-200 text-sm font-bold focus:ring-2 focus:ring-indigo-500/20 outline-none"
+                                            className="flex-1 w-full p-1.5 bg-white rounded-lg border border-indigo-200 text-xs font-bold focus:ring-2 focus:ring-indigo-500/20 outline-none"
                                             type="number"
                                             value={baseSalaryInput}
                                             onChange={e => setBaseSalaryInput(e.target.value)}
                                             autoFocus
                                         />
-                                        <button onClick={() => handleUpdateBaseSalary(s.id)} className="p-2.5 bg-green-500 text-white rounded-xl shadow-md hover:bg-green-600"><Check size={16}/></button>
-                                        <button onClick={() => setEditingBaseId(null)} className="p-2.5 bg-white text-gray-400 rounded-xl hover:bg-gray-100"><X size={16}/></button>
+                                        <button onClick={() => handleUpdateBaseSalary(s.id)} className="p-1.5 bg-green-500 text-white rounded-lg hover:bg-green-600"><Check size={14}/></button>
+                                        <button onClick={() => setEditingBaseId(null)} className="p-1.5 bg-white text-gray-400 rounded-lg hover:bg-gray-100"><X size={14}/></button>
                                     </div>
                                 ) : (
                                     <>
-                                        <p className="text-[10px] font-bold text-gray-400 uppercase">{t('baseSalary')}</p>
-                                        <div className="flex items-baseline gap-1">
-                                            <span className="text-3xl font-display font-bold text-indigo-600">{s.salary || 0}</span>
-                                            <span className="text-xs font-bold text-indigo-400 uppercase">{t('currency')}</span>
+                                        <p className="text-[8px] font-bold text-gray-400 uppercase leading-none">{t('baseSalary')}</p>
+                                        <div className="flex items-baseline gap-0.5">
+                                            <span className="text-xl font-display font-bold text-indigo-600">{s.salary || 0}</span>
+                                            <span className="text-[8px] font-bold text-indigo-400 uppercase">{t('currency')}</span>
                                         </div>
                                         <button 
                                             onClick={() => { setEditingBaseId(s.id); setBaseSalaryInput(s.salary?.toString() || ''); }}
-                                            className="mt-2 text-xs font-bold text-indigo-500 hover:text-indigo-700 flex items-center gap-1 transition-colors"
+                                            className="mt-1 text-[9px] font-bold text-indigo-500 hover:text-indigo-700 flex items-center gap-1 transition-colors"
                                         >
-                                            <Plus size={14} /> {t('edit')}
+                                            <Plus size={10} /> {t('edit')}
                                         </button>
                                     </>
                                 )}
@@ -372,9 +362,9 @@ const StaffAffairs: React.FC = () => {
                     ))}
                     
                     {filteredStaff.length === 0 && (
-                        <div className="col-span-full py-20 text-center text-gray-300">
-                             <Search size={48} className="mx-auto mb-3 opacity-20" />
-                             <p>No staff found matching search.</p>
+                        <div className="col-span-full py-16 text-center text-gray-300">
+                             <Search size={32} className="mx-auto mb-2 opacity-20" />
+                             <p className="text-xs">No staff found matching search.</p>
                         </div>
                     )}
                 </div>
