@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { DollarSign, CheckCircle, Clock, Search, Filter, X, Save, Edit2, Printer, Receipt, Banknote, Building2, Plus, Calendar, ChevronDown } from 'lucide-react';
+import { Search, X, Save, Edit2, Receipt, Plus } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useNotification } from '../contexts/NotificationContext';
 import { getUsers, getStudents, getFees, saveFees } from '../services/storageService';
@@ -19,14 +19,13 @@ const FeesManagement: React.FC = () => {
   
   // Filters
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'paid' | 'partial' | 'unpaid'>('all');
 
   // Form State
   const [amount, setAmount] = useState('');
   const [note, setNote] = useState('');
   const [method, setMethod] = useState<PaymentMethod>('Cash');
   const [forMonth, setForMonth] = useState(new Date().toISOString().slice(0, 7)); // YYYY-MM
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [date] = useState(new Date().toISOString().split('T')[0]);
 
   useEffect(() => {
     // Load Data
@@ -61,7 +60,8 @@ const FeesManagement: React.FC = () => {
     if (type === 'tuition') {
       setAmount(record?.monthlyAmount.toString() || '');
     } else {
-      setAmount('');
+      // Default amount to the fixed monthly tuition if available
+      setAmount(record?.monthlyAmount.toString() || '');
       setNote('');
       setForMonth(new Date().toISOString().slice(0, 7));
     }
@@ -92,7 +92,23 @@ const FeesManagement: React.FC = () => {
         });
       }
     } else {
-      // Payment
+      // --- DUPLICATE CHECK ---
+      if (recordIndex >= 0) {
+        const currentRecord = updatedFees[recordIndex];
+        const alreadyPaid = currentRecord.history.some(p => p.forMonth === forMonth);
+        
+        if (alreadyPaid) {
+          // Show error and STOP the save process
+          addNotification(
+            language === 'ar' ? 'خطأ في الدفع' : 'Payment Error', 
+            t('paymentExistsError'), 
+            'alert'
+          );
+          return;
+        }
+      }
+
+      // Record the Payment
       const transaction: PaymentTransaction = {
         id: `tr-${Date.now()}`,
         date: date,
@@ -138,12 +154,14 @@ const FeesManagement: React.FC = () => {
     const record = fees.find(f => f.studentId === studentId);
     if (!record || record.monthlyAmount === 0) return { label: t('noTuitionSet'), color: 'bg-gray-100 text-gray-600' };
     
-    if (record.paidAmount >= record.monthlyAmount) {
-      return { label: t('statusPaid'), color: 'bg-emerald-100 text-emerald-700' };
-    } else if (record.paidAmount > 0) {
-      return { label: t('statusPartial'), color: 'bg-amber-100 text-amber-700' };
+    // Simple check: is there a payment for the CURRENT month?
+    const currentMonthStr = new Date().toISOString().slice(0, 7);
+    const isPaidThisMonth = record.history.some(p => p.forMonth === currentMonthStr);
+
+    if (isPaidThisMonth) {
+      return { label: t('statusPaid'), color: 'bg-emerald-100 text-emerald-700 border-emerald-200' };
     } else {
-      return { label: t('statusUnpaid'), color: 'bg-rose-100 text-rose-700' };
+      return { label: t('statusUnpaid'), color: 'bg-rose-100 text-rose-700 border-rose-200' };
     }
   };
 
@@ -161,8 +179,8 @@ const FeesManagement: React.FC = () => {
           <Search className={`absolute ${language === 'ar' ? 'right-3' : 'left-3'} top-1/2 -translate-y-1/2 text-gray-400`} size={20} />
           <input 
             type="text" 
-            placeholder={t('search')}
-            className={`w-full ${language === 'ar' ? 'pl-9 pr-9' : 'pr-4 pl-9'} py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm`}
+            placeholder={t('searchPlaceholder')}
+            className={`w-full ${language === 'ar' ? 'pl-4 pr-10' : 'pr-4 pl-10'} py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm`}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -261,17 +279,14 @@ const FeesManagement: React.FC = () => {
               </div>
               
               <div>
-                <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase tracking-wide">{t('amount')}</label>
-                <div className="relative">
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">$</div>
-                  <input 
-                    type="number"
-                    required
-                    className="w-full pl-8 pr-4 py-3 bg-gray-50 border-transparent rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-bold"
-                    value={amount}
-                    onChange={e => setAmount(e.target.value)}
-                  />
-                </div>
+                <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase tracking-wide">{t('amount')} ({t('currency')})</label>
+                <input 
+                  type="number"
+                  required
+                  className="w-full px-4 py-3 bg-gray-50 border-transparent rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-bold"
+                  value={amount}
+                  onChange={e => setAmount(e.target.value)}
+                />
               </div>
 
               {modalType === 'payment' && (
@@ -289,7 +304,7 @@ const FeesManagement: React.FC = () => {
                     <div>
                       <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase tracking-wide">{t('paymentMethod')}</label>
                       <select 
-                        className="w-full px-4 py-2.5 bg-gray-50 border-transparent rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-medium appearance-none"
+                        className="w-full px-4 py-2.5 bg-gray-50 border-transparent rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-medium"
                         value={method}
                         onChange={e => setMethod(e.target.value as any)}
                       >
