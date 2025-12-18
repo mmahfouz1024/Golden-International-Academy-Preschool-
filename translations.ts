@@ -1,7 +1,10 @@
 
 export const translations = {
   en: {
-    // ... (preserving existing ones)
+    // ... (rest of the file remains the same)
+    payrollNote: "Note: Salary records cannot be edited after saving. To correct a mistake, delete and re-enter.",
+    paymentExistsError: "This month has already been paid for this student.",
+    salaryExistsError: "Salary for this month has already been recorded for this staff.",
     paymentMethod: "Payment Method",
     cash: "Cash",
     bank: "Bank Transfer",
@@ -10,9 +13,6 @@ export const translations = {
     paidMonths: "Payment Status",
     noTuitionSet: "No tuition set",
     paymentSummary: "Payment Summary",
-    paymentExistsError: "This month has already been paid for this student.",
-    salaryExistsError: "Salary for this month has already been recorded for this staff.",
-    // ...
     appTitle: "Golden International Academy & Pre-school",
     appSubtitle: "Smart Management System",
     welcome: "Welcome",
@@ -33,14 +33,10 @@ export const translations = {
     allow: "Allow",
     noChildRecord: "No child record linked to this account",
     contactAdmin: "Please contact school administration",
-
-    // Biometrics
     loginWithBiometrics: "Login with Face ID / Fingerprint",
     biometricNotAvailable: "Biometrics not set up on this device",
     biometricError: "Authentication failed",
     noSavedUser: "Please login manually first to enable biometrics",
-
-    // QR & Security
     pickupPass: "Pickup Pass",
     gateScanner: "Gate Scanner",
     securityGate: "Security Gate",
@@ -59,8 +55,6 @@ export const translations = {
     sharePass: "Share Pass",
     sharePassDesc: "Send this code to the driver or relative",
     sharingNotSupported: "Sharing not supported on this browser, downloading image instead.",
-
-    // UI/UX Improvements
     darkMode: "Dark Mode",
     focusMode: "Teacher Focus Mode",
     focusModeDesc: "Simplified interface for quick daily updates",
@@ -74,14 +68,10 @@ export const translations = {
     ateAll: "Ate All",
     ateSome: "Ate Some",
     ateNone: "None",
-
-    // New Modules (Restored)
     transport: "Transport",
     schoolCalendar: "Calendar",
     staffAffairs: "Staff & HR",
     gallery: "Class Gallery",
-    
-    // Gallery
     galleryTitle: "Class Photo Album",
     gallerySubtitle: "Photos of activities, events, and happy moments",
     uploadPhotos: "Upload Photos",
@@ -89,8 +79,6 @@ export const translations = {
     postDescription: "Description / Caption",
     noGalleryPosts: "No photos added to the album yet.",
     deletePostConfirm: "Delete this entire album post?",
-    
-    // Transport (Restored)
     transportTitle: "Bus & Transport Tracking",
     manageRoutes: "Manage Bus Routes",
     addRoute: "Add Route",
@@ -100,8 +88,6 @@ export const translations = {
     assignedStudents: "Assigned Students",
     noRoutes: "No bus routes defined",
     deleteRouteConfirm: "Delete this bus route?",
-    
-    // Calendar (Restored)
     calendarTitle: "School Events Calendar",
     calendarSubtitle: "Holidays, Exams, and Activities",
     addEvent: "Add Event",
@@ -114,8 +100,6 @@ export const translations = {
     typeExam: "Exam",
     deleteEventConfirm: "Delete this event?",
     noEvents: "No upcoming events",
-    
-    // HR & Payroll (Restored)
     hrTitle: "Staff Payroll",
     hrSubtitle: "Manage salaries and payments",
     recordSalary: "Record Payment",
@@ -127,8 +111,6 @@ export const translations = {
     baseSalary: "Base Salary",
     updateSalary: "Update Base Salary",
     paymentHistory: "Payment History",
-
-    // Auth
     loginTitle: "Login to Continue",
     username: "Username",
     password: "Password",
@@ -146,8 +128,6 @@ export const translations = {
     recoveryRequestSent: "Request sent to Admin.",
     whatsappRecoveryMsg: "The admin has been notified. You will be contacted via WhatsApp with your new password.",
     sending: "Sending...",
-
-    // Sidebar
     dashboard: "Dashboard",
     dailyReportMenu: "Daily Reports",
     students: "Students",
@@ -167,10 +147,8 @@ export const translations = {
     installApp: "Install App",
     pressBackAgainToExit: "Press back again to exit",
     feesManagement: "Financial Management",
-    
     roleAdmin: "General Manager",
     roleManager: "Admin",
-    
     roleTeacher: "Teacher",
     roleParent: "Parent",
     profile: "Profile",
@@ -181,8 +159,6 @@ export const translations = {
     themeSunshine: "Sunshine (Orange)",
     database: "Database Management",
     dailyScheduleManage: "Schedule Management",
-
-    // Dashboard
     statsTotalStudents: "Total Students",
     statsPresentToday: "Present Today",
     statsTeachers: "Teachers",
@@ -204,8 +180,6 @@ export const translations = {
     todaysMenu: "Today's Main Dish",
     selectDish: "Select Dish...",
     addCustomDish: "Add Custom...",
-
-    // Fees Management
     feesTitle: "Tuition & Fees",
     feesSubtitle: "Manage student payments and track revenue",
     totalFees: "Total Fees",
@@ -234,8 +208,6 @@ export const translations = {
     receivedFrom: "Received From",
     forStudent: "For Student",
     schoolSeal: "School Seal & Signature",
-
-    // Schedule Management
     scheduleManagement: "Daily Schedule Management",
     manageSchedule: "Add or edit daily schedule items",
     addItem: "Add Item",
@@ -249,8 +221,6 @@ export const translations = {
     colorOrange: "Orange (Play/Break)",
     colorPurple: "Purple (Nap/End)",
     colorRed: "Red (Important)",
-
-    // Daily Report Management
     dailyReportTitle: "Daily Report Management",
     dailyReportSubtitle: "Create or modify daily reports for students",
     addNewReport: "Add New Report",
@@ -268,8 +238,6 @@ export const translations = {
     createNewReport: "Create New Report",
     chooseAnotherDate: "Choose Another Date",
     selectOption: "Select an Option",
-
-    // Student List
     studentRegistry: "Student Registry",
     manageStudents: "Manage student profiles and daily reports",
     newStudent: "Register New Student",
@@ -281,8 +249,6 @@ export const translations = {
     filterStatus: "All Status",
     advancedFilter: "Advanced Filter",
     noResults: "No results found",
-
-    // Add Student Modal
     addStudentTitle: "Register New Student",
     studentName: "Student Name (Full)",
     studentAge: "Age",
@@ -299,8 +265,6 @@ export const translations = {
     parentModeNew: "Register New Parent",
     parentModeExisting: "Select Existing Parent",
     selectParent: "Select Parent from List",
-
-    // Student Detail
     dailyReport: "Daily Report",
     reportDate: "Report Date",
     readOnlyReport: "This report is read-only. Updated by the teacher.",
@@ -332,8 +296,6 @@ export const translations = {
     noPhotos: "No photos added today",
     noReportForDate: "No daily report has been added for this date yet",
     mealItemPlaceholder: "Meal item (e.g. Rice, Sandwich)",
-
-    // Activity Items
     Montessori: "Montessori",
     Garden: "Garden",
     Coloring: "Coloring",
@@ -346,8 +308,6 @@ export const translations = {
     "Circle time": "Circle Time",
     "Learning center": "Learning Center",
     "P.E": "P.E",
-
-    // Moods & Options
     happy: "Happy",
     sad: "Sad",
     neutral: "Neutral",
@@ -360,8 +320,6 @@ export const translations = {
     mealMore: "More",
     urine: "Urine",
     stool: "Stool",
-
-    // AI Planner
     planActivity: "Plan Activity",
     library: "Library",
     draftMessage: "Draft Message",
@@ -392,8 +350,6 @@ export const translations = {
     generateReport: "Generate Report",
     noReportsForMonth: "No daily reports found for this student in the selected month.",
     analyzing: "Analyzing...",
-
-    // User Management
     userManagement: "User Management",
     manageUsers: "Manage accounts, permissions, and class assignments",
     usersList: "Users List",
@@ -418,13 +374,9 @@ export const translations = {
     childClass: "Child Class",
     childNotListed: "Child not listed?",
     adminRestrictedError: "Admins cannot modify General Manager accounts.",
-    
-    // Parent Multi-Child View
     selectChildTitle: "Who is using the app?",
     selectChildSubtitle: "Select a child to view their report",
     myChildren: "My Children",
-
-    // Teacher Management
     teacherManagement: "Teacher Management",
     manageTeachers: "Manage teacher profiles and class assignments",
     addTeacher: "Add Teacher",
@@ -433,8 +385,6 @@ export const translations = {
     assignedClasses: "Assigned Classes",
     email: "Email Address",
     mobile: "Mobile Number",
-
-    // Class Management
     classManagement: "Class Management",
     manageClasses: "Edit classes and assign teachers",
     addClass: "Add Class",
@@ -445,15 +395,11 @@ export const translations = {
     studentCount: "Student Count",
     capacity: "Capacity",
     deleteClassConfirm: "Are you sure you want to delete this class?",
-
-    // Reports Archive
     searchReports: "Search Reports",
     searchReportsSubtitle: "Browse past daily reports for students",
     allDates: "All Dates",
     viewReport: "View Report",
     reportFor: "Report for",
-
-    // Directory
     directoryTitle: "School Directory",
     directorySubtitle: "Overview of all students, teachers, and parents",
     allStudents: "Students",
@@ -462,16 +408,12 @@ export const translations = {
     contactInfo: "Contact Info",
     callNow: "Call",
     sendEmail: "Email",
-
-    // Chat
     chatTitle: "Messages",
     chatSubtitle: "Communicate with school staff",
     selectUserToChat: "Select a user to start chatting",
     typeMessage: "Type a message...",
     send: "Send",
     noMessages: "No messages yet",
-
-    // Attendance
     attendanceRegister: "Attendance Register",
     markAttendance: "Mark Daily Attendance",
     attendanceDateSelect: "Select Attendance Date",
@@ -489,8 +431,6 @@ export const translations = {
     viewTab: "View Records",
     daysInMonth: "Days",
     totalPresent: "Total Present",
-
-    // Profile
     profileSettings: "Profile Settings",
     personalInfo: "Personal Information",
     security: "Security & Password",
@@ -510,8 +450,6 @@ export const translations = {
     notificationsDesc: "Receive alerts for new messages and announcements",
     enableSystemNotifications: "Allow System Notifications",
     systemNotificationsDesc: "Get real-time updates on your phone even when app is closed",
-    
-    // Notifications & Errors
     notifications: "Notifications",
     noNotifications: "No new notifications",
     markAllRead: "Mark all as read",
@@ -522,8 +460,6 @@ export const translations = {
     httpsRequired: "Notifications require HTTPS (or localhost).",
     notificationsNotSupported: "System notifications not supported on this device.",
     notificationsBlockedMsg: "Notifications are blocked. Please enable them in your device settings.",
-
-    // Database
     dbSettings: "Database Settings",
     dbSubtitle: "Connect app to Supabase or manage Local Backups",
     connectionStatus: "Connection Status",
@@ -544,8 +480,6 @@ export const translations = {
     syncError: "Sync failed, check configuration",
     dbConnectionError: "Connection to database failed. Please check internet.",
     dbConnectionSuccess: "Connected to database successfully",
-
-    // Backup & Restore
     backupRestore: "Backup & Restore",
     backupDesc: "Download a copy of your data or restore from a file.",
     downloadBackup: "Download Backup File",
@@ -555,7 +489,6 @@ export const translations = {
     restoreSuccess: "Data restored successfully. Reloading...",
     invalidBackupFile: "Invalid backup file. Please upload a valid JSON file.",
     uploadBackupFile: "Upload .json file",
-    
     loginHistory: "Login History",
     loginTime: "Login Time",
     device: "Device",
@@ -563,7 +496,10 @@ export const translations = {
     noLogs: "No login records found.",
   },
   ar: {
-    // ... (preserving existing ones)
+    // ... (rest of the file remains the same)
+    payrollNote: "ملاحظة: سجلات الرواتب نهائية ولا يمكن تعديلها بعد الحفظ. للتصحيح، يجب حذف السجل وإعادة إدخاله.",
+    paymentExistsError: "تم تسجيل دفع لهذا الشهر لهذا الطالب بالفعل.",
+    salaryExistsError: "تم صرف راتب هذا الشهر لهذا الموظف بالفعل.",
     paymentMethod: "طريقة الدفع",
     cash: "نقداً (كاش)",
     bank: "تحويل بنكي",
@@ -572,9 +508,6 @@ export const translations = {
     paidMonths: "حالة السداد",
     noTuitionSet: "لم يتم تحديد مبلغ",
     paymentSummary: "ملخص السداد",
-    paymentExistsError: "تم تسجيل دفع لهذا الشهر لهذا الطالب بالفعل.",
-    salaryExistsError: "تم صرف راتب هذا الشهر لهذا الموظف بالفعل.",
-    // ...
     appTitle: "أكاديمية وروضة جولدن الدولية",
     appSubtitle: "نظام الإدارة الذكي",
     welcome: "مرحباً بك",
@@ -595,14 +528,10 @@ export const translations = {
     allow: "سماح",
     noChildRecord: "لا يوجد سجل طفل مرتبط بهذا الحساب",
     contactAdmin: "يرجى التواصل مع إدارة الروضة",
-
-    // Biometrics
     loginWithBiometrics: "دخول ببصمة الوجه / الإصبع",
     biometricNotAvailable: "البصمة غير مفعلة على هذا الجهاز",
     biometricError: "فشل التحقق من الهوية",
     noSavedUser: "يرجى تسجيل الدخول يدوياً أولاً لتفعيل البصمة",
-
-    // QR & Security
     pickupPass: "بطاقة الاستلام",
     gateScanner: "ماسح البوابة",
     securityGate: "بوابة الأمن",
@@ -621,8 +550,6 @@ export const translations = {
     sharePass: "مشاركة البطاقة",
     sharePassDesc: "أرسل هذا الكود للسائق أو القريب",
     sharingNotSupported: "المشاركة غير مدعومة في هذا المتصفح، جاري تحميل الصورة.",
-
-    // UI/UX Improvements
     darkMode: "الوضع الليلي",
     focusMode: "وضع تركيز المعلمة",
     focusModeDesc: "واجهة مبسطة للتحديثات اليومية السريعة",
@@ -636,14 +563,10 @@ export const translations = {
     ateAll: "أكل الكل",
     ateSome: "أكل البعض",
     ateNone: "لم يأكل",
-
-    // New Modules (Restored)
     transport: "النقل المدرسي",
     schoolCalendar: "التقويم",
     staffAffairs: "شؤون الموظفين",
     gallery: "معرض الصور",
-
-    // Gallery
     galleryTitle: "ألبوم صور الفصل",
     gallerySubtitle: "صور الأنشطة، الفعاليات، واللحظات السعيدة",
     uploadPhotos: "رفع صور",
@@ -651,8 +574,6 @@ export const translations = {
     postDescription: "الوصف / العنوان",
     noGalleryPosts: "لم يتم إضافة صور للألبوم بعد.",
     deletePostConfirm: "هل أنت متأكد من حذف هذا الألبوم؟",
-
-    // Transport (Restored)
     transportTitle: "تتبع النقل المدرسي",
     manageRoutes: "إدارة خطوط الباصات",
     addRoute: "إضافة خط",
@@ -662,8 +583,6 @@ export const translations = {
     assignedStudents: "الطلاب المسجلين",
     noRoutes: "لم يتم تعريف خطوط نقل بعد",
     deleteRouteConfirm: "هل أنت متأكد من حذف هذا الخط؟",
-
-    // Calendar (Restored)
     calendarTitle: "التقويم المدرسي",
     calendarSubtitle: "الإجازات، الاختبارات، والأنشطة",
     addEvent: "إضافة فعالية",
@@ -676,8 +595,6 @@ export const translations = {
     typeExam: "اختبار",
     deleteEventConfirm: "حذف هذه الفعالية؟",
     noEvents: "لا توجد فعاليات قادمة",
-
-    // HR & Payroll (Restored)
     hrTitle: "رواتب الموظفين",
     hrSubtitle: "إدارة الرواتب والمدفوعات",
     recordSalary: "تسجيل دفعة",
@@ -689,8 +606,6 @@ export const translations = {
     baseSalary: "الراتب الأساسي",
     updateSalary: "تحديث الراتب الأساسي",
     paymentHistory: "سجل المدفوعات",
-
-    // Auth
     loginTitle: "تسجيل الدخول للمتابعة",
     username: "اسم المستخدم",
     password: "كلمة المرور",
@@ -708,8 +623,6 @@ export const translations = {
     recoveryRequestSent: "تم إرسال الطلب للإدارة",
     whatsappRecoveryMsg: "تم ارسال الطلب للادارة وسيتم التواصل معك عبر الواتس اب لتزويدك بكلمة المرور الجديدة",
     sending: "جاري الإرسال...",
-
-    // Sidebar
     dashboard: "لوحة التحكم",
     dailyReportMenu: "التقارير اليومية",
     students: "الطلاب",
@@ -729,10 +642,8 @@ export const translations = {
     installApp: "تثبيت التطبيق",
     pressBackAgainToExit: "اضغط مرة أخرى للخروج",
     feesManagement: "الإدارة المالية",
-    
     roleAdmin: "المدير العام",
     roleManager: "أدمن",
-    
     roleTeacher: "المعلم",
     roleParent: "ولي الأمر",
     profile: "الملف الشخصي",
@@ -743,8 +654,6 @@ export const translations = {
     themeSunshine: "شروق (برتقالي)",
     database: "إدارة البيانات",
     dailyScheduleManage: "إدارة الجدول",
-
-    // Dashboard
     statsTotalStudents: "إجمالي الطلاب",
     statsPresentToday: "حضور اليوم",
     statsTeachers: "المعلمات",
@@ -766,8 +675,6 @@ export const translations = {
     todaysMenu: "الطبق الرئيسي اليوم",
     selectDish: "اختر الصنف...",
     addCustomDish: "إضافة صنف...",
-
-    // Fees Management
     feesTitle: "الرسوم والمصروفات",
     feesSubtitle: "إدارة مدفوعات الطلاب وتتبع الإيرادات",
     totalFees: "إجمالي الرسوم",
@@ -796,8 +703,6 @@ export const translations = {
     receivedFrom: "استلمنا من",
     forStudent: "عن الطالب",
     schoolSeal: "ختم وتوقيع الروضة",
-
-    // Schedule Management
     scheduleManagement: "إدارة الجدول اليومي",
     manageSchedule: "إضافة أو تعديل فقرات الجدول اليومي",
     addItem: "إضافة فقرة",
@@ -811,8 +716,6 @@ export const translations = {
     colorOrange: "برتقالي (لعب/راحة)",
     colorPurple: "بنفسجي (نوم/انصراف)",
     colorRed: "أحمر (هام)",
-
-    // Daily Report Management
     dailyReportTitle: "إدارة التقارير اليومية",
     dailyReportSubtitle: "إنشاء أو تعديل التقارير اليومية للطلاب",
     addNewReport: "إضافة تقرير جديد",
@@ -830,8 +733,6 @@ export const translations = {
     createNewReport: "إنشاء جديد",
     chooseAnotherDate: "لا، العودة للتاريخ",
     selectOption: "اختر عملية",
-
-    // Student List
     studentRegistry: "سجل الطلاب",
     manageStudents: "إدارة ملفات الطلاب والتقارير اليومية",
     newStudent: "تسجيل طالب جديد",
@@ -843,8 +744,6 @@ export const translations = {
     filterStatus: "كل الحالات",
     advancedFilter: "Advanced Filter",
     noResults: "لا توجد نتائج",
-
-    // Add Student Modal
     addStudentTitle: "تسجيل طالب جديد",
     studentName: "اسم الطالب (رباعي)",
     studentAge: "العمر",
@@ -861,8 +760,6 @@ export const translations = {
     parentModeNew: "تسجيل ولي أمر جديد",
     parentModeExisting: "اختيار ولي أمر موجود",
     selectParent: "اختر ولي الأمر من القائمة",
-
-    // Student Detail
     dailyReport: "التقرير اليومي",
     reportDate: "تاريخ التقرير",
     readOnlyReport: "هذا التقرير للقراءة فقط. يتم تحديثه من قبل المعلمة.",
@@ -894,8 +791,6 @@ export const translations = {
     noPhotos: "لم يتم إضافة صور اليوم",
     noReportForDate: "لم يتم إضافة تقرير يومي لهذا التاريخ بعد",
     mealItemPlaceholder: "صنف الوجبة (مثال: أرز، ساندوتش)",
-
-    // Activity Items
     Montessori: "منتسوري",
     Garden: "الحديقة",
     Coloring: "تلوين",
@@ -908,8 +803,6 @@ export const translations = {
     "Circle time": "الحلقة",
     "Learning center": "ركن التعليم",
     "P.E": "رياضة",
-
-    // Moods & Options
     happy: "سعيد",
     sad: "حزين",
     neutral: "عادي",
@@ -922,8 +815,6 @@ export const translations = {
     mealMore: "طلب زيادة",
     urine: "بول",
     stool: "براز",
-
-    // AI Planner
     planActivity: "تخطيط نشاط",
     library: "المكتبة",
     draftMessage: "صياغة رسالة",
@@ -954,8 +845,6 @@ export const translations = {
     generateReport: "إنشاء التقرير",
     noReportsForMonth: "لا توجد تقارير يومية لهذا الطالب في الشهر المحدد.",
     analyzing: "جاري التحليل...",
-
-    // User Management
     userManagement: "إدارة المستخدمين",
     manageUsers: "إدارة الحسابات والصلاحيات وتعيين الفصول",
     usersList: "قائمة المستخدمين",
@@ -980,13 +869,9 @@ export const translations = {
     childClass: "فصل الطفل",
     childNotListed: "الطفل غير موجود؟",
     adminRestrictedError: "عفواً، لا يمكن للأدمن تعديل حساب المدير العام.",
-    
-    // Parent Multi-Child View
     selectChildTitle: "من يستخدم التطبيق؟",
     selectChildSubtitle: "اختر الطفل لعرض تقريره",
     myChildren: "أطفالي",
-
-    // Teacher Management
     teacherManagement: "إدارة المعلمات",
     manageTeachers: "إدارة ملفات المعلمات وتعيين الفصول",
     addTeacher: "إضافة معلمة",
@@ -995,8 +880,6 @@ export const translations = {
     assignedClasses: "الفصول المسندة",
     email: "البريد الإلكتروني",
     mobile: "رقم الجوال",
-
-    // Class Management
     classManagement: "إدارة الفصول",
     manageClasses: "تعديل الفصول وتعيين المعلمات",
     addClass: "إضافة فصل",
@@ -1007,15 +890,11 @@ export const translations = {
     studentCount: "عدد الطلاب",
     capacity: "السعة",
     deleteClassConfirm: "هل أنت متأكد من حذف هذا الفصل؟",
-
-    // Reports Archive
     searchReports: "بحث في التقارير",
     searchReportsSubtitle: "تصفح التقارير اليومية السابقة للطلاب",
     allDates: "كل التواريخ",
     viewReport: "عرض التقرير",
     reportFor: "تقرير ليوم",
-
-    // Directory
     directoryTitle: "دليل الروضة",
     directorySubtitle: "نظرة عامة على جميع الطلاب والمعلمات وأولياء الأمور",
     allStudents: "الطلاب",
@@ -1024,16 +903,12 @@ export const translations = {
     contactInfo: "معلومات الاتصال",
     callNow: "اتصال",
     sendEmail: "بريد",
-
-    // Chat
     chatTitle: "المحادثات",
     chatSubtitle: "تواصل مع كادر الروضة",
     selectUserToChat: "اختر مستخدم لبدء المحادثة",
     typeMessage: "اكتب رسالة...",
     send: "إرسال",
     noMessages: "لا توجد رسائل بعد",
-
-    // Attendance
     attendanceRegister: "سجل الحضور",
     markAttendance: "تسجيل الحضور اليومي",
     attendanceDateSelect: "اختيار تاريخ الحضور",
@@ -1051,8 +926,6 @@ export const translations = {
     viewTab: "عرض السجلات",
     daysInMonth: "يوم",
     totalPresent: "أيام الحضور",
-
-    // Profile
     profileSettings: "إعدادات الملف الشخصي",
     personalInfo: "المعلومات الشخصية",
     security: "الأمان وكلمة المرور",
@@ -1072,8 +945,6 @@ export const translations = {
     notificationsDesc: "استلم تنبيهات للرسائل الجديدة والإعلانات",
     enableSystemNotifications: "السماح بإشعارات النظام",
     systemNotificationsDesc: "احصل على تحديثات فورية حتى والتطبيق مغلق",
-    
-    // Notifications & Errors
     notifications: "الإشعارات",
     noNotifications: "لا توجد إشعارات جديدة",
     markAllRead: "تحديد الكل كمقروء",
@@ -1084,8 +955,6 @@ export const translations = {
     httpsRequired: "الإشعارات تتطلب اتصال آمن (HTTPS).",
     notificationsNotSupported: "الإشعارات غير مدعومة على هذا الجهاز.",
     notificationsBlockedMsg: "تم حظر الإشعارات. يرجى تفعيلها من إعدادات المتصفح.",
-
-    // Database
     dbSettings: "إعدادات قاعدة البيانات",
     dbSubtitle: "ربط التطبيق بالسحابة أو إدارة النسخ الاحتياطي",
     connectionStatus: "حالة الاتصال",
@@ -1106,8 +975,6 @@ export const translations = {
     syncError: "فشلت المزامنة، تأكد من الإعدادات",
     dbConnectionError: "فشل الاتصال بقاعدة البيانات. تأكد من الإنترنت.",
     dbConnectionSuccess: "تم الاتصال بقاعدة البيانات بنجاح",
-
-    // Backup & Restore
     backupRestore: "النسخ الاحتياطي والاستعادة",
     backupDesc: "تحميل نسخة من بياناتك أو استعادتها من ملف.",
     downloadBackup: "تحميل ملف النسخة الاحتياطية",
@@ -1117,7 +984,6 @@ export const translations = {
     restoreSuccess: "تم استعادة البيانات بنجاح. جاري إعادة التحميل...",
     invalidBackupFile: "ملف غير صالح. يرجى رفع ملف JSON صحيح.",
     uploadBackupFile: "رفع ملف .json",
-    
     loginHistory: "سجل الدخول",
     loginTime: "وقت الدخول",
     device: "الجهاز",

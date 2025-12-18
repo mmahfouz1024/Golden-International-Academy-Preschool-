@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { DollarSign, Plus, History, Check, Trash2, Calendar, User, UserCog, ChevronDown, AlertCircle } from 'lucide-react';
+import { DollarSign, Plus, History, Check, Trash2, Calendar, User, UserCog, ChevronDown, AlertCircle, ShieldAlert } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { getUsers, saveUsers, getPayroll, savePayroll } from '../services/storageService';
 import { User as UserType, StaffSalary } from '../types';
@@ -110,11 +110,22 @@ const StaffAffairs: React.FC = () => {
         </div>
 
         {/* 1. Record Payment Section */}
-        <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
+        <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-2 bg-indigo-50 rounded-bl-2xl">
+                <ShieldAlert size={16} className="text-indigo-400" />
+            </div>
+
             <h3 className="font-bold text-lg text-gray-800 mb-4 flex items-center gap-2">
                 <div className="p-2 bg-green-100 text-green-600 rounded-lg"><DollarSign size={20}/></div>
                 {t('recordSalary')}
             </h3>
+
+            <div className="mb-4 flex items-start gap-2 bg-indigo-50/50 p-3 rounded-xl border border-indigo-100">
+                <ShieldAlert size={16} className="text-indigo-500 shrink-0 mt-0.5" />
+                <p className="text-[11px] font-bold text-indigo-700 leading-tight">
+                    {t('payrollNote' as any)}
+                </p>
+            </div>
 
             {formError && (
                 <div className="mb-4 bg-rose-50 text-rose-600 p-4 rounded-2xl border border-rose-100 flex items-center gap-2 text-sm font-bold animate-fade-in">
@@ -177,11 +188,11 @@ const StaffAffairs: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* 2. Staff List & Base Salary */}
+            {/* 2. Staff List & Base Salary Settings */}
             <div className="lg:col-span-1 bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden flex flex-col h-fit">
                 <div className="p-4 bg-gray-50 border-b border-gray-100 font-bold text-gray-700 flex items-center gap-2">
-                    <User size={18} className="text-indigo-500" />
-                    {t('staffMember')}
+                    <UserCog size={18} className="text-indigo-500" />
+                    {t('baseSalary')}
                 </div>
                 <div className="divide-y divide-gray-50">
                     {staff.map(s => (
@@ -214,6 +225,7 @@ const StaffAffairs: React.FC = () => {
                                         <button 
                                             onClick={() => { setEditingBaseId(s.id); setBaseSalaryInput(s.salary?.toString() || ''); }}
                                             className="text-gray-300 hover:text-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                                            title={t('edit')}
                                         >
                                             <Plus size={14} />
                                         </button>
@@ -226,7 +238,7 @@ const StaffAffairs: React.FC = () => {
                 </div>
             </div>
 
-            {/* 3. History */}
+            {/* 3. History (Non-Editable Records) */}
             <div className="lg:col-span-2 bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex flex-col">
                 <h3 className="font-bold text-lg text-gray-800 mb-6 flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -256,6 +268,7 @@ const StaffAffairs: React.FC = () => {
                                 <button 
                                     onClick={() => handleDeleteHistoryItem(record.id)}
                                     className="p-2 text-gray-300 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all opacity-0 group-hover:opacity-100"
+                                    title={t('delete')}
                                 >
                                     <Trash2 size={16} />
                                 </button>
