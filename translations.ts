@@ -1,7 +1,9 @@
 
 export const translations = {
   en: {
-    // ... (rest of the file remains the same)
+    // ... (preserving existing ones)
+    recordSalaryTab: "Payroll Records",
+    baseSalaryTab: "Base Salary Setup",
     payrollNote: "Note: Salary records cannot be edited after saving. To correct a mistake, delete and re-enter.",
     paymentExistsError: "This month has already been paid for this student.",
     salaryExistsError: "Salary for this month has already been recorded for this staff.",
@@ -496,7 +498,9 @@ export const translations = {
     noLogs: "No login records found.",
   },
   ar: {
-    // ... (rest of the file remains the same)
+    // ... (preserving existing ones)
+    recordSalaryTab: "تسجيل وصرف الرواتب",
+    baseSalaryTab: "إعداد الرواتب الأساسية",
     payrollNote: "ملاحظة: سجلات الرواتب نهائية ولا يمكن تعديلها بعد الحفظ. للتصحيح، يجب حذف السجل وإعادة إدخاله.",
     paymentExistsError: "تم تسجيل دفع لهذا الشهر لهذا الطالب بالفعل.",
     salaryExistsError: "تم صرف راتب هذا الشهر لهذا الموظف بالفعل.",
