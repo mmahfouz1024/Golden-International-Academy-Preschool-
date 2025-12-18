@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Wallet, DollarSign, CheckCircle, AlertCircle, Clock, Search, Filter, Send, X, Save, Edit2, Printer, Receipt, Banknote, Building2, Calendar as CalendarIcon } from 'lucide-react';
+import { DollarSign, CheckCircle, Clock, Search, Filter, X, Save, Edit2, Printer, Receipt, Banknote, Building2 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useNotification } from '../contexts/NotificationContext';
 import { getUsers, getStudents, getFees, saveFees } from '../services/storageService';
