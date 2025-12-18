@@ -27,6 +27,16 @@ const StaffAffairs: React.FC = () => {
     return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
   };
 
+  // English Month Formatter: "October 2025"
+  const formatMonthYear = (monthStr: string) => {
+    if (!monthStr) return '';
+    const parts = monthStr.split('-');
+    const year = parseInt(parts[0]);
+    const month = parseInt(parts[1]);
+    const date = new Date(year, month - 1, 1);
+    return date.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+  };
+
   useEffect(() => {
       const allUsers = getUsers();
       const storedUid = localStorage.getItem('golden_session_uid');
@@ -223,7 +233,9 @@ const StaffAffairs: React.FC = () => {
                             <div className="flex items-center gap-6">
                                 <div className="text-right">
                                     <p className="font-bold text-indigo-600">{record.amount} {t('currency')}</p>
-                                    <span className="text-[10px] bg-green-100 text-green-700 px-2.5 py-0.5 rounded-full font-bold uppercase">{record.month}</span>
+                                    <span className="text-[10px] bg-green-100 text-green-700 px-2.5 py-0.5 rounded-full font-bold uppercase" dir="ltr">
+                                        {formatMonthYear(record.month)}
+                                    </span>
                                 </div>
                                 <button 
                                     onClick={() => handleDeleteHistoryItem(record.id)}

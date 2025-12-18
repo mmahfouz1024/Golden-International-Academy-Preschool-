@@ -32,7 +32,6 @@ const FeesManagement: React.FC = () => {
   const formatLongDate = (dateStr: string) => {
     if (!dateStr) return '';
     const d = new Date(dateStr);
-    // Force en-GB to get "Day Month Year" order
     return d.toLocaleDateString('en-GB', { 
       day: '2-digit', 
       month: 'long', 
@@ -43,7 +42,10 @@ const FeesManagement: React.FC = () => {
   // English Month Formatter: "October 2025"
   const formatMonthYear = (monthStr: string) => {
     if (!monthStr) return '';
-    const [year, month] = monthStr.split('-').map(Number);
+    // monthStr is typically YYYY-MM
+    const parts = monthStr.split('-');
+    const year = parseInt(parts[0]);
+    const month = parseInt(parts[1]);
     const date = new Date(year, month - 1, 1);
     return date.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
   };
@@ -314,7 +316,7 @@ const FeesManagement: React.FC = () => {
                     </div>
                   </td>
                   <td className="px-6 py-4 font-bold text-emerald-600 text-sm">{tr.amount} {t('currency')}</td>
-                  <td className="px-6 py-4 font-bold text-gray-700 text-xs" dir="ltr">{formatMonthYear(tr.forMonth)}</td>
+                  <td className="px-6 py-4 font-bold text-gray-700 text-sm" dir="ltr">{formatMonthYear(tr.forMonth)}</td>
                   <td className="px-6 py-4 text-sm text-gray-600 font-medium" dir="ltr">{formatLongDate(tr.date)}</td>
                   <td className="px-6 py-4 text-left flex justify-end">
                     {canManage && (
