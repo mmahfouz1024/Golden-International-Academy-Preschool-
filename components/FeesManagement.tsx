@@ -1,10 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
-import { Wallet, DollarSign, CheckCircle, AlertCircle, Clock, Search, Filter, Send, X, Save, Edit2, Printer, Receipt } from 'lucide-react';
+import { Wallet, DollarSign, CheckCircle, AlertCircle, Clock, Search, Filter, Send, X, Save, Edit2, Printer, Receipt, Banknote, Building2, Calendar as CalendarIcon } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useNotification } from '../contexts/NotificationContext';
 import { getUsers, getStudents, getFees, saveFees } from '../services/storageService';
-import { User, Student, FeeRecord, PaymentTransaction } from '../types';
+import { User, Student, FeeRecord, PaymentTransaction, PaymentMethod } from '../types';
 
 const FeesManagement: React.FC = () => {
   const { t, language } = useLanguage();
@@ -24,6 +24,8 @@ const FeesManagement: React.FC = () => {
   // Form State
   const [amount, setAmount] = useState('');
   const [note, setNote] = useState('');
+  const [method, setMethod] = useState<PaymentMethod>('Cash');
+  const [forMonth, setForMonth] = useState(new Date().toISOString().slice(0, 7)); // YYYY-MM
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
 
   useEffect(() => {
@@ -45,16 +47,9 @@ const FeesManagement: React.FC = () => {
             childIds = [user.linkedStudentId];
         }
         
-        // Fallback match by name
-        if (childIds.length === 0) {
-            const matches = allStudents.filter(s => s.parentName === user.name);
-            childIds = matches.map(s => s.id);
-        }
-
         const myChildren = allStudents.filter(s => childIds.includes(s.id));
         setStudents(myChildren);
     } else {
-        // Admin View
         setStudents(allStudents);
     }
     setFees(allFees);
@@ -64,6 +59,7 @@ const FeesManagement: React.FC = () => {
     return fees.find(f => f.studentId === studentId) || {
         id: `fee-${studentId}`,
         studentId,
+        monthlyAmount: 0,
         totalAmount: 0,
         paidAmount: 0,
         history: []
@@ -71,9 +67,12 @@ const FeesManagement: React.FC = () => {
   };
 
   const getStatus = (record: FeeRecord) => {
-    if (record.totalAmount === 0 && record.paidAmount === 0) return 'unpaid'; // Default
-    if (record.paidAmount >= record.totalAmount && record.totalAmount > 0) return 'paid';
-    if (record.paidAmount > 0) return 'partial';
+    // Check current month
+    const currentMonthStr = new Date().toISOString().slice(0, 7);
+    const isThisMonthPaid = record.history.some(p => p.forMonth === currentMonthStr);
+    
+    if (isThisMonthPaid) return 'paid';
+    if (record.monthlyAmount > 0 && !isThisMonthPaid) return 'unpaid';
     return 'unpaid';
   };
 
@@ -91,12 +90,15 @@ const FeesManagement: React.FC = () => {
     setModalType(type);
     setAmount('');
     setNote('');
+    setMethod('Cash');
+    setForMonth(new Date().toISOString().slice(0, 7));
     setIsModalOpen(true);
     
-    // Pre-fill amount if tuition
+    const record = getFeeRecord(student.id);
     if (type === 'tuition') {
-        const record = getFeeRecord(student.id);
-        setAmount(record.totalAmount > 0 ? record.totalAmount.toString() : '');
+        setAmount(record.monthlyAmount > 0 ? record.monthlyAmount.toString() : '');
+    } else {
+        setAmount(record.monthlyAmount > 0 ? record.monthlyAmount.toString() : '');
     }
   };
 
@@ -109,24 +111,27 @@ const FeesManagement: React.FC = () => {
 
     const currentFees = [...fees];
     let recordIndex = currentFees.findIndex(f => f.studentId === selectedStudent.id);
-    let record = recordIndex >= 0 ? currentFees[recordIndex] : {
+    let record = recordIndex >= 0 ? { ...currentFees[recordIndex] } : {
         id: `fee-${Date.now()}`,
         studentId: selectedStudent.id,
+        monthlyAmount: 0,
         totalAmount: 0,
         paidAmount: 0,
         history: []
-    };
+    } as FeeRecord;
 
     if (modalType === 'tuition') {
-        record.totalAmount = val;
+        record.monthlyAmount = val;
     } else {
         // Payment
         record.paidAmount += val;
         record.lastPaymentDate = date;
         record.history.push({
-            id: `${Date.now()}`, // Simple numeric ID for receipt
+            id: `${Date.now()}`,
             date: date,
             amount: val,
+            method: method,
+            forMonth: forMonth,
             note: note,
             recordedBy: currentUser?.name || 'Admin'
         });
@@ -144,12 +149,6 @@ const FeesManagement: React.FC = () => {
     addNotification(t('savedSuccessfully'), `${modalType === 'tuition' ? 'Tuition updated' : 'Payment recorded'} for ${selectedStudent.name}`, 'success');
   };
 
-  const handleSendReminder = (student: Student) => {
-    // In a real app, this would trigger an email or push notification to the parent's device
-    alert(`${t('reminderSent')} to parent of ${student.name}`);
-  };
-
-  // --- PRINT RECEIPT LOGIC ---
   const handlePrintReceipt = (transaction: PaymentTransaction, student: Student) => {
       const receiptWindow = window.open('', '', 'width=600,height=600');
       if (!receiptWindow) return;
@@ -189,6 +188,14 @@ const FeesManagement: React.FC = () => {
             <div class="row">
                 <span class="label">${t('paymentDate')}</span>
                 <span class="value">${transaction.date}</span>
+            </div>
+            <div class="row">
+                <span class="label">${t('forMonth')}</span>
+                <span class="value" dir="ltr">${transaction.forMonth}</span>
+            </div>
+            <div class="row">
+                <span class="label">${t('paymentMethod')}</span>
+                <span class="value">${transaction.method === 'Cash' ? t('cash') : t('bank')}</span>
             </div>
             <div class="row">
                 <span class="label">${t('receivedFrom')}</span>
@@ -235,11 +242,6 @@ const FeesManagement: React.FC = () => {
     return matchesSearch && matchesStatus;
   });
 
-  // Calculate Stats
-  const totalExpected = fees.reduce((sum, f) => sum + f.totalAmount, 0);
-  const totalCollected = fees.reduce((sum, f) => sum + f.paidAmount, 0);
-  const totalPending = totalExpected - totalCollected;
-
   return (
     <div className="space-y-6 animate-fade-in">
         
@@ -248,39 +250,6 @@ const FeesManagement: React.FC = () => {
             <h2 className="text-2xl font-bold text-gray-800">{t('feesTitle')}</h2>
             <p className="text-gray-500 mt-1">{t('feesSubtitle')}</p>
         </div>
-
-        {/* Stats Cards (Admin Only) */}
-        {currentUser?.role !== 'parent' && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-indigo-100 flex items-center gap-4">
-                    <div className="p-4 bg-indigo-50 text-indigo-600 rounded-full">
-                        <Wallet size={32} />
-                    </div>
-                    <div>
-                        <p className="text-sm text-gray-500 font-medium">{t('expectedRevenue')}</p>
-                        <h3 className="text-2xl font-bold text-gray-800">{totalExpected.toLocaleString()} <span className="text-xs text-gray-400">{t('currency')}</span></h3>
-                    </div>
-                </div>
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-emerald-100 flex items-center gap-4">
-                    <div className="p-4 bg-emerald-50 text-emerald-600 rounded-full">
-                        <CheckCircle size={32} />
-                    </div>
-                    <div>
-                        <p className="text-sm text-gray-500 font-medium">{t('collectedRevenue')}</p>
-                        <h3 className="text-2xl font-bold text-gray-800">{totalCollected.toLocaleString()} <span className="text-xs text-gray-400">{t('currency')}</span></h3>
-                    </div>
-                </div>
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-rose-100 flex items-center gap-4">
-                    <div className="p-4 bg-rose-50 text-rose-600 rounded-full">
-                        <AlertCircle size={32} />
-                    </div>
-                    <div>
-                        <p className="text-sm text-gray-500 font-medium">{t('outstandingBalance')}</p>
-                        <h3 className="text-2xl font-bold text-gray-800">{totalPending.toLocaleString()} <span className="text-xs text-gray-400">{t('currency')}</span></h3>
-                    </div>
-                </div>
-            </div>
-        )}
 
         {/* Filters */}
         <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col md:flex-row gap-4 items-center justify-between">
@@ -304,7 +273,6 @@ const FeesManagement: React.FC = () => {
                 >
                     <option value="all">{t('filterStatus')}</option>
                     <option value="paid">{t('statusPaid')}</option>
-                    <option value="partial">{t('statusPartial')}</option>
                     <option value="unpaid">{t('statusUnpaid')}</option>
                 </select>
             </div>
@@ -315,8 +283,14 @@ const FeesManagement: React.FC = () => {
             {filteredList.map(student => {
                 const record = getFeeRecord(student.id);
                 const status = getStatus(record);
-                const balance = record.totalAmount - record.paidAmount;
-                const progress = record.totalAmount > 0 ? (record.paidAmount / record.totalAmount) * 100 : 0;
+                
+                // Get last 4 months for status display
+                const lastMonths = [];
+                for(let i=0; i<4; i++) {
+                    const d = new Date();
+                    d.setMonth(d.getMonth() - i);
+                    lastMonths.push(d.toISOString().slice(0, 7));
+                }
 
                 return (
                     <div key={student.id} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
@@ -325,31 +299,36 @@ const FeesManagement: React.FC = () => {
                                 <img src={student.avatar} alt={student.name} className="w-16 h-16 rounded-full object-cover border-4 border-gray-50" />
                                 <div>
                                     <h3 className="font-bold text-lg text-gray-800">{student.name}</h3>
-                                    <p className="text-sm text-gray-500">{student.classGroup}</p>
-                                    <span className={`inline-block mt-2 px-2.5 py-0.5 rounded-full text-xs font-bold border ${getStatusColor(status)}`}>
-                                        {t(`status${status.charAt(0).toUpperCase() + status.slice(1)}` as any)}
-                                    </span>
+                                    <p className="text-xs text-gray-500">{student.classGroup}</p>
+                                    <div className="flex items-center gap-2 mt-2">
+                                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${getStatusColor(status)}`}>
+                                            {t(`status${status.charAt(0).toUpperCase() + status.slice(1)}` as any)}
+                                        </span>
+                                        <span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100">
+                                            {record.monthlyAmount || 0} {t('currency')}
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div className="flex-1 w-full md:w-auto md:px-8">
-                                <div className="flex justify-between text-sm mb-1 font-medium text-gray-600">
-                                    <span>{t('paidAmount')}: {record.paidAmount}</span>
-                                    <span>{t('totalFees')}: {record.totalAmount}</span>
+                            <div className="flex-1 w-full md:w-auto">
+                                <p className="text-[10px] font-bold text-gray-400 uppercase mb-2 tracking-wider">{t('paidMonths')}</p>
+                                <div className="flex gap-2">
+                                    {lastMonths.reverse().map(m => {
+                                        const isPaid = record.history.some(p => p.forMonth === m);
+                                        const monthName = new Date(m + '-01').toLocaleDateString(language === 'ar' ? 'ar-EG' : 'en-US', { month: 'short' });
+                                        return (
+                                            <div key={m} className={`flex-1 min-w-0 p-2 rounded-xl border text-center transition-all ${isPaid ? 'bg-emerald-50 border-emerald-100 text-emerald-700' : 'bg-gray-50 border-gray-100 text-gray-400'}`}>
+                                                <p className="text-[10px] font-bold uppercase">{monthName}</p>
+                                                {isPaid ? <CheckCircle size={14} className="mx-auto mt-1" /> : <Clock size={14} className="mx-auto mt-1" />}
+                                            </div>
+                                        );
+                                    })}
                                 </div>
-                                <div className="w-full bg-gray-100 rounded-full h-3 overflow-hidden">
-                                    <div 
-                                        className={`h-full rounded-full transition-all duration-500 ${status === 'paid' ? 'bg-emerald-500' : 'bg-indigo-500'}`} 
-                                        style={{ width: `${Math.min(100, progress)}%` }}
-                                    ></div>
-                                </div>
-                                <p className="text-xs text-right mt-1 text-rose-500 font-bold">
-                                    {t('remainingAmount')}: {balance} {t('currency')}
-                                </p>
                             </div>
 
                             <div className="flex gap-2 w-full md:w-auto">
-                                {currentUser?.role !== 'parent' ? (
+                                {currentUser?.role !== 'parent' && (
                                     <>
                                         <button 
                                             onClick={() => handleOpenModal(student, 'payment')}
@@ -365,32 +344,15 @@ const FeesManagement: React.FC = () => {
                                         >
                                             <Edit2 size={18} />
                                         </button>
-                                        {status !== 'paid' && (
-                                            <button 
-                                                onClick={() => handleSendReminder(student)}
-                                                className="p-2 bg-rose-50 text-rose-600 rounded-xl hover:bg-rose-100 transition-colors"
-                                                title={t('sendReminder')}
-                                            >
-                                                <Send size={18} />
-                                            </button>
-                                        )}
                                     </>
-                                ) : (
-                                    <div className="text-right">
-                                        {record.lastPaymentDate && (
-                                            <p className="text-xs text-gray-400">
-                                                Last Payment: <span dir="ltr">{record.lastPaymentDate}</span>
-                                            </p>
-                                        )}
-                                    </div>
                                 )}
                             </div>
                         </div>
 
-                        {/* Payment History Accordion - Enhanced List */}
+                        {/* Payment History */}
                         {record.history.length > 0 && (
                             <div className="mt-6 pt-4 border-t border-gray-50">
-                                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-3 flex items-center gap-2">
+                                <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
                                     <Receipt size={14} />
                                     {t('paymentHistory')}
                                 </h4>
@@ -399,22 +361,23 @@ const FeesManagement: React.FC = () => {
                                         <div key={pay.id} className="flex justify-between items-center text-sm bg-gray-50 p-3 rounded-lg border border-gray-100 hover:bg-white hover:shadow-sm transition-all group">
                                             <div className="flex items-center gap-3">
                                                 <div className="bg-white p-1.5 rounded-md text-gray-400 border border-gray-200">
-                                                    <Clock size={14} />
+                                                    {pay.method === 'Bank' ? <Building2 size={14} /> : <Banknote size={14} />}
                                                 </div>
                                                 <div>
-                                                    <span className="font-bold text-gray-700 block" dir="ltr">{pay.date}</span>
-                                                    <span className="text-[10px] text-gray-400">{pay.recordedBy}</span>
+                                                    <span className="font-bold text-gray-700 block text-xs" dir="ltr">{pay.date}</span>
+                                                    <span className="text-[10px] text-indigo-500 font-bold">{pay.forMonth}</span>
                                                 </div>
                                             </div>
                                             
                                             <div className="flex items-center gap-4">
-                                                {pay.note && <span className="text-gray-500 text-xs italic truncate max-w-[100px] hidden sm:block">{pay.note}</span>}
-                                                <span className="font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded">+{pay.amount} {t('currency')}</span>
+                                                <span className="text-[10px] font-bold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">
+                                                    {pay.method === 'Cash' ? t('cash') : t('bank')}
+                                                </span>
+                                                <span className="font-bold text-emerald-600">+{pay.amount} {t('currency')}</span>
                                                 
                                                 <button 
                                                     onClick={() => handlePrintReceipt(pay, student)}
                                                     className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
-                                                    title={t('printReceipt')}
                                                 >
                                                     <Printer size={16} />
                                                 </button>
@@ -438,7 +401,7 @@ const FeesManagement: React.FC = () => {
         {/* Modal */}
         {isModalOpen && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-                <div className="bg-white rounded-2xl shadow-xl w-full max-w-md animate-fade-in">
+                <div className="bg-white rounded-2xl shadow-xl w-full max-w-md animate-fade-in border-4 border-white">
                     <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
                         <h3 className="text-lg font-bold text-gray-800">
                             {modalType === 'tuition' ? t('setTuition') : t('recordPayment')}
@@ -450,16 +413,16 @@ const FeesManagement: React.FC = () => {
                     
                     <form onSubmit={handleSave} className="p-6 space-y-4">
                         <div className="text-center mb-4">
-                            <p className="text-sm text-gray-500">Student</p>
+                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Student</p>
                             <h4 className="text-xl font-bold text-indigo-600">{selectedStudent?.name}</h4>
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">{t('amount')} ({t('currency')})</label>
+                            <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">{t('amount')} ({t('currency')})</label>
                             <input 
                                 type="number" 
                                 required
-                                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-lg font-bold"
+                                className="w-full px-4 py-3 border-2 border-indigo-50 bg-indigo-50/20 rounded-xl focus:outline-none focus:border-indigo-500 text-lg font-bold"
                                 value={amount}
                                 onChange={e => setAmount(e.target.value)}
                                 placeholder="0.00"
@@ -468,34 +431,60 @@ const FeesManagement: React.FC = () => {
 
                         {modalType === 'payment' && (
                             <>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('paymentDate')}</label>
-                                    <input 
-                                        type="date" 
-                                        required
-                                        className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-                                        value={date}
-                                        onChange={e => setDate(e.target.value)}
-                                    />
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">{t('forMonth')}</label>
+                                        <div className="relative">
+                                            <input 
+                                                type="month" 
+                                                required
+                                                className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-indigo-500 text-sm font-bold"
+                                                value={forMonth}
+                                                onChange={e => setForMonth(e.target.value)}
+                                            />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">{t('paymentDate')}</label>
+                                        <input 
+                                            type="date" 
+                                            required
+                                            className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-indigo-500 text-sm font-bold"
+                                            value={date}
+                                            onChange={e => setDate(e.target.value)}
+                                        />
+                                    </div>
                                 </div>
+
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('note')}</label>
-                                    <input 
-                                        type="text" 
-                                        className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-                                        value={note}
-                                        onChange={e => setNote(e.target.value)}
-                                        placeholder="Optional (e.g. Cash, Bank Transfer)"
-                                    />
+                                    <label className="block text-xs font-bold text-gray-500 mb-2 uppercase">{t('paymentMethod')}</label>
+                                    <div className="flex gap-2 p-1.5 bg-gray-50 rounded-2xl border border-gray-100">
+                                        <button
+                                            type="button"
+                                            onClick={() => setMethod('Cash')}
+                                            className={`flex-1 py-3 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 ${method === 'Cash' ? 'bg-white text-indigo-600 shadow-sm border border-indigo-100' : 'text-gray-400 hover:text-gray-600'}`}
+                                        >
+                                            <Banknote size={18} />
+                                            {t('cash')}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setMethod('Bank')}
+                                            className={`flex-1 py-3 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 ${method === 'Bank' ? 'bg-white text-indigo-600 shadow-sm border border-indigo-100' : 'text-gray-400 hover:text-gray-600'}`}
+                                        >
+                                            <Building2 size={18} />
+                                            {t('bank')}
+                                        </button>
+                                    </div>
                                 </div>
                             </>
                         )}
 
                         <button 
                             type="submit"
-                            className="w-full py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-colors shadow-lg flex items-center justify-center gap-2 mt-4"
+                            className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-bold hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-200 flex items-center justify-center gap-2 mt-4 active:scale-95"
                         >
-                            <Save size={18} />
+                            <Save size={20} />
                             {t('save')}
                         </button>
                     </form>

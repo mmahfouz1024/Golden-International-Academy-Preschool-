@@ -1,7 +1,16 @@
 
 export const translations = {
   en: {
-    // ... existing translations ...
+    // ...
+    paymentMethod: "Payment Method",
+    cash: "Cash",
+    bank: "Bank Transfer",
+    monthlyTuition: "Monthly Tuition",
+    forMonth: "For Month",
+    paidMonths: "Payment Status",
+    noTuitionSet: "No tuition set",
+    paymentSummary: "Payment Summary",
+    // ... rest
     appTitle: "Golden International Academy & Pre-school",
     appSubtitle: "Smart Management System",
     welcome: "Welcome",
@@ -552,7 +561,16 @@ export const translations = {
     noLogs: "No login records found.",
   },
   ar: {
-    // ... existing translations ...
+    // ...
+    paymentMethod: "طريقة الدفع",
+    cash: "نقداً (كاش)",
+    bank: "تحويل بنكي",
+    monthlyTuition: "المصروف الشهري",
+    forMonth: "عن شهر",
+    paidMonths: "حالة السداد",
+    noTuitionSet: "لم يتم تحديد مبلغ",
+    paymentSummary: "ملخص السداد",
+    // ...
     appTitle: "أكاديمية وروضة جولدن الدولية",
     appSubtitle: "نظام الإدارة الذكي",
     welcome: "مرحباً بك",

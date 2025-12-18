@@ -167,19 +167,24 @@ export interface ScheduleItem {
   color: 'green' | 'blue' | 'orange' | 'purple' | 'red';
 }
 
+export type PaymentMethod = 'Cash' | 'Bank';
+
 export interface PaymentTransaction {
   id: string;
   date: string;
   amount: number;
+  method: PaymentMethod;
+  forMonth: string; // YYYY-MM
   note?: string;
-  recordedBy: string; // User ID
+  recordedBy: string; // User Name
 }
 
 export interface FeeRecord {
   id: string;
   studentId: string;
-  totalAmount: number;
-  paidAmount: number;
+  monthlyAmount: number; // The fixed price per month
+  totalAmount: number; // Legacy support or total for current period
+  paidAmount: number; // Total actually paid
   lastPaymentDate?: string;
   history: PaymentTransaction[];
 }
