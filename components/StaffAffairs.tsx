@@ -14,21 +14,18 @@ const StaffAffairs: React.FC = () => {
   // Payment Form
   const [selectedStaffId, setSelectedStaffId] = useState('');
   const [amount, setAmount] = useState('');
-  const [month, setMonth] = useState(new Date().toISOString().split('T')[0]); // YYYY-MM-DD
+  const [month, setMonth] = useState(new Date().toISOString().slice(0, 7)); // YYYY-MM
 
   // Edit Base Salary
   const [editingBaseId, setEditingBaseId] = useState<string | null>(null);
   const [baseSalaryInput, setBaseSalaryInput] = useState('');
 
-  // English Full Date Formatter: "25 October 2025"
-  const formatFullDate = (dateStr: string) => {
-    if (!dateStr) return '';
-    const d = new Date(dateStr);
-    return d.toLocaleDateString('en-GB', { 
-      day: '2-digit', 
-      month: 'long', 
-      year: 'numeric' 
-    });
+  // Formatter for YYYY-MM to Readable Month Year
+  const formatMonthYear = (monthStr: string) => {
+    if (!monthStr) return '';
+    const [year, monthPart] = monthStr.split('-');
+    const d = new Date(parseInt(year), parseInt(monthPart) - 1);
+    return d.toLocaleDateString(language === 'ar' ? 'ar-SA' : 'en-US', { month: 'long', year: 'numeric' });
   };
 
   useEffect(() => {
@@ -53,7 +50,7 @@ const StaffAffairs: React.FC = () => {
           staffName: staffMember.name,
           amount: parseFloat(amount),
           date: new Date().toISOString().split('T')[0],
-          month: month, // Storing full date
+          month: month,
           status: 'paid'
       };
 
@@ -132,11 +129,11 @@ const StaffAffairs: React.FC = () => {
                     <div className="relative group">
                         <div className="flex items-center gap-2 bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 cursor-pointer group-focus-within:bg-white transition-all">
                             <Calendar size={18} className="text-indigo-500" />
-                            <span className="font-bold text-sm text-gray-700 whitespace-nowrap" dir="ltr">{formatFullDate(month)}</span>
+                            <span className="font-bold text-sm text-gray-700 whitespace-nowrap">{formatMonthYear(month)}</span>
                             <ChevronDown size={14} className="text-gray-400 ml-auto" />
                         </div>
                         <input 
-                            type="date" 
+                            type="month" 
                             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                             value={month}
                             onChange={e => setMonth(e.target.value)}
@@ -228,14 +225,14 @@ const StaffAffairs: React.FC = () => {
                                 </div>
                                 <div>
                                     <p className="font-bold text-gray-800">{record.staffName}</p>
-                                    <p className="text-[10px] text-gray-400" dir="ltr">{formatFullDate(record.date)}</p>
+                                    <p className="text-[10px] text-gray-400" dir="ltr">{record.date}</p>
                                 </div>
                             </div>
                             <div className="flex items-center gap-6">
                                 <div className="text-right">
                                     <p className="font-bold text-indigo-600">{record.amount} {t('currency')}</p>
                                     <span className="text-[10px] bg-green-100 text-green-700 px-2.5 py-0.5 rounded-full font-bold uppercase" dir="ltr">
-                                        {formatFullDate(record.month)}
+                                        {formatMonthYear(record.month)}
                                     </span>
                                 </div>
                                 <button 
