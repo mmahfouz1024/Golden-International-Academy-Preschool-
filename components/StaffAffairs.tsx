@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { DollarSign, Plus, History, Check, Trash2, Calendar, User, UserCog } from 'lucide-react';
+import { DollarSign, Plus, History, Check, Trash2, Calendar, User, UserCog, ChevronDown } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { getUsers, saveUsers, getPayroll, savePayroll } from '../services/storageService';
 import { User as UserType, StaffSalary } from '../types';
@@ -14,27 +14,22 @@ const StaffAffairs: React.FC = () => {
   // Payment Form
   const [selectedStaffId, setSelectedStaffId] = useState('');
   const [amount, setAmount] = useState('');
-  const [month, setMonth] = useState(new Date().toISOString().slice(0, 7)); // YYYY-MM
+  // Changed from YYYY-MM to full YYYY-MM-DD
+  const [month, setMonth] = useState(new Date().toISOString().split('T')[0]); 
 
   // Edit Base Salary
   const [editingBaseId, setEditingBaseId] = useState<string | null>(null);
   const [baseSalaryInput, setBaseSalaryInput] = useState('');
 
-  // English Long Date Formatter: "25 October 2025"
-  const formatLongDate = (dateStr: string) => {
+  // English Full Date Formatter: "25 October 2025"
+  const formatFullDate = (dateStr: string) => {
     if (!dateStr) return '';
     const d = new Date(dateStr);
-    return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
-  };
-
-  // English Month Formatter: "October 2025"
-  const formatMonthYear = (monthStr: string) => {
-    if (!monthStr) return '';
-    const parts = monthStr.split('-');
-    const year = parseInt(parts[0]);
-    const month = parseInt(parts[1]);
-    const date = new Date(year, month - 1, 1);
-    return date.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+    return d.toLocaleDateString('en-GB', { 
+      day: '2-digit', 
+      month: 'long', 
+      year: 'numeric' 
+    });
   };
 
   useEffect(() => {
@@ -59,7 +54,7 @@ const StaffAffairs: React.FC = () => {
           staffName: staffMember.name,
           amount: parseFloat(amount),
           date: new Date().toISOString().split('T')[0],
-          month: month,
+          month: month, // Now storing the full date selected
           status: 'paid'
       };
 
@@ -135,12 +130,19 @@ const StaffAffairs: React.FC = () => {
                 </div>
                 <div>
                     <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">{t('paymentMonth')}</label>
-                    <input 
-                        type="month" 
-                        className="w-full p-3 bg-gray-50 rounded-xl border border-gray-100 focus:bg-white focus:outline-none transition-all text-sm font-bold"
-                        value={month}
-                        onChange={e => setMonth(e.target.value)}
-                    />
+                    <div className="relative group">
+                        <div className="flex items-center gap-2 bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 cursor-pointer group-focus-within:bg-white transition-all">
+                            <Calendar size={18} className="text-indigo-500" />
+                            <span className="font-bold text-sm text-gray-700 whitespace-nowrap" dir="ltr">{formatFullDate(month)}</span>
+                            <ChevronDown size={14} className="text-gray-400 ml-auto" />
+                        </div>
+                        <input 
+                            type="date" 
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                            value={month}
+                            onChange={e => setMonth(e.target.value)}
+                        />
+                    </div>
                 </div>
                 <div>
                     <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">{t('salaryAmount')}</label>
@@ -227,14 +229,14 @@ const StaffAffairs: React.FC = () => {
                                 </div>
                                 <div>
                                     <p className="font-bold text-gray-800">{record.staffName}</p>
-                                    <p className="text-[10px] text-gray-400" dir="ltr">{formatLongDate(record.date)}</p>
+                                    <p className="text-[10px] text-gray-400" dir="ltr">{formatFullDate(record.date)}</p>
                                 </div>
                             </div>
                             <div className="flex items-center gap-6">
                                 <div className="text-right">
                                     <p className="font-bold text-indigo-600">{record.amount} {t('currency')}</p>
                                     <span className="text-[10px] bg-green-100 text-green-700 px-2.5 py-0.5 rounded-full font-bold uppercase" dir="ltr">
-                                        {formatMonthYear(record.month)}
+                                        {formatFullDate(record.month)}
                                     </span>
                                 </div>
                                 <button 
