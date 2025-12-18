@@ -32,6 +32,7 @@ const FeesManagement: React.FC = () => {
   const formatLongDate = (dateStr: string) => {
     if (!dateStr) return '';
     const d = new Date(dateStr);
+    // Hardcoded to en-GB to force English month names as requested
     return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
   };
 
@@ -63,6 +64,7 @@ const FeesManagement: React.FC = () => {
     if (type === 'tuition') {
       setAmount(record?.monthlyAmount.toString() || '');
     } else {
+      // Payment Mode: Amount is LOCKED to what was set in 'tuition'
       setAmount(record?.monthlyAmount.toString() || '0');
       setNote('');
       setForMonth(new Date().toISOString().slice(0, 7));
@@ -97,6 +99,7 @@ const FeesManagement: React.FC = () => {
         });
       }
     } else {
+      // DUPLICATE CHECK
       if (recordIndex >= 0) {
         const alreadyPaid = updatedFees[recordIndex].history.some(p => p.forMonth === forMonth);
         if (alreadyPaid) {
@@ -163,6 +166,14 @@ const FeesManagement: React.FC = () => {
     addNotification(t('delete'), t('changesSaved'), 'success');
   };
 
+  const handleDeleteFeeRecord = (studentId: string) => {
+    if (!window.confirm(language === 'ar' ? 'هل أنت متأكد من حذف سجل المصروفات بالكامل لهذا الطالب؟' : 'Are you sure you want to delete the entire fee record for this student?')) return;
+    const updatedFees = fees.filter(f => f.studentId !== studentId);
+    setFees(updatedFees);
+    saveFees(updatedFees);
+    addNotification(t('delete'), t('changesSaved'), 'success');
+  };
+
   const filteredStudents = students.filter(s => 
     s.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
     s.parentName.toLowerCase().includes(searchTerm.toLowerCase())
@@ -171,10 +182,10 @@ const FeesManagement: React.FC = () => {
   const allTransactions = fees.flatMap(f => {
     const student = students.find(s => s.id === f.studentId);
     return f.history.map(h => ({ 
-      ...h, 
-      studentId: f.studentId,
-      studentName: student?.name || 'Unknown', 
-      studentAvatar: student?.avatar 
+        ...h, 
+        studentId: f.studentId,
+        studentName: student?.name || 'Unknown', 
+        studentAvatar: student?.avatar 
     }));
   }).sort((a, b) => new Date(b.id.split('-')[1]).getTime() - new Date(a.id.split('-')[1]).getTime());
 
@@ -227,7 +238,7 @@ const FeesManagement: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 font-bold text-indigo-600 text-sm">{record?.paidAmount || 0} {t('currency')}</td>
                     <td className="px-6 py-4 text-left flex gap-2 justify-end">
-                      <button onClick={() => handleOpenHistoryModal(s)} className="p-2 bg-indigo-50 text-indigo-600 rounded-xl"><History size={16} /></button>
+                      <button onClick={() => handleOpenHistoryModal(s)} className="p-2 bg-indigo-50 text-indigo-600 rounded-xl transition-all hover:scale-105 active:scale-95"><History size={16} /></button>
                       {currentUser?.role !== 'parent' && (
                         <button onClick={() => handleOpenModal(s, 'payment')} className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-700 shadow-sm transition-all active:scale-95"><Plus size={14} />{t('recordPayment')}</button>
                       )}
@@ -254,11 +265,14 @@ const FeesManagement: React.FC = () => {
               {filteredStudents.map(s => {
                 const record = fees.find(f => f.studentId === s.id);
                 return (
-                  <tr key={s.id} className="hover:bg-gray-50/50">
+                  <tr key={s.id} className="hover:bg-gray-50/50 transition-colors group">
                     <td className="px-6 py-4 font-bold text-gray-800 text-sm">{s.name}</td>
                     <td className="px-6 py-4 font-bold text-emerald-600 text-sm">{record?.monthlyAmount || 0} {t('currency')}</td>
-                    <td className="px-6 py-4 text-left flex justify-end">
-                       <button onClick={() => handleOpenModal(s, 'tuition')} className="p-2 bg-gray-100 text-gray-500 rounded-lg hover:bg-indigo-50 hover:text-indigo-600"><Settings2 size={16} /></button>
+                    <td className="px-6 py-4 text-left flex justify-end gap-2">
+                       <button onClick={() => handleOpenModal(s, 'tuition')} className="p-2 bg-gray-100 text-gray-500 rounded-lg hover:bg-indigo-50 hover:text-indigo-600 transition-all"><Settings2 size={16} /></button>
+                       {canManage && record && (
+                         <button onClick={() => handleDeleteFeeRecord(s.id)} className="p-2 bg-rose-50 text-rose-400 rounded-lg hover:text-rose-600 transition-all" title={t('delete')}><Trash2 size={16} /></button>
+                       )}
                     </td>
                   </tr>
                 );

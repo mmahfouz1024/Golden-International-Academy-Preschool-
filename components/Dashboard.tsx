@@ -125,6 +125,7 @@ const Dashboard: React.FC<DashboardProps> = ({ setCurrentView }) => {
 
   const getRelativeTime = (dateString: string) => {
     const date = new Date(dateString);
+    // Force English Month Names
     return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
   };
 
@@ -162,6 +163,7 @@ const Dashboard: React.FC<DashboardProps> = ({ setCurrentView }) => {
           <div className="flex items-center gap-2 bg-white/60 backdrop-blur-md px-4 py-2 rounded-full border border-white/50 shadow-sm text-indigo-700">
              <Calendar size={18} className="text-indigo-500" />
              <span className="text-sm font-bold" dir="ltr">
+                {/* Hardcoded en-GB for English long date format */}
                 {new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
              </span>
           </div>

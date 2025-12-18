@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { LayoutDashboard, Users, CalendarCheck, Sparkles, LogOut, Home, Download, UserCog, School, ChevronRight, Contact, FileClock, Palette, Database, FileText, GraduationCap, CalendarDays, Wallet, Image as ImageIcon, Zap, Moon, Sun, QrCode, ScanLine, History } from 'lucide-react';
+import { LayoutDashboard, Users, CalendarCheck, Sparkles, LogOut, Home, Download, UserCog, School, ChevronRight, Contact, FileClock, Palette, Database, FileText, GraduationCap, CalendarDays, Wallet, Image as ImageIcon, Zap, Moon, Sun, QrCode, ScanLine, History, Banknote } from 'lucide-react';
 import { User, Theme } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -39,6 +39,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     { id: 'students', label: t('students'), icon: Users, defaultRoles: ['admin', 'manager', 'teacher'] },
     { id: 'gallery', label: t('gallery'), icon: ImageIcon, defaultRoles: ['admin', 'manager', 'teacher', 'parent'] },
     { id: 'fees-management', label: t('feesManagement'), icon: Wallet, defaultRoles: ['admin', 'manager'] },
+    { id: 'staff-affairs', label: t('staffAffairs'), icon: Banknote, defaultRoles: ['admin', 'manager'] },
     { id: 'teachers', label: t('teachers'), icon: GraduationCap, defaultRoles: ['admin', 'manager'] },
     { id: 'attendance', label: t('attendance'), icon: CalendarCheck, defaultRoles: ['admin', 'manager', 'teacher'] },
     { id: 'reports-archive', label: t('reportsArchive'), icon: FileClock, defaultRoles: ['admin', 'manager', 'teacher'] },

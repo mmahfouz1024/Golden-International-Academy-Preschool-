@@ -25,7 +25,6 @@ const DailyReportManagement: React.FC = () => {
     setStudents(getStudents());
   }, []);
 
-  // Auto-focus the date input when entering selection mode
   useEffect(() => {
     if (mode === 'select') {
       setTimeout(() => {
@@ -38,7 +37,8 @@ const DailyReportManagement: React.FC = () => {
     if (!dateStr) return '';
     const [year, month, day] = dateStr.split('-').map(Number);
     const date = new Date(year, month - 1, day);
-    return date.toLocaleDateString(language === 'ar' ? 'ar-EG' : 'en-GB', {
+    // Force English Format
+    return date.toLocaleDateString('en-GB', {
         day: 'numeric',
         month: 'long',
         year: 'numeric'
@@ -62,35 +62,29 @@ const DailyReportManagement: React.FC = () => {
     const reportKey = `${selectedStudent.id}_${selectedDate}`;
     const exists = !!allReports[reportKey];
 
-    // Case 1: Trying to ADD but report EXISTS -> Show Blocking Dialog
     if (action === 'add' && exists) {
         setShowConfirmDialog(true);
         return;
     } 
     
-    // Case 2: Trying to EDIT but report MISSING -> Warn then Ask to Create New
     if (action === 'edit' && !exists) {
         setShowNotFoundDialog(true);
         return;
     }
 
-    // Default Case: New Report or Editing Existing (Normal flow)
     setMode('form');
   };
 
   const handleConfirmEdit = () => {
-      // User chose "Yes" to edit the existing report
       setShowConfirmDialog(false);
       setMode('form');
   };
 
   const handleCancelEdit = () => {
-      // User chose "No", close dialog and stay on selection screen to pick another date
       setShowConfirmDialog(false);
   };
 
   const handleConfirmCreate = () => {
-      // Switch action to 'add' conceptually, close dialog, and open form
       setAction('add');
       setShowNotFoundDialog(false);
       setMode('form');
@@ -136,8 +130,6 @@ const DailyReportManagement: React.FC = () => {
 
   const renderSelection = () => (
     <div className="max-w-4xl mx-auto space-y-6">
-      
-      {/* Back Button for Selection Mode */}
       <div className="flex items-center gap-3">
         <button 
           onClick={() => setMode('menu')}
@@ -152,7 +144,6 @@ const DailyReportManagement: React.FC = () => {
          <div className="flex flex-col md:flex-row gap-6 items-center">
             <div className="flex-1 w-full">
                <label className="block text-sm font-bold text-gray-500 mb-2">{t('reportDate')}</label>
-               {/* Custom Date Input for Day Month Year format */}
                <div className="relative group bg-white border border-gray-200 rounded-xl focus-within:ring-2 focus-within:ring-indigo-500/20 focus-within:border-indigo-500 transition-all h-[52px]">
                   <div className="absolute inset-0 flex items-center px-4 pointer-events-none justify-between">
                       <div className="flex items-center gap-3">
@@ -235,7 +226,6 @@ const DailyReportManagement: React.FC = () => {
 
   return (
     <div className="pb-20">
-      {/* Header */}
       {mode !== 'form' && (
         <div className="mb-6">
           <h2 className="text-2xl font-bold text-gray-800">{t('dailyReportTitle')}</h2>
@@ -250,7 +240,6 @@ const DailyReportManagement: React.FC = () => {
          </div>
       )}
 
-      {/* Confirmation Dialog: Exists when adding */}
       {showConfirmDialog && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
             <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-sm w-full text-center transform transition-all scale-100 animate-fade-in border-4 border-white">
@@ -279,7 +268,6 @@ const DailyReportManagement: React.FC = () => {
         </div>
       )}
 
-      {/* Confirmation Dialog: Not Found when editing */}
       {showNotFoundDialog && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
             <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-sm w-full text-center transform transition-all scale-100 animate-fade-in border-4 border-white">
@@ -312,7 +300,6 @@ const DailyReportManagement: React.FC = () => {
       {mode === 'select' && renderSelection()}
       {mode === 'form' && selectedStudent && (
         <div className="animate-fade-in">
-           {/* Back Button for Form Mode */}
            <div className="flex items-center gap-4 mb-4">
               <button 
                 onClick={() => setMode('select')}

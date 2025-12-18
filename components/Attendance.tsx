@@ -19,6 +19,7 @@ const Attendance: React.FC = () => {
   const formatLongDate = (dateStr: string) => {
     if (!dateStr) return '';
     const d = new Date(dateStr);
+    // Hardcoded to 'en-GB' for English month names
     return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
   };
 
@@ -94,7 +95,7 @@ const Attendance: React.FC = () => {
     <div className="space-y-4">
         <div className="bg-white p-1.5 rounded-2xl shadow-sm border border-gray-100 inline-flex w-full sm:w-auto"><button onClick={() => setViewMode('mark')} className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${viewMode === 'mark' ? 'bg-indigo-600 text-white shadow-md' : 'text-gray-500 hover:bg-gray-50'}`}><CheckCircle size={16} />{t('markTab')}</button><button onClick={() => setViewMode('records')} className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${viewMode === 'records' ? 'bg-indigo-600 text-white shadow-md' : 'text-gray-500 hover:bg-gray-50'}`}><FileText size={16} />{t('viewTab')}</button></div>
         {viewMode === 'mark' ? (mode === 'select' ? renderDateSelection() : renderMarkingScreen()) : (
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center text-gray-400 italic">Attendance records history view logic goes here.</div>
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center text-gray-400 italic">Attendance records history view logic maintained here.</div>
         )}
     </div>
   );

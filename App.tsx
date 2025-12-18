@@ -16,6 +16,7 @@ import Profile from './components/Profile';
 import DatabaseControl from './components/DatabaseControl';
 import DailyReportManagement from './components/DailyReportManagement';
 import FeesManagement from './components/FeesManagement';
+import StaffAffairs from './components/StaffAffairs';
 import ClassGallery from './components/ClassGallery';
 import TeacherFocusMode from './components/TeacherFocusMode';
 import PickupPass from './components/PickupPass';
@@ -410,6 +411,8 @@ const AppContent: React.FC = () => {
         return <DailyReportManagement />;
       case 'fees-management':
         return <FeesManagement />;
+      case 'staff-affairs':
+        return <StaffAffairs />;
       case 'gallery':
         return <ClassGallery />;
       case 'attendance':
