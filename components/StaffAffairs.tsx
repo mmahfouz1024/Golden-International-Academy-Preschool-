@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { DollarSign, Plus, History, Check, Trash2, Calendar, User, UserCog, ChevronDown, AlertCircle, ShieldAlert } from 'lucide-react';
+import { DollarSign, Plus, History, Check, Trash2, Calendar, UserCog, ChevronDown, AlertCircle, ShieldAlert } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { getUsers, saveUsers, getPayroll, savePayroll } from '../services/storageService';
 import { User as UserType, StaffSalary } from '../types';
