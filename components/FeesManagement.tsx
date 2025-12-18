@@ -18,6 +18,7 @@ const FeesManagement: React.FC = () => {
   const [modalType, setModalType] = useState<'payment' | 'tuition'>('payment');
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
+  const [modalError, setModalError] = useState<string | null>(null);
   
   // Form State
   const [searchTerm, setSearchTerm] = useState('');
@@ -55,6 +56,7 @@ const FeesManagement: React.FC = () => {
   const handleOpenModal = (student: Student, type: 'payment' | 'tuition') => {
     setSelectedStudent(student);
     setModalType(type);
+    setModalError(null);
     
     const record = fees.find(f => f.studentId === student.id);
     
@@ -76,7 +78,10 @@ const FeesManagement: React.FC = () => {
   const handleSave = () => {
     if (!selectedStudent || !amount) return;
     const numericAmount = parseFloat(amount);
-    if (isNaN(numericAmount)) return;
+    if (isNaN(numericAmount) || numericAmount <= 0) {
+      setModalError(language === 'ar' ? 'يرجى إدخال مبلغ صحيح' : 'Please enter a valid amount');
+      return;
+    }
 
     let updatedFees = [...fees];
     const recordIndex = updatedFees.findIndex(f => f.studentId === selectedStudent.id);
@@ -132,6 +137,28 @@ const FeesManagement: React.FC = () => {
     addNotification(t('savedSuccessfully'), t('changesSaved'), 'success');
   };
 
+  const handleDeleteTransaction = (studentId: string, transactionId: string) => {
+    if (!window.confirm(language === 'ar' ? 'هل أنت متأكد من حذف هذه العملية؟ سيتم خصم المبلغ من إجمالي المدفوع.' : 'Are you sure? The amount will be deducted from the total paid.')) return;
+
+    const updatedFees = fees.map(f => {
+      if (f.studentId === studentId) {
+        const transactionToDelete = f.history.find(t => t.id === transactionId);
+        if (!transactionToDelete) return f;
+        
+        return {
+          ...f,
+          paidAmount: f.paidAmount - transactionToDelete.amount,
+          history: f.history.filter(t => t.id !== transactionId)
+        };
+      }
+      return f;
+    });
+
+    setFees(updatedFees);
+    saveFees(updatedFees);
+    addNotification(t('delete'), t('changesSaved'), 'success');
+  };
+
   const filteredStudents = students.filter(s => 
     s.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
     s.parentName.toLowerCase().includes(searchTerm.toLowerCase())
@@ -141,10 +168,13 @@ const FeesManagement: React.FC = () => {
     const student = students.find(s => s.id === f.studentId);
     return f.history.map(h => ({ 
         ...h, 
+        studentId: f.studentId,
         studentName: student?.name || 'Unknown', 
         studentAvatar: student?.avatar 
     }));
   }).sort((a, b) => new Date(b.id.split('-')[1]).getTime() - new Date(a.id.split('-')[1]).getTime());
+
+  const canManage = currentUser?.role === 'admin' || currentUser?.role === 'manager';
 
   return (
     <div className="space-y-6 animate-fade-in pb-20">
@@ -157,7 +187,7 @@ const FeesManagement: React.FC = () => {
 
       <div className="flex bg-gray-100 p-1 rounded-2xl w-fit">
         <button onClick={() => setActiveTab('students')} className={`px-6 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${activeTab === 'students' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-500'}`}><User size={16} />{t('students')}</button>
-        {currentUser?.role === 'admin' && (
+        {canManage && (
           <button onClick={() => setActiveTab('setup')} className={`px-6 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${activeTab === 'setup' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-500'}`}><Settings2 size={16} />{language === 'ar' ? 'إعداد الرسوم' : 'Setup Fees'}</button>
         )}
         <button onClick={() => setActiveTab('history')} className={`px-6 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${activeTab === 'history' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-500'}`}><History size={16} />{t('paymentHistory')}</button>
@@ -243,11 +273,12 @@ const FeesManagement: React.FC = () => {
                 <th className="px-6 py-4 font-semibold text-gray-600">{t('amount')}</th>
                 <th className="px-6 py-4 font-semibold text-gray-600">{t('forMonth')}</th>
                 <th className="px-6 py-4 font-semibold text-gray-600">{t('paymentDate')}</th>
+                <th className="px-6 py-4 font-semibold text-gray-600"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
               {allTransactions.filter(tr => tr.studentName.toLowerCase().includes(searchTerm.toLowerCase())).map(tr => (
-                <tr key={tr.id} className="hover:bg-gray-50/50">
+                <tr key={tr.id} className="hover:bg-gray-50/50 group">
                   <td className="px-6 py-4 font-bold text-gray-800 text-xs">
                     <div className="flex items-center gap-2">
                       <img src={tr.studentAvatar} className="w-8 h-8 rounded-full" alt="" />
@@ -257,6 +288,16 @@ const FeesManagement: React.FC = () => {
                   <td className="px-6 py-4 font-bold text-emerald-600 text-sm">{tr.amount} {t('currency')}</td>
                   <td className="px-6 py-4 text-xs text-gray-500 font-bold">{formatMonthYear(tr.forMonth)}</td>
                   <td className="px-6 py-4 text-sm text-gray-600 font-medium" dir="ltr">{tr.date}</td>
+                  <td className="px-6 py-4 text-left">
+                    {canManage && (
+                      <button 
+                        onClick={() => handleDeleteTransaction(tr.studentId, tr.id)}
+                        className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -272,8 +313,14 @@ const FeesManagement: React.FC = () => {
               <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-red-500"><X size={24} /></button>
             </div>
             <div className="p-6 space-y-5">
+              {modalError && (
+                <div className="bg-red-50 text-red-600 p-3 rounded-xl flex items-center gap-2 text-xs font-bold animate-fade-in border border-red-100">
+                  <AlertCircle size={14} />
+                  {modalError}
+                </div>
+              )}
               <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-2xl border border-gray-100"><img src={selectedStudent.avatar} className="w-12 h-12 rounded-full border-2 border-white shadow-sm" alt="" /><div><p className="font-bold text-gray-900">{selectedStudent.name}</p><p className="text-xs text-gray-500">{selectedStudent.classGroup}</p></div></div>
-              <div><label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">{t('amount')} ({t('currency')})</label><input type="number" className={`w-full px-4 py-3 bg-gray-50 border-transparent rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-bold ${modalType === 'payment' ? 'text-indigo-600' : ''}`} value={amount} onChange={e => setAmount(e.target.value)} /></div>
+              <div><label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">{t('amount')} ({t('currency')})</label><input type="number" className={`w-full px-4 py-3 bg-gray-50 border-transparent rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-bold ${modalType === 'payment' ? 'text-indigo-600' : ''}`} value={amount} onChange={e => {setAmount(e.target.value); setModalError(null);}} /></div>
               {modalType === 'payment' && (
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -308,14 +355,24 @@ const FeesManagement: React.FC = () => {
             <div className="p-6 bg-indigo-50 border-b border-indigo-100 flex items-center gap-3"><img src={selectedStudent.avatar} className="w-14 h-14 rounded-full border-2 border-white shadow-sm" alt="" /><div><p className="font-bold text-indigo-900">{selectedStudent.name}</p><p className="text-xs text-indigo-600">{selectedStudent.classGroup}</p></div></div>
             <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
               {fees.find(f => f.studentId === selectedStudent.id)?.history.map(tr => (
-                <div key={tr.id} className="bg-white border border-gray-100 p-4 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
+                <div key={tr.id} className="bg-white border border-gray-100 p-4 rounded-2xl shadow-sm hover:shadow-md transition-shadow relative group">
                   <div className="flex justify-between items-start mb-2"><span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-lg flex items-center gap-1.5"><Calendar size={12} /> {formatMonthYear(tr.forMonth)}</span><span className="font-bold text-gray-800">{tr.amount} {t('currency')}</span></div>
                   <div className="flex justify-between items-end">
                     <div className="space-y-1">
                       <p className="text-[10px] text-gray-400 flex items-center gap-1"><Banknote size={10} /> {tr.method === 'Cash' ? t('cash') : t('bank')}</p>
                       <p className="text-[10px] text-gray-400 flex items-center gap-1"><User size={10} /> {tr.recordedBy}</p>
                     </div>
-                    <div className="text-right text-sm text-gray-600 font-medium" dir="ltr">{tr.date}</div>
+                    <div className="flex items-center gap-2">
+                      <div className="text-right text-sm text-gray-600 font-medium" dir="ltr">{tr.date}</div>
+                      {canManage && (
+                        <button 
+                          onClick={() => handleDeleteTransaction(selectedStudent.id, tr.id)}
+                          className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               )) || (
