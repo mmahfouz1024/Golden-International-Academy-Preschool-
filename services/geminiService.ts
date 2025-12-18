@@ -12,8 +12,8 @@ let aiClient: GoogleGenAI | null = null;
 
 const getAiClient = () => {
   if (!aiClient) {
-    const apiKey = process.env.API_KEY || ''; 
-    aiClient = new GoogleGenAI({ apiKey });
+    // Correctly initialize with API key from process.env.API_KEY as per guidelines
+    aiClient = new GoogleGenAI({ apiKey: process.env.API_KEY });
   }
   return aiClient;
 };
@@ -109,7 +109,8 @@ const findBestStudentMatch = (searchName: string, students: {id: string, name: s
 export const generateActivityPlan = async (ageGroup: string, topic: string) => {
   try {
     const ai = getAiClient();
-    const model = 'gemini-2.5-flash';
+    // Using gemini-3-flash-preview as recommended for basic text tasks
+    const model = 'gemini-3-flash-preview';
     const prompt = `
       As an expert kindergarten educator, create a fun and interactive learning activity.
       Age Group: ${ageGroup}
@@ -152,7 +153,8 @@ export const generateActivityPlan = async (ageGroup: string, topic: string) => {
 export const draftParentMessage = async (studentName: string, type: 'praise' | 'issue' | 'announcement', details: string) => {
   try {
     const ai = getAiClient();
-    const model = 'gemini-2.5-flash';
+    // Using gemini-3-flash-preview as recommended for basic text tasks
+    const model = 'gemini-3-flash-preview';
     const prompt = `
       Write a short and polite message to the parent of student: ${studentName}.
       Message Type: ${type === 'praise' ? 'Praise' : type === 'issue' ? 'Behavioral Issue or Note' : 'General Announcement'}.
@@ -177,7 +179,8 @@ export const draftParentMessage = async (studentName: string, type: 'praise' | '
 export const generateMonthlyProgress = async (studentName: string, month: string, reportSummary: any, lang: 'en' | 'ar') => {
   try {
     const ai = getAiClient();
-    const model = 'gemini-2.5-flash';
+    // Using gemini-3-pro-preview as recommended for complex text tasks (analysis)
+    const model = 'gemini-3-pro-preview';
     
     const prompt = `
       You are a professional kindergarten teacher consultant.
@@ -214,7 +217,8 @@ export const generateMonthlyProgress = async (studentName: string, month: string
 export const interpretVoiceCommand = async (command: string, students: {id: string, name: string}[]) => {
   try {
     const ai = getAiClient();
-    const model = 'gemini-2.5-flash';
+    // Using gemini-3-flash-preview as recommended for basic extraction tasks
+    const model = 'gemini-3-flash-preview';
     
     const prompt = `
       You are a Kindergarten Voice Assistant. Extract structured data from the command.
