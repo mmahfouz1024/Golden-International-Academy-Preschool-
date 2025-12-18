@@ -1,13 +1,7 @@
 
 export const translations = {
   en: {
-    // ... existing ...
-    loginHistory: "Login History",
-    loginTime: "Login Time",
-    device: "Device",
-    clearLogs: "Clear All Logs",
-    noLogs: "No login records found.",
-    // ...
+    // ... existing translations ...
     appTitle: "Golden International Academy & Pre-school",
     appSubtitle: "Smart Management System",
     welcome: "Welcome",
@@ -163,7 +157,6 @@ export const translations = {
     pressBackAgainToExit: "Press back again to exit",
     feesManagement: "Financial Management",
     
-    // SWAPPED ROLES HERE
     roleAdmin: "General Manager",
     roleManager: "Admin",
     
@@ -186,7 +179,7 @@ export const translations = {
     attendanceChart: "Weekly Attendance Stats",
     dailySchedule: "Daily Schedule",
     overview: "Overview of kindergarten performance today",
-    currency: "SAR",
+    currency: "EGP",
     schoolAnnouncements: "Bulletin Board",
     writeAnnouncement: "Write a new announcement...",
     post: "Post",
@@ -551,15 +544,15 @@ export const translations = {
     restoreSuccess: "Data restored successfully. Reloading...",
     invalidBackupFile: "Invalid backup file. Please upload a valid JSON file.",
     uploadBackupFile: "Upload .json file",
+    
+    loginHistory: "Login History",
+    loginTime: "Login Time",
+    device: "Device",
+    clearLogs: "Clear All Logs",
+    noLogs: "No login records found.",
   },
   ar: {
-    // ... existing ...
-    loginHistory: "سجل الدخول",
-    loginTime: "وقت الدخول",
-    device: "الجهاز",
-    clearLogs: "مسح السجل بالكامل",
-    noLogs: "لا توجد سجلات دخول حتى الآن.",
-    // ...
+    // ... existing translations ...
     appTitle: "أكاديمية وروضة جولدن الدولية",
     appSubtitle: "نظام الإدارة الذكي",
     welcome: "مرحباً بك",
@@ -671,7 +664,7 @@ export const translations = {
     paymentMonth: "عن شهر",
     paymentStatus: "الحالة",
     salaryPaid: "تم الدفع",
-    baseSalary: "الراتاتبي الأساسي",
+    baseSalary: "الراتب الأساسي",
     updateSalary: "تحديث الراتب الأساسي",
     paymentHistory: "سجل المدفوعات",
 
@@ -715,7 +708,6 @@ export const translations = {
     pressBackAgainToExit: "اضغط مرة أخرى للخروج",
     feesManagement: "الإدارة المالية",
     
-    // SWAPPED ROLES ARABIC
     roleAdmin: "المدير العام",
     roleManager: "أدمن",
     
@@ -738,7 +730,7 @@ export const translations = {
     attendanceChart: "إحصائيات الحضور الأسبوعية",
     dailySchedule: "الجدول اليومي",
     overview: "نظرة عامة على أداء الروضة اليوم",
-    currency: "ريال",
+    currency: "جنية مصري",
     schoolAnnouncements: "لوحة الإعلانات",
     writeAnnouncement: "كتابة إعلان جديد...",
     post: "نشر",
@@ -1103,5 +1095,11 @@ export const translations = {
     restoreSuccess: "تم استعادة البيانات بنجاح. جاري إعادة التحميل...",
     invalidBackupFile: "ملف غير صالح. يرجى رفع ملف JSON صحيح.",
     uploadBackupFile: "رفع ملف .json",
+    
+    loginHistory: "سجل الدخول",
+    loginTime: "وقت الدخول",
+    device: "الجهاز",
+    clearLogs: "مسح السجل بالكامل",
+    noLogs: "لا توجد سجلات دخول حتى الآن.",
   }
 };
