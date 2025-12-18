@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   DollarSign, Plus, History, Check, Trash2, Calendar, 
-  UserCog, ChevronDown, AlertCircle, ShieldAlert, 
+  UserCog, AlertCircle, ShieldAlert, 
   Wallet, Settings2, X, Users, TrendingUp, Search,
   ArrowUpRight, CreditCard
 } from 'lucide-react';
