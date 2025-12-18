@@ -100,6 +100,15 @@ const FeesManagement: React.FC = () => {
         });
       }
     } else {
+      // Duplicate Check for the same month
+      if (recordIndex >= 0) {
+          const duplicate = updatedFees[recordIndex].history.some(t => t.forMonth === forMonth);
+          if (duplicate) {
+              setModalError(t('paymentExistsError'));
+              return;
+          }
+      }
+
       // In payment mode
       const transaction: PaymentTransaction = {
         id: `tr-${Date.now()}`,
@@ -314,8 +323,8 @@ const FeesManagement: React.FC = () => {
             </div>
             <div className="p-6 space-y-5">
               {modalError && (
-                <div className="bg-red-50 text-red-600 p-3 rounded-xl flex items-center gap-2 text-xs font-bold animate-fade-in border border-red-100">
-                  <AlertCircle size={14} />
+                <div className="bg-rose-50 text-rose-600 p-4 rounded-xl border border-rose-100 flex items-center gap-2 text-xs font-bold animate-fade-in">
+                  <AlertCircle size={18} />
                   {modalError}
                 </div>
               )}
@@ -335,7 +344,7 @@ const FeesManagement: React.FC = () => {
                             type="month" 
                             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                             value={forMonth}
-                            onChange={e => setForMonth(e.target.value)}
+                            onChange={e => { setForMonth(e.target.value); setModalError(null); }}
                         />
                     </div>
                   </div>

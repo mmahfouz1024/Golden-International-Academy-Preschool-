@@ -1,7 +1,7 @@
 
 export const translations = {
   en: {
-    // ... rest of existing translations
+    // ... (preserving existing ones)
     paymentMethod: "Payment Method",
     cash: "Cash",
     bank: "Bank Transfer",
@@ -11,6 +11,7 @@ export const translations = {
     noTuitionSet: "No tuition set",
     paymentSummary: "Payment Summary",
     paymentExistsError: "This month has already been paid for this student.",
+    salaryExistsError: "Salary for this month has already been recorded for this staff.",
     // ...
     appTitle: "Golden International Academy & Pre-school",
     appSubtitle: "Smart Management System",
@@ -562,7 +563,7 @@ export const translations = {
     noLogs: "No login records found.",
   },
   ar: {
-    // ... rest of existing translations
+    // ... (preserving existing ones)
     paymentMethod: "طريقة الدفع",
     cash: "نقداً (كاش)",
     bank: "تحويل بنكي",
@@ -572,6 +573,7 @@ export const translations = {
     noTuitionSet: "لم يتم تحديد مبلغ",
     paymentSummary: "ملخص السداد",
     paymentExistsError: "تم تسجيل دفع لهذا الشهر لهذا الطالب بالفعل.",
+    salaryExistsError: "تم صرف راتب هذا الشهر لهذا الموظف بالفعل.",
     // ...
     appTitle: "أكاديمية وروضة جولدن الدولية",
     appSubtitle: "نظام الإدارة الذكي",
@@ -839,7 +841,7 @@ export const translations = {
     filterClass: "كل الفصول",
     filterAge: "كل الأعمار",
     filterStatus: "كل الحالات",
-    advancedFilter: "تصفية متقدمة",
+    advancedFilter: "Advanced Filter",
     noResults: "لا توجد نتائج",
 
     // Add Student Modal
@@ -1090,7 +1092,7 @@ export const translations = {
     connected: "متصل",
     disconnected: "غير متصل",
     supabaseUrl: "رابط المشروع (URL)",
-    supabaseKey: "مفتاح API",
+    supabaseKey: "API Key",
     autoSync: "مزامنة تلقائية",
     lastSync: "آخر مزامنة",
     syncNow: "مزامنة الآن",

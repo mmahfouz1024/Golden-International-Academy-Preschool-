@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { DollarSign, Plus, History, Check, Trash2, Calendar, User, UserCog, ChevronDown } from 'lucide-react';
+import { DollarSign, Plus, History, Check, Trash2, Calendar, User, UserCog, ChevronDown, AlertCircle } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { getUsers, saveUsers, getPayroll, savePayroll } from '../services/storageService';
 import { User as UserType, StaffSalary } from '../types';
@@ -10,6 +10,7 @@ const StaffAffairs: React.FC = () => {
   const [staff, setStaff] = useState<UserType[]>([]);
   const [history, setHistory] = useState<StaffSalary[]>([]);
   const [currentUser, setCurrentUser] = useState<UserType | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
   
   // Payment Form
   const [selectedStaffId, setSelectedStaffId] = useState('');
@@ -40,9 +41,17 @@ const StaffAffairs: React.FC = () => {
   }, []);
 
   const handleRecordPayment = () => {
+      setFormError(null);
       if (!selectedStaffId || !amount) return;
       const staffMember = staff.find(s => s.id === selectedStaffId);
       if (!staffMember) return;
+
+      // Duplicate Check
+      const alreadyPaid = history.some(r => r.staffId === selectedStaffId && r.month === month);
+      if (alreadyPaid) {
+          setFormError(t('salaryExistsError'));
+          return;
+      }
 
       const record: StaffSalary = {
           id: Date.now().toString(),
@@ -106,6 +115,14 @@ const StaffAffairs: React.FC = () => {
                 <div className="p-2 bg-green-100 text-green-600 rounded-lg"><DollarSign size={20}/></div>
                 {t('recordSalary')}
             </h3>
+
+            {formError && (
+                <div className="mb-4 bg-rose-50 text-rose-600 p-4 rounded-2xl border border-rose-100 flex items-center gap-2 text-sm font-bold animate-fade-in">
+                    <AlertCircle size={18} />
+                    {formError}
+                </div>
+            )}
+
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
                 <div>
                     <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">{t('staffMember')}</label>
@@ -114,6 +131,7 @@ const StaffAffairs: React.FC = () => {
                         value={selectedStaffId}
                         onChange={e => {
                             setSelectedStaffId(e.target.value);
+                            setFormError(null);
                             const s = staff.find(u => u.id === e.target.value);
                             if (s && s.salary) setAmount(s.salary.toString());
                         }}
@@ -136,7 +154,7 @@ const StaffAffairs: React.FC = () => {
                             type="month" 
                             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                             value={month}
-                            onChange={e => setMonth(e.target.value)}
+                            onChange={e => { setMonth(e.target.value); setFormError(null); }}
                         />
                     </div>
                 </div>
