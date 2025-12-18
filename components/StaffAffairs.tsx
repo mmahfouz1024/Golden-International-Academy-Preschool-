@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-/* Added missing X import */
-import { DollarSign, Plus, History, Check, Trash2, Calendar, User, UserCog, ChevronDown, AlertCircle, ShieldAlert, Wallet, Settings2, X } from 'lucide-react';
+/* Removed unused User import to fix TS6133 */
+import { DollarSign, Plus, History, Check, Trash2, Calendar, UserCog, ChevronDown, AlertCircle, ShieldAlert, Wallet, Settings2, X } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { getUsers, saveUsers, getPayroll, savePayroll } from '../services/storageService';
 import { User as UserType, StaffSalary } from '../types';
