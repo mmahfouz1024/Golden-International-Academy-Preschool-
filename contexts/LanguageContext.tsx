@@ -18,10 +18,10 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 export const LanguageProvider: React.FC<{children: React.ReactNode}> = ({ children }) => {
   const [language, setLanguage] = useState<Language>('en');
 
-  const t = (key: keyof typeof translations.en) => {
-    // Correctly fetch translation based on current language
-    // Fallback to English if translation is missing in Arabic
-    return (translations[language] && (translations[language] as any)[key]) || translations['en'][key] || key;
+  // Fix: Explicitly return string to avoid symbol inference from keyof when returning the key as a fallback
+  const t = (key: keyof typeof translations.en): string => {
+    const translation = (translations[language] && (translations[language] as any)[key]) || translations['en'][key] || key;
+    return String(translation);
   };
 
   const dir: Direction = language === 'ar' ? 'rtl' : 'ltr';
