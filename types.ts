@@ -20,6 +20,15 @@ export interface Student {
   birthday?: string;
 }
 
+export interface LoginLog {
+  id: string;
+  userId: string;
+  userName: string;
+  userRole: UserRole;
+  timestamp: string;
+  deviceInfo: string;
+}
+
 export interface ActivityPlan {
   title: string;
   ageGroup: string;

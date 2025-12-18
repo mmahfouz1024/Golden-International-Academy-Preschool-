@@ -1,6 +1,6 @@
 
 import { MOCK_USERS, MOCK_STUDENTS, MOCK_CLASSES, MOCK_REPORTS } from '../constants';
-import { User, Student, ClassGroup, DailyReport, DatabaseConfig, AppNotification, ChatMessage, Post, ScheduleItem, AttendanceStatus, DailyMenu, FeeRecord, BusRoute, SchoolEvent, StaffSalary, GalleryPost } from '../types';
+import { User, Student, ClassGroup, DailyReport, DatabaseConfig, AppNotification, ChatMessage, Post, ScheduleItem, AttendanceStatus, DailyMenu, FeeRecord, BusRoute, SchoolEvent, StaffSalary, GalleryPost, LoginLog } from '../types';
 import { initSupabase, syncDataToCloud, fetchDataFromCloud } from './supabaseClient';
 
 const KEYS = {
@@ -19,7 +19,8 @@ const KEYS = {
   TRANSPORT: 'golden_academy_transport',
   EVENTS: 'golden_academy_events',
   PAYROLL: 'golden_academy_payroll',
-  GALLERY: 'golden_academy_gallery'
+  GALLERY: 'golden_academy_gallery',
+  LOGIN_LOGS: 'golden_academy_login_logs'
 };
 
 // Initialize DB
@@ -82,6 +83,7 @@ export const initStorage = async (): Promise<{ success: boolean; message?: strin
         if (!localStorage.getItem(KEYS.EVENTS)) localStorage.setItem(KEYS.EVENTS, JSON.stringify([]));
         if (!localStorage.getItem(KEYS.PAYROLL)) localStorage.setItem(KEYS.PAYROLL, JSON.stringify([]));
         if (!localStorage.getItem(KEYS.GALLERY)) localStorage.setItem(KEYS.GALLERY, JSON.stringify([]));
+        if (!localStorage.getItem(KEYS.LOGIN_LOGS)) localStorage.setItem(KEYS.LOGIN_LOGS, JSON.stringify([]));
 
         if (!localStorage.getItem(KEYS.NOTIFICATIONS)) {
             const defaultNotifications: AppNotification[] = [{
@@ -291,3 +293,19 @@ export const savePayroll = (payroll: StaffSalary[]) => saveAndSync(KEYS.PAYROLL,
 
 export const getGalleryPosts = (): GalleryPost[] => JSON.parse(localStorage.getItem(KEYS.GALLERY) || '[]');
 export const saveGalleryPosts = (posts: GalleryPost[]) => saveAndSync(KEYS.GALLERY, posts);
+
+export const getLoginLogs = (): LoginLog[] => JSON.parse(localStorage.getItem(KEYS.LOGIN_LOGS) || '[]');
+export const saveLoginLogs = (logs: LoginLog[]) => saveAndSync(KEYS.LOGIN_LOGS, logs);
+
+export const recordLoginLog = (user: User) => {
+  const logs = getLoginLogs();
+  const newLog: LoginLog = {
+    id: `log-${Date.now()}`,
+    userId: user.id,
+    userName: user.name,
+    userRole: user.role,
+    timestamp: new Date().toISOString(),
+    deviceInfo: navigator.userAgent.substring(0, 100)
+  };
+  saveLoginLogs([newLog, ...logs.slice(0, 499)]); // Keep last 500 logs
+};

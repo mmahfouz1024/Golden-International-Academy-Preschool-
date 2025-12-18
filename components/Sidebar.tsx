@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { LayoutDashboard, Users, CalendarCheck, Sparkles, LogOut, Home, Download, UserCog, School, ChevronRight, Contact, FileClock, Palette, Database, FileText, GraduationCap, CalendarDays, Wallet, Image as ImageIcon, Zap, Moon, Sun, QrCode, ScanLine } from 'lucide-react';
+import { LayoutDashboard, Users, CalendarCheck, Sparkles, LogOut, Home, Download, UserCog, School, ChevronRight, Contact, FileClock, Palette, Database, FileText, GraduationCap, CalendarDays, Wallet, Image as ImageIcon, Zap, Moon, Sun, QrCode, ScanLine, History } from 'lucide-react';
 import { User, Theme } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -44,6 +44,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     { id: 'reports-archive', label: t('reportsArchive'), icon: FileClock, defaultRoles: ['admin', 'manager', 'teacher'] },
     { id: 'directory', label: t('directoryTitle'), icon: Contact, defaultRoles: ['admin', 'manager', 'teacher'] },
     { id: 'ai-planner', label: t('aiPlanner'), icon: Sparkles, defaultRoles: ['admin', 'manager', 'teacher'] },
+    { id: 'login-history', label: t('loginHistory'), icon: History, defaultRoles: ['admin', 'manager'] },
     { id: 'classes', label: t('classes'), icon: School, defaultRoles: ['admin', 'manager'] },
     { id: 'schedule-manage', label: t('dailyScheduleManage'), icon: CalendarDays, defaultRoles: ['admin', 'manager'] },
     { id: 'users', label: t('users'), icon: UserCog, defaultRoles: ['admin', 'manager'] },

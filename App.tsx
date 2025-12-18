@@ -20,6 +20,7 @@ import ClassGallery from './components/ClassGallery';
 import TeacherFocusMode from './components/TeacherFocusMode';
 import PickupPass from './components/PickupPass';
 import GateScanner from './components/GateScanner';
+import LoginHistory from './components/LoginHistory';
 import Login from './components/Login';
 import Chat from './components/Chat';
 import NotificationDropdown from './components/NotificationDropdown';
@@ -429,6 +430,8 @@ const AppContent: React.FC = () => {
         return <ReportsArchive onViewReport={handleViewHistoricalReport} />;
       case 'database':
         return <DatabaseControl />;
+      case 'login-history':
+        return <LoginHistory />;
       case 'pickup-pass':
         return user ? <PickupPass user={user} /> : null;
       case 'gate-scanner':

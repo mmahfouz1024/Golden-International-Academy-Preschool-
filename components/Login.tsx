@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { LogIn, Sun, Cloud, Star, Sparkles, UserCircle, KeyRound, LockKeyhole, ArrowLeft, ArrowRight, CheckCircle, Send } from 'lucide-react';
-import { getUsers, getMessages, saveMessages } from '../services/storageService';
+import { getUsers, getMessages, saveMessages, recordLoginLog } from '../services/storageService';
 import { User, ChatMessage } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
 
@@ -36,6 +36,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     );
     
     if (user) {
+      recordLoginLog(user);
       onLogin(user);
     } else {
       setError(t('loginError'));

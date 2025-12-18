@@ -1,7 +1,13 @@
 
 export const translations = {
   en: {
-    // ... existing translations ...
+    // ... existing ...
+    loginHistory: "Login History",
+    loginTime: "Login Time",
+    device: "Device",
+    clearLogs: "Clear All Logs",
+    noLogs: "No login records found.",
+    // ...
     appTitle: "Golden International Academy & Pre-school",
     appSubtitle: "Smart Management System",
     welcome: "Welcome",
@@ -302,7 +308,6 @@ export const translations = {
     lunch: "Lunch",
     snack: "Snacks",
     water: "Water (Cups)",
-    bathroomNap: "Bathroom & Nap",
     bathroomLog: "Bathroom Log",
     nap: "Nap",
     napDuration: "Sleep Duration",
@@ -548,7 +553,13 @@ export const translations = {
     uploadBackupFile: "Upload .json file",
   },
   ar: {
-    // ... existing translations ...
+    // ... existing ...
+    loginHistory: "سجل الدخول",
+    loginTime: "وقت الدخول",
+    device: "الجهاز",
+    clearLogs: "مسح السجل بالكامل",
+    noLogs: "لا توجد سجلات دخول حتى الآن.",
+    // ...
     appTitle: "أكاديمية وروضة جولدن الدولية",
     appSubtitle: "نظام الإدارة الذكي",
     welcome: "مرحباً بك",
@@ -660,7 +671,7 @@ export const translations = {
     paymentMonth: "عن شهر",
     paymentStatus: "الحالة",
     salaryPaid: "تم الدفع",
-    baseSalary: "الراتب الأساسي",
+    baseSalary: "الراتاتبي الأساسي",
     updateSalary: "تحديث الراتب الأساسي",
     paymentHistory: "سجل المدفوعات",
 
@@ -849,7 +860,6 @@ export const translations = {
     lunch: "الغداء",
     snack: "سناكس",
     water: "الماء (أكواب)",
-    bathroomNap: "الحمام والنوم",
     bathroomLog: "سجل الحمام",
     nap: "النوم",
     napDuration: "مدة النوم",
