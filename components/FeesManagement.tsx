@@ -25,29 +25,20 @@ const FeesManagement: React.FC = () => {
   const [amount, setAmount] = useState('');
   const [note, setNote] = useState('');
   const [method, setMethod] = useState<PaymentMethod>('Cash');
-  const [forMonth, setForMonth] = useState(new Date().toISOString().slice(0, 7));
+  // Changed from YYYY-MM to full YYYY-MM-DD
+  const [forMonth, setForMonth] = useState(new Date().toISOString().split('T')[0]);
   const [date] = useState(new Date().toISOString().split('T')[0]);
 
-  // English Long Date Formatter: "25 October 2025"
-  const formatLongDate = (dateStr: string) => {
+  // English Full Date Formatter: "25 October 2025"
+  const formatFullDate = (dateStr: string) => {
     if (!dateStr) return '';
     const d = new Date(dateStr);
+    // Explicitly use en-GB for Day Month Year order in English
     return d.toLocaleDateString('en-GB', { 
       day: '2-digit', 
       month: 'long', 
       year: 'numeric' 
     });
-  };
-
-  // English Month Formatter: "October 2025"
-  const formatMonthYear = (monthStr: string) => {
-    if (!monthStr) return '';
-    // monthStr is typically YYYY-MM
-    const parts = monthStr.split('-');
-    const year = parseInt(parts[0]);
-    const month = parseInt(parts[1]);
-    const date = new Date(year, month - 1, 1);
-    return date.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
   };
 
   useEffect(() => {
@@ -80,7 +71,7 @@ const FeesManagement: React.FC = () => {
     } else {
       setAmount(record?.monthlyAmount.toString() || '0');
       setNote('');
-      setForMonth(new Date().toISOString().slice(0, 7));
+      setForMonth(new Date().toISOString().split('T')[0]);
     }
     setIsModalOpen(true);
   };
@@ -112,20 +103,13 @@ const FeesManagement: React.FC = () => {
         });
       }
     } else {
-      if (recordIndex >= 0) {
-        const alreadyPaid = updatedFees[recordIndex].history.some(p => p.forMonth === forMonth);
-        if (alreadyPaid) {
-          setModalError(t('paymentExistsError'));
-          return;
-        }
-      }
-
+      // In payment mode
       const transaction: PaymentTransaction = {
         id: `tr-${Date.now()}`,
         date: date,
         amount: numericAmount,
         method: method,
-        forMonth: forMonth,
+        forMonth: forMonth, // Now a full date string
         note: note,
         recordedBy: currentUser?.name || 'System'
       };
@@ -157,7 +141,7 @@ const FeesManagement: React.FC = () => {
   };
 
   const handleDeleteTransaction = (studentId: string, transactionId: string) => {
-    if (!window.confirm(language === 'ar' ? 'هل أنت متأكد من حذف هذه العملية؟ سيتم تعديل الرصيد تلقائياً.' : 'Are you sure you want to delete this transaction? Balance will be adjusted.')) return;
+    if (!window.confirm(language === 'ar' ? 'هل أنت متأكد من حذف هذه العملية؟' : 'Are you sure you want to delete this transaction?')) return;
 
     const updatedFees = fees.map(f => {
       if (f.studentId === studentId) {
@@ -173,14 +157,6 @@ const FeesManagement: React.FC = () => {
       return f;
     });
 
-    setFees(updatedFees);
-    saveFees(updatedFees);
-    addNotification(t('delete'), t('changesSaved'), 'success');
-  };
-
-  const handleDeleteFeeRecord = (studentId: string) => {
-    if (!window.confirm(language === 'ar' ? 'هل أنت متأكد من حذف سجل المصروفات بالكامل لهذا الطالب؟' : 'Are you sure you want to delete the entire fee record for this student?')) return;
-    const updatedFees = fees.filter(f => f.studentId !== studentId);
     setFees(updatedFees);
     saveFees(updatedFees);
     addNotification(t('delete'), t('changesSaved'), 'success');
@@ -282,9 +258,6 @@ const FeesManagement: React.FC = () => {
                     <td className="px-6 py-4 font-bold text-emerald-600 text-sm">{record?.monthlyAmount || 0} {t('currency')}</td>
                     <td className="px-6 py-4 text-left flex justify-end gap-2">
                        <button onClick={() => handleOpenModal(s, 'tuition')} className="p-2 bg-gray-100 text-gray-500 rounded-lg hover:bg-indigo-50 hover:text-indigo-600 transition-all"><Settings2 size={16} /></button>
-                       {canManage && record && (
-                         <button onClick={() => handleDeleteFeeRecord(s.id)} className="p-2 bg-rose-50 text-rose-400 rounded-lg hover:text-rose-600 transition-all" title={t('delete')}><Trash2 size={16} /></button>
-                       )}
                     </td>
                   </tr>
                 );
@@ -301,7 +274,7 @@ const FeesManagement: React.FC = () => {
               <tr>
                 <th className="px-6 py-4 font-semibold text-gray-600">{t('studentName')}</th>
                 <th className="px-6 py-4 font-semibold text-gray-600">{t('amount')}</th>
-                <th className="px-6 py-4 font-semibold text-gray-600">{t('forMonth')}</th>
+                <th className="px-6 py-4 font-semibold text-gray-600">{language === 'ar' ? 'تاريخ الاستحقاق' : 'Due Date'}</th>
                 <th className="px-6 py-4 font-semibold text-gray-600">{t('paymentDate')}</th>
                 <th className="px-6 py-4 font-semibold text-gray-600"></th>
               </tr>
@@ -316,8 +289,8 @@ const FeesManagement: React.FC = () => {
                     </div>
                   </td>
                   <td className="px-6 py-4 font-bold text-emerald-600 text-sm">{tr.amount} {t('currency')}</td>
-                  <td className="px-6 py-4 font-bold text-gray-700 text-sm" dir="ltr">{formatMonthYear(tr.forMonth)}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600 font-medium" dir="ltr">{formatLongDate(tr.date)}</td>
+                  <td className="px-6 py-4 font-bold text-gray-700 text-sm" dir="ltr">{formatFullDate(tr.forMonth)}</td>
+                  <td className="px-6 py-4 text-sm text-gray-600 font-medium" dir="ltr">{formatFullDate(tr.date)}</td>
                   <td className="px-6 py-4 text-left flex justify-end">
                     {canManage && (
                       <button 
@@ -332,12 +305,6 @@ const FeesManagement: React.FC = () => {
               ))}
             </tbody>
           </table>
-          {allTransactions.length === 0 && (
-            <div className="p-20 text-center text-gray-400">
-               <History size={40} className="mx-auto mb-4 opacity-10" />
-               <p>{language === 'ar' ? 'لا توجد عمليات مسجلة' : 'No records found'}</p>
-            </div>
-          )}
         </div>
       )}
 
@@ -349,16 +316,23 @@ const FeesManagement: React.FC = () => {
               <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-red-500"><X size={24} /></button>
             </div>
             <div className="p-6 space-y-5">
-              {modalError && <div className="bg-rose-50 border-2 border-rose-100 p-4 rounded-2xl flex items-start gap-3 text-rose-700 font-bold text-sm"><AlertCircle size={20}/>{modalError}</div>}
               <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-2xl border border-gray-100"><img src={selectedStudent.avatar} className="w-12 h-12 rounded-full border-2 border-white shadow-sm" alt="" /><div><p className="font-bold text-gray-900">{selectedStudent.name}</p><p className="text-xs text-gray-500">{selectedStudent.classGroup}</p></div></div>
               <div>
                 <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">{t('amount')} ({t('currency')})</label>
-                <input type="number" className={`w-full px-4 py-3 bg-gray-50 border-transparent rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-bold ${modalType === 'payment' ? 'opacity-70 cursor-not-allowed text-indigo-600 bg-indigo-50/30' : ''}`} value={amount} onChange={e => ! (modalType === 'payment') && setAmount(e.target.value)} disabled={modalType === 'payment'} readOnly={modalType === 'payment'} />
-                {modalType === 'payment' && <p className="text-[10px] text-indigo-500 font-bold mt-1">* {language === 'ar' ? 'المبلغ ثابت بناءً على إعدادات الرسوم' : 'Amount is fixed based on fee settings'}</p>}
+                <input type="number" className={`w-full px-4 py-3 bg-gray-50 border-transparent rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-bold ${modalType === 'payment' ? 'text-indigo-600' : ''}`} value={amount} onChange={e => setAmount(e.target.value)} />
               </div>
               {modalType === 'payment' && (
                 <div className="grid grid-cols-2 gap-4">
-                  <div><label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">{t('forMonth')}</label><input type="month" className="w-full px-4 py-2.5 bg-gray-50 border-transparent rounded-xl focus:bg-white focus:outline-none font-bold" value={forMonth} onChange={e => {setForMonth(e.target.value); setModalError(null);}} /></div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">{language === 'ar' ? 'تاريخ الاستحقاق' : 'Due Date'}</label>
+                    <div className="relative group">
+                        <div className="flex items-center gap-2 bg-gray-50 border-transparent rounded-xl px-4 py-2.5">
+                            <Calendar size={14} className="text-indigo-500" />
+                            <span className="font-bold text-xs text-gray-700 whitespace-nowrap" dir="ltr">{formatFullDate(forMonth)}</span>
+                        </div>
+                        <input type="date" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" value={forMonth} onChange={e => setForMonth(e.target.value)} />
+                    </div>
+                  </div>
                   <div><label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">{t('paymentMethod')}</label><div className="flex bg-gray-100 p-1 rounded-xl gap-1"><button onClick={() => setMethod('Cash')} className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-[10px] font-bold transition-all ${method === 'Cash' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-400'}`}><Banknote size={14}/>{t('cash')}</button><button onClick={() => setMethod('Bank')} className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-[10px] font-bold transition-all ${method === 'Bank' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-400'}`}><Building2 size={14}/>{t('bank')}</button></div></div>
                 </div>
               )}
@@ -376,22 +350,13 @@ const FeesManagement: React.FC = () => {
             <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
               {fees.find(f => f.studentId === selectedStudent.id)?.history.map(tr => (
                 <div key={tr.id} className="bg-white border border-gray-100 p-4 rounded-2xl shadow-sm hover:shadow-md transition-shadow relative">
-                  <div className="flex justify-between items-start mb-2"><span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-lg flex items-center gap-1.5" dir="ltr"><Calendar size={12} /> {formatMonthYear(tr.forMonth)}</span><span className="font-bold text-gray-800">{tr.amount} {t('currency')}</span></div>
+                  <div className="flex justify-between items-start mb-2"><span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-lg flex items-center gap-1.5" dir="ltr"><Calendar size={12} /> {formatFullDate(tr.forMonth)}</span><span className="font-bold text-gray-800">{tr.amount} {t('currency')}</span></div>
                   <div className="flex justify-between items-end">
                     <div className="space-y-1">
                       <p className="text-[10px] text-gray-400 flex items-center gap-1"><Banknote size={10} /> {tr.method === 'Cash' ? t('cash') : t('bank')}</p>
-                      {tr.note && <p className="text-[11px] text-gray-600 italic">"{tr.note}"</p>}
                     </div>
                     <div className="flex flex-col items-end gap-2">
-                      <div className="text-right text-sm text-gray-600 font-medium" dir="ltr">{formatLongDate(tr.date)}</div>
-                      {canManage && (
-                        <button 
-                          onClick={() => handleDeleteTransaction(selectedStudent.id, tr.id)}
-                          className="text-rose-400 hover:text-rose-600 transition-colors"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      )}
+                      <div className="text-right text-sm text-gray-600 font-medium" dir="ltr">{formatFullDate(tr.date)}</div>
                     </div>
                   </div>
                 </div>
