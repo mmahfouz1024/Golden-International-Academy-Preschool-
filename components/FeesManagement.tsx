@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   Search, X, Save, Plus, AlertCircle, Banknote, Building2, 
   History, User, Calendar, Settings2, Trash2,
-  TrendingUp, CreditCard, Receipt, Wallet, ArrowUpRight, CheckCircle
+  TrendingUp, CreditCard, Receipt, Wallet, ArrowUpRight, CheckCircle, Lock
 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useNotification } from '../contexts/NotificationContext';
@@ -450,16 +450,26 @@ const FeesManagement: React.FC = () => {
                     </label>
                     <div className="relative group">
                         <div className="absolute left-4 top-1/2 -translate-y-1/2 p-1.5 bg-indigo-50 text-indigo-500 rounded-lg group-focus-within:bg-indigo-600 group-focus-within:text-white transition-all">
-                            <Banknote size={18} />
+                            {modalType === 'payment' ? <Lock size={18} /> : <Banknote size={18} />}
                         </div>
                         <input 
                             type="number" 
-                            className="w-full pl-14 pr-6 py-4 bg-gray-50 border-2 border-transparent rounded-[1.5rem] focus:bg-white focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100 outline-none font-bold text-xl transition-all" 
+                            readOnly={modalType === 'payment'}
+                            className={`w-full pl-14 pr-6 py-4 border-2 rounded-[1.5rem] outline-none font-bold text-xl transition-all ${
+                                modalType === 'payment' 
+                                ? 'bg-gray-100 border-gray-200 text-gray-500 cursor-not-allowed' 
+                                : 'bg-gray-50 border-transparent focus:bg-white focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100'
+                            }`} 
                             value={amount} 
                             onChange={e => {setAmount(e.target.value); setModalError(null);}} 
                             placeholder="0.00"
                         />
                     </div>
+                    {modalType === 'payment' && (
+                        <p className="text-[9px] text-indigo-500 font-bold mt-2 ml-1">
+                            {language === 'ar' ? '* المبلغ محدد مسبقاً من إعدادات الرسوم' : '* Amount is fixed from setup fees'}
+                        </p>
+                    )}
                   </div>
 
                   {modalType === 'payment' && (
