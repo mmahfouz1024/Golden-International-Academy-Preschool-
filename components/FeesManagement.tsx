@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Search, X, Save, Plus, AlertCircle, Banknote, Building2, 
-  History, User, Calendar, Settings2, Trash2, ChevronDown,
+  History, User, Calendar, Settings2, Trash2,
   TrendingUp, CreditCard, Receipt, Wallet, ArrowUpRight, CheckCircle
 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
