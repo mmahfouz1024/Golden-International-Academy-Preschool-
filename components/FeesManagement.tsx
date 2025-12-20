@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   Search, X, Save, Plus, AlertCircle, Banknote, Building2, 
   History, User, Calendar, Settings2, Trash2,
-  TrendingUp, CreditCard, Receipt, Wallet, ArrowUpRight, CheckCircle, Lock, Edit3
+  TrendingUp, CreditCard, Receipt, Wallet, ArrowUpRight, CheckCircle, Edit3
 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useNotification } from '../contexts/NotificationContext';
