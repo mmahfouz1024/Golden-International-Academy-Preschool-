@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit2, X, UserCheck, UserPlus, Search, CheckCircle } from 'lucide-react';
-import { Student, StudentStatus, User, ClassGroup } from '../types';
+import { Plus, Edit2, X, UserCheck, UserPlus, Search, CheckCircle, Phone, User, Calendar, Baby, Mail, ShieldCheck } from 'lucide-react';
+import { Student, StudentStatus, User as UserType, ClassGroup } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
 import { getStudents, saveStudents, getUsers, saveUsers, getClasses } from '../services/storageService';
 
@@ -13,7 +13,7 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
   const { t, language } = useLanguage();
   const [students, setStudents] = useState<Student[]>([]);
   const [classes, setClasses] = useState<ClassGroup[]>([]);
-  const [parents, setParents] = useState<User[]>([]);
+  const [parents, setParents] = useState<UserType[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
@@ -105,7 +105,6 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
     let finalParentPhone = '';
     let updatedUsers = [...allUsers];
 
-    // 1. Logic for Parent Association
     if (parentMode === 'existing') {
         if (!selectedParentId) {
             alert(language === 'ar' ? 'يرجى اختيار ولي أمر' : 'Please select a parent');
@@ -115,25 +114,21 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
         if (parentUser) {
             finalParentName = parentUser.name;
             finalParentPhone = parentUser.phone || '';
-            
-            // Link student if not already linked
             const currentLinks = parentUser.linkedStudentIds || (parentUser.linkedStudentId ? [parentUser.linkedStudentId] : []);
             if (!currentLinks.includes(currentStudentId)) {
                 parentUser.linkedStudentIds = [...currentLinks, currentStudentId];
             }
         }
     } else {
-        // Create NEW Parent
         if (!newParentData.username || !newParentData.password || !newParentData.name) {
             alert(language === 'ar' ? 'يرجى إكمال بيانات ولي الأمر الجديد' : 'Please complete new parent details');
             return;
         }
-        
         const isDup = allUsers.some(u => u.username.toLowerCase() === newParentData.username.trim().toLowerCase());
         if (isDup) { alert(t('usernameExists' as any)); return; }
 
         const newParentId = `u-${Date.now()}`;
-        const newUser: User = {
+        const newUser: UserType = {
             id: newParentId,
             name: newParentData.name,
             username: newParentData.username.trim(),
@@ -149,7 +144,6 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
         finalParentPhone = newParentData.phone;
     }
 
-    // 2. Save Student
     const student: Student = { 
       id: currentStudentId, 
       name: studentData.name, 
@@ -170,7 +164,6 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
     setStudents(updatedStudents);
     saveStudents(updatedStudents);
     saveUsers(updatedUsers);
-    
     setIsModalOpen(false);
   };
 
@@ -184,83 +177,126 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
     p.username.toLowerCase().includes(parentSearchTerm.toLowerCase())
   );
 
+  const getStatusColor = (status: StudentStatus) => {
+    switch (status) {
+      case StudentStatus.Active: return 'bg-emerald-500';
+      case StudentStatus.Pending: return 'bg-amber-500';
+      case StudentStatus.Inactive: return 'bg-rose-500';
+      default: return 'bg-gray-400';
+    }
+  };
+
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in pb-20">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-3xl font-display font-bold text-slate-800">{t('studentRegistry')}</h2>
+          <h2 className="text-3xl font-display font-bold text-slate-800 tracking-tight">{t('studentRegistry')}</h2>
           <p className="text-slate-500 font-medium">{t('manageStudents')}</p>
         </div>
         <button 
             onClick={() => handleOpenModal()} 
-            className="flex items-center gap-2 bg-indigo-600 text-white px-6 py-3 rounded-2xl font-bold shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all active:scale-95"
+            className="flex items-center gap-2 bg-indigo-600 text-white px-6 py-3 rounded-2xl font-bold shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all active:scale-95 whitespace-nowrap"
         >
-            <Plus size={20}/>
+            <Plus size={22}/>
             <span>{t('addStudentTitle')}</span>
         </button>
       </div>
 
-      {/* Search Bar */}
-      <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-3">
-        <Search className="text-slate-400" size={20} />
+      {/* Search Bar - Stylized */}
+      <div className="bg-white/70 backdrop-blur-md p-2 rounded-[1.5rem] shadow-sm border border-white flex items-center gap-2 max-w-2xl mx-auto">
+        <div className="p-3 bg-indigo-50 text-indigo-500 rounded-2xl">
+          <Search size={20} />
+        </div>
         <input 
             type="text" 
             placeholder={t('searchPlaceholder')} 
-            className="flex-1 bg-transparent border-none outline-none text-sm font-medium text-slate-700" 
+            className="flex-1 bg-transparent border-none outline-none text-base font-bold text-slate-700 px-2" 
             value={searchTerm} 
             onChange={(e) => setSearchTerm(e.target.value)} 
         />
       </div>
 
-      <div className="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className={`w-full ${language === 'ar' ? 'text-right' : 'text-left'}`}>
-            <thead>
-              <tr className="bg-slate-50 border-b border-slate-100">
-                <th className="px-6 py-4 font-bold text-slate-600 text-sm">{t('studentName')}</th>
-                <th className="px-6 py-4 font-bold text-slate-600 text-sm">{t('studentClass')}</th>
-                <th className="px-6 py-4 font-bold text-slate-600 text-sm">{t('parentName')}</th>
-                <th className="px-6 py-4 font-bold text-slate-600 text-sm"></th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-50">
-              {filteredStudents.map(s => (
-                <tr key={s.id} onClick={() => onStudentSelect(s)} className="hover:bg-slate-50/50 transition-colors group cursor-pointer">
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <img src={s.avatar} className="w-10 h-10 rounded-full border-2 border-white shadow-sm object-cover" alt={s.name} />
-                      <span className="font-bold text-slate-800 group-hover:text-indigo-600 transition-colors">{s.name}</span>
+      {/* Card Grid Layout */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {filteredStudents.map(student => (
+          <div 
+            key={student.id}
+            onClick={() => onStudentSelect(student)}
+            className="group relative bg-white rounded-[2rem] p-6 shadow-sm border border-slate-100 hover:shadow-xl hover:shadow-indigo-50 hover:-translate-y-1 transition-all duration-300 cursor-pointer overflow-hidden"
+          >
+            {/* Status Dot */}
+            <div className="absolute top-6 right-6 flex items-center gap-2">
+                <span className={`w-2.5 h-2.5 rounded-full ${getStatusColor(student.status)} animate-pulse`}></span>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{student.status}</span>
+            </div>
+
+            {/* Avatar Section */}
+            <div className="flex flex-col items-center text-center mb-6">
+                <div className="relative mb-4">
+                    <div className="absolute inset-0 bg-indigo-100 rounded-[2.5rem] rotate-6 scale-105 group-hover:rotate-12 transition-transform"></div>
+                    <img 
+                      src={student.avatar} 
+                      className="relative w-24 h-24 rounded-[2rem] object-cover border-4 border-white shadow-md" 
+                      alt={student.name} 
+                    />
+                </div>
+                <h3 className="text-lg font-bold text-slate-800 leading-tight group-hover:text-indigo-600 transition-colors line-clamp-1">{student.name}</h3>
+                <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 bg-indigo-50 text-indigo-600 rounded-full text-xs font-bold">
+                    <ShieldCheck size={12} />
+                    {student.classGroup}
+                </div>
+            </div>
+
+            {/* Info Section */}
+            <div className="space-y-3 pt-4 border-t border-slate-50">
+                <div className="flex items-center gap-3 text-slate-600">
+                    <div className="p-2 bg-slate-50 rounded-xl text-slate-400">
+                        <User size={14} />
                     </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full text-xs font-bold">{s.classGroup}</span>
-                  </td>
-                  <td className="px-6 py-4">
+                    <div className="flex flex-col min-w-0">
+                        <span className="text-[10px] font-bold uppercase text-slate-400 leading-none mb-0.5">{t('parentName')}</span>
+                        <span className="text-sm font-bold text-slate-700 truncate">{student.parentName}</span>
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-3 text-slate-600">
+                    <div className="p-2 bg-slate-50 rounded-xl text-slate-400">
+                        <Phone size={14} />
+                    </div>
                     <div className="flex flex-col">
-                        <span className="text-sm font-bold text-slate-700">{s.parentName}</span>
-                        <span className="text-xs text-slate-400" dir="ltr">{s.phone}</span>
+                        <span className="text-[10px] font-bold uppercase text-slate-400 leading-none mb-0.5">{t('phone')}</span>
+                        <span className="text-sm font-bold text-slate-700" dir="ltr">{student.phone}</span>
                     </div>
-                  </td>
-                  <td className="px-6 py-4 text-left">
-                    <button 
-                        onClick={(e) => {e.stopPropagation(); handleOpenModal(s);}} 
-                        className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all"
-                    >
-                      <Edit2 size={18}/>
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        {filteredStudents.length === 0 && (
-          <div className="p-20 text-center text-slate-300">
-            <Search size={48} className="mx-auto mb-4 opacity-10" />
-            <p className="font-medium">{t('noResults')}</p>
+                </div>
+            </div>
+
+            {/* Actions Overlay */}
+            <div className="mt-6 flex gap-2">
+                <button 
+                  onClick={(e) => { e.stopPropagation(); onStudentSelect(student); }}
+                  className="flex-1 bg-slate-900 text-white py-2.5 rounded-xl text-xs font-bold hover:bg-black transition-colors flex items-center justify-center gap-2"
+                >
+                  <Calendar size={14} />
+                  {t('viewReport')}
+                </button>
+                <button 
+                  onClick={(e) => { e.stopPropagation(); handleOpenModal(student); }}
+                  className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl hover:bg-indigo-100 transition-colors"
+                >
+                  <Edit2 size={16} />
+                </button>
+            </div>
           </div>
-        )}
+        ))}
       </div>
+
+      {filteredStudents.length === 0 && (
+        <div className="p-20 text-center bg-white rounded-[3rem] border-2 border-dashed border-slate-100 flex flex-col items-center justify-center">
+          <Baby size={64} className="text-slate-200 mb-4" />
+          <h3 className="text-xl font-bold text-slate-400">{t('noResults')}</h3>
+          <p className="text-sm text-slate-300 mt-1">Try adjusting your search terms</p>
+        </div>
+      )}
 
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
@@ -275,8 +311,6 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
             </div>
 
             <form onSubmit={handleSaveStudent} className="p-8 space-y-8">
-              
-              {/* Student Info Section */}
               <div className="space-y-4">
                 <h4 className="font-bold text-indigo-600 text-sm uppercase tracking-widest flex items-center gap-2">
                     <div className="w-2 h-2 bg-indigo-600 rounded-full"></div>
@@ -291,12 +325,10 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
                     
                     <div className="space-y-1">
                         <label className="block text-xs font-bold text-slate-400 mb-1 ml-1">{t('birthday')}</label>
-                        <div className="relative">
-                            <input type="date" className="w-full p-3.5 bg-slate-50 rounded-2xl border-2 border-transparent focus:bg-white focus:border-indigo-400 transition-all outline-none font-bold" value={studentData.birthday} onChange={e => {
-                                const val = e.target.value;
-                                setStudentData({...studentData, birthday: val, age: calculateDetailedAge(val)});
-                            }} />
-                        </div>
+                        <input type="date" className="w-full p-3.5 bg-slate-50 rounded-2xl border-2 border-transparent focus:bg-white focus:border-indigo-400 transition-all outline-none font-bold" value={studentData.birthday} onChange={e => {
+                            const val = e.target.value;
+                            setStudentData({...studentData, birthday: val, age: calculateDetailedAge(val)});
+                        }} />
                     </div>
 
                     <div className="space-y-1">
@@ -313,7 +345,6 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
                 </div>
               </div>
 
-              {/* Parent Association Section */}
               <div className="space-y-6 pt-4 border-t border-slate-50">
                 <h4 className="font-bold text-emerald-600 text-sm uppercase tracking-widest flex items-center gap-2">
                     <div className="w-2 h-2 bg-emerald-600 rounded-full"></div>
@@ -321,86 +352,49 @@ const StudentList: React.FC<StudentListProps> = ({ onStudentSelect }) => {
                 </h4>
 
                 <div className="flex bg-slate-100 p-1.5 rounded-2xl gap-2">
-                    <button 
-                        type="button"
-                        onClick={() => setParentMode('existing')}
-                        className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all ${parentMode === 'existing' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-                    >
-                        <UserCheck size={18} />
-                        {t('parentModeExisting')}
-                    </button>
-                    <button 
-                        type="button"
-                        onClick={() => setParentMode('new')}
-                        className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all ${parentMode === 'new' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-                    >
-                        <UserPlus size={18} />
-                        {t('parentModeNew')}
-                    </button>
+                    <button type="button" onClick={() => setParentMode('existing')} className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all ${parentMode === 'existing' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500'}`}><UserCheck size={18}/>{t('parentModeExisting')}</button>
+                    <button type="button" onClick={() => setParentMode('new')} className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all ${parentMode === 'new' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500'}`}><UserPlus size={18}/>{t('parentModeNew')}</button>
                 </div>
 
                 {parentMode === 'existing' ? (
                     <div className="space-y-4 animate-fade-in">
                         <div className="relative">
                             <Search className={`absolute ${language === 'ar' ? 'right-4' : 'left-4'} top-1/2 -translate-y-1/2 text-slate-400`} size={18} />
-                            <input 
-                                type="text"
-                                placeholder={t('selectParent')}
-                                className={`w-full ${language === 'ar' ? 'pr-12' : 'pl-12'} p-3.5 bg-slate-50 rounded-2xl border-2 border-transparent focus:bg-white focus:border-indigo-400 transition-all outline-none font-bold text-sm`}
-                                value={parentSearchTerm}
-                                onChange={(e) => setParentSearchTerm(e.target.value)}
-                            />
+                            <input type="text" placeholder={t('selectParent')} className={`w-full ${language === 'ar' ? 'pr-12' : 'pl-12'} p-3.5 bg-slate-50 rounded-2xl border-2 border-transparent focus:bg-white focus:border-indigo-400 outline-none font-bold text-sm`} value={parentSearchTerm} onChange={(e) => setParentSearchTerm(e.target.value)} />
                         </div>
-                        
-                        <div className="max-h-48 overflow-y-auto custom-scrollbar border-2 border-slate-100 rounded-2xl p-2 space-y-1">
+                        <div className="max-h-48 overflow-y-auto border-2 border-slate-100 rounded-2xl p-2 space-y-1">
                             {filteredParents.map(p => (
-                                <button
-                                    key={p.id}
-                                    type="button"
-                                    onClick={() => {
-                                        setSelectedParentId(p.id);
-                                        setParentSearchTerm(p.name);
-                                    }}
-                                    className={`w-full flex items-center justify-between p-3 rounded-xl transition-all ${selectedParentId === p.id ? 'bg-indigo-50 border-indigo-200' : 'hover:bg-slate-50'}`}
-                                >
+                                <button key={p.id} type="button" onClick={() => { setSelectedParentId(p.id); setParentSearchTerm(p.name); }} className={`w-full flex items-center justify-between p-3 rounded-xl transition-all ${selectedParentId === p.id ? 'bg-indigo-50 border-indigo-200' : 'hover:bg-slate-50'}`}>
                                     <div className="flex items-center gap-3 text-start">
                                         <img src={p.avatar} className="w-8 h-8 rounded-full border" alt="" />
-                                        <div>
-                                            <p className="text-sm font-bold text-slate-800">{p.name}</p>
-                                            <p className="text-xs text-slate-400" dir="ltr">{p.phone}</p>
-                                        </div>
+                                        <div><p className="text-sm font-bold text-slate-800">{p.name}</p><p className="text-xs text-slate-400" dir="ltr">{p.phone}</p></div>
                                     </div>
                                     {selectedParentId === p.id && <CheckCircle size={18} className="text-indigo-600" />}
                                 </button>
                             ))}
-                            {filteredParents.length === 0 && (
-                                <div className="p-8 text-center text-slate-400 italic text-sm">
-                                    {t('noResults')}
-                                </div>
-                            )}
                         </div>
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in">
                         <div className="col-span-full">
                             <label className="block text-xs font-bold text-slate-400 mb-1 ml-1">{t('parentName')}</label>
-                            <input className="w-full p-3.5 bg-slate-50 rounded-2xl border-2 border-transparent focus:bg-white focus:border-indigo-400 transition-all outline-none font-bold" value={newParentData.name} onChange={e => setNewParentData({...newParentData, name: e.target.value})} />
+                            <input className="w-full p-3.5 bg-slate-50 rounded-2xl border-2 border-transparent focus:bg-white focus:border-indigo-400 outline-none font-bold" value={newParentData.name} onChange={e => setNewParentData({...newParentData, name: e.target.value})} />
                         </div>
                         <div>
                             <label className="block text-xs font-bold text-slate-400 mb-1 ml-1">{t('parentUsername')}</label>
-                            <input className="w-full p-3.5 bg-slate-50 rounded-2xl border-2 border-transparent focus:bg-white focus:border-indigo-400 transition-all outline-none font-bold" value={newParentData.username} onChange={e => setNewParentData({...newParentData, username: e.target.value})} />
+                            <input className="w-full p-3.5 bg-slate-50 rounded-2xl border-2 border-transparent focus:bg-white focus:border-indigo-400 outline-none font-bold" value={newParentData.username} onChange={e => setNewParentData({...newParentData, username: e.target.value})} />
                         </div>
                         <div>
                             <label className="block text-xs font-bold text-slate-400 mb-1 ml-1">{t('parentPassword')}</label>
-                            <input type="text" className="w-full p-3.5 bg-slate-50 rounded-2xl border-2 border-transparent focus:bg-white focus:border-indigo-400 transition-all outline-none font-bold" value={newParentData.password} onChange={e => setNewParentData({...newParentData, password: e.target.value})} />
+                            <input type="text" className="w-full p-3.5 bg-slate-50 rounded-2xl border-2 border-transparent focus:bg-white focus:border-indigo-400 outline-none font-bold" value={newParentData.password} onChange={e => setNewParentData({...newParentData, password: e.target.value})} />
                         </div>
                         <div>
                             <label className="block text-xs font-bold text-slate-400 mb-1 ml-1">{t('phone')}</label>
-                            <input type="tel" className="w-full p-3.5 bg-slate-50 rounded-2xl border-2 border-transparent focus:bg-white focus:border-indigo-400 transition-all outline-none font-bold" value={newParentData.phone} onChange={e => setNewParentData({...newParentData, phone: e.target.value})} />
+                            <input type="tel" className="w-full p-3.5 bg-slate-50 rounded-2xl border-2 border-transparent focus:bg-white focus:border-indigo-400 outline-none font-bold" value={newParentData.phone} onChange={e => setNewParentData({...newParentData, phone: e.target.value})} />
                         </div>
                         <div>
                             <label className="block text-xs font-bold text-slate-400 mb-1 ml-1">{t('email')}</label>
-                            <input type="email" className="w-full p-3.5 bg-slate-50 rounded-2xl border-2 border-transparent focus:bg-white focus:border-indigo-400 transition-all outline-none font-bold" value={newParentData.email} onChange={e => setNewParentData({...newParentData, email: e.target.value})} />
+                            <input type="email" className="w-full p-3.5 bg-slate-50 rounded-2xl border-2 border-transparent focus:bg-white focus:border-indigo-400 outline-none font-bold" value={newParentData.email} onChange={e => setNewParentData({...newParentData, email: e.target.value})} />
                         </div>
                     </div>
                 )}
