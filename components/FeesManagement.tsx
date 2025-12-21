@@ -75,6 +75,7 @@ const FeesManagement: React.FC = () => {
     if (type === 'tuition') {
       setAmount(record?.monthlyAmount.toString() || '');
     } else {
+      // Default to the monthly amount, but keep it editable
       setAmount(record?.monthlyAmount.toString() || '0');
       setNote('');
       setForMonth(new Date().toISOString().slice(0, 7));
@@ -157,7 +158,7 @@ const FeesManagement: React.FC = () => {
   };
 
   const handleDeleteTransaction = (studentId: string, transactionId: string) => {
-    if (!window.confirm(language === 'ar' ? 'هل أنت متأكد من حذف هذه العملية؟ سيتم خصم المبلغ من إجمالي المدفوع.' : 'Are you sure? The amount will be deducted from the total paid.')) return;
+    if (!window.confirm(language === 'ar' ? 'هل أنت متأكد من حذف هذه العملية؟' : 'Are you sure you want to delete this record?')) return;
 
     const updatedFees = fees.map(f => {
       if (f.studentId === studentId) {
@@ -198,7 +199,7 @@ const FeesManagement: React.FC = () => {
   return (
     <div className="space-y-4 animate-fade-in pb-24">
       
-      {/* Page Header - More Compact */}
+      {/* Page Header - Compact */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
         <div>
           <h2 className="text-2xl font-display font-bold text-gray-800">{t('feesTitle')}</h2>
@@ -232,97 +233,96 @@ const FeesManagement: React.FC = () => {
         </div>
       </div>
 
-      {/* Stats Summary - More Compact */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          <div className="bg-white p-3 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-3">
-              <div className="p-2 bg-indigo-50 text-indigo-600 rounded-xl"><TrendingUp size={18}/></div>
+      {/* Stats Summary - Compact */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
+          <div className="bg-white p-2.5 sm:p-3 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-2 sm:gap-3">
+              <div className="p-1.5 sm:p-2 bg-indigo-50 text-indigo-600 rounded-xl"><TrendingUp size={16}/></div>
               <div>
-                  <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">{language === 'ar' ? 'المتوقع شهرياً' : 'Monthly Expected'}</p>
-                  <p className="text-sm font-bold text-gray-800">{totalExpectedMonthly} <span className="text-[10px] font-normal opacity-50">{t('currency')}</span></p>
+                  <p className="text-[8px] sm:text-[9px] font-bold text-gray-400 uppercase tracking-wider">{language === 'ar' ? 'المتوقع' : 'Expected'}</p>
+                  <p className="text-xs sm:text-sm font-bold text-gray-800">{totalExpectedMonthly} <span className="text-[10px] font-normal opacity-50">{t('currency')}</span></p>
               </div>
           </div>
-          <div className="bg-white p-3 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-3">
-              <div className="p-2 bg-emerald-50 text-emerald-600 rounded-xl"><CreditCard size={18}/></div>
+          <div className="bg-white p-2.5 sm:p-3 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-2 sm:gap-3">
+              <div className="p-1.5 sm:p-2 bg-emerald-50 text-emerald-600 rounded-xl"><CreditCard size={16}/></div>
               <div>
-                  <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">{language === 'ar' ? 'محصل هذا الشهر' : 'Collected'}</p>
-                  <p className="text-sm font-bold text-gray-800">{totalCollectedThisMonth} <span className="text-[10px] font-normal opacity-50">{t('currency')}</span></p>
+                  <p className="text-[8px] sm:text-[9px] font-bold text-gray-400 uppercase tracking-wider">{language === 'ar' ? 'المحصل' : 'Collected'}</p>
+                  <p className="text-xs sm:text-sm font-bold text-gray-800">{totalCollectedThisMonth} <span className="text-[10px] font-normal opacity-50">{t('currency')}</span></p>
               </div>
           </div>
-          <div className="col-span-2 sm:col-span-1 bg-gradient-to-br from-indigo-600 to-purple-600 p-3 rounded-2xl text-white shadow-md flex items-center gap-3">
-              <div className="p-2 bg-white/20 rounded-xl"><Wallet size={18}/></div>
+          <div className="col-span-2 sm:col-span-1 bg-gradient-to-br from-indigo-600 to-purple-600 p-2.5 sm:p-3 rounded-2xl text-white shadow-md flex items-center gap-2 sm:gap-3">
+              <div className="p-1.5 sm:p-2 bg-white/20 rounded-xl"><Wallet size={16}/></div>
               <div>
-                  <p className="text-[9px] font-bold opacity-80 uppercase tracking-wider">{language === 'ar' ? 'المتبقي' : 'Outstanding'}</p>
-                  <p className="text-sm font-bold">{Math.max(0, totalExpectedMonthly - totalCollectedThisMonth)} <span className="text-[10px] font-normal opacity-70">{t('currency')}</span></p>
+                  <p className="text-[8px] sm:text-[9px] font-bold opacity-80 uppercase tracking-wider">{language === 'ar' ? 'المتبقي' : 'Outstanding'}</p>
+                  <p className="text-xs sm:text-sm font-bold">{Math.max(0, totalExpectedMonthly - totalCollectedThisMonth)} <span className="text-[10px] font-normal opacity-70">{t('currency')}</span></p>
               </div>
           </div>
       </div>
 
-      {/* Search Bar - Slimmer */}
-      <div className="bg-white p-2.5 rounded-xl shadow-sm border border-gray-100 flex items-center gap-3">
-        <Search className="text-gray-400" size={16} />
+      {/* Search Bar - Slim */}
+      <div className="bg-white p-2 rounded-xl shadow-sm border border-gray-100 flex items-center gap-2">
+        <Search className="text-gray-400 ml-2" size={14} />
         <input 
             type="text" 
             placeholder={t('searchPlaceholder')} 
-            className="flex-1 bg-transparent border-none outline-none text-xs font-medium text-gray-700" 
+            className="flex-1 bg-transparent border-none outline-none text-[11px] sm:text-xs font-medium text-gray-700" 
             value={searchTerm} 
             onChange={(e) => setSearchTerm(e.target.value)} 
         />
       </div>
 
       {activeTab === 'students' && (
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3">
           {filteredStudents.map(s => {
             const record = fees.find(f => f.studentId === s.id);
             const paidThisMonth = record?.history.filter(h => h.forMonth === currentMonth).reduce((sum, h) => sum + h.amount, 0) || 0;
             const isFullyPaid = paidThisMonth >= (record?.monthlyAmount || 0);
 
             return (
-              <div key={s.id} className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100 hover:shadow-lg transition-all group relative overflow-hidden flex flex-col">
+              <div key={s.id} className="bg-white rounded-[1.5rem] p-3 shadow-sm border border-gray-100 hover:shadow-md transition-all group relative overflow-hidden flex flex-col h-full">
                 
                 {/* Visual Status Indicator */}
-                <div className={`absolute top-0 right-0 w-16 h-0.5 ${isFullyPaid ? 'bg-emerald-500' : paidThisMonth > 0 ? 'bg-amber-500' : 'bg-gray-100'}`}></div>
+                <div className={`absolute top-0 right-0 left-0 h-1 ${isFullyPaid ? 'bg-emerald-400' : paidThisMonth > 0 ? 'bg-amber-400' : 'bg-gray-100'}`}></div>
 
-                <div className="flex flex-col items-center text-center mb-4">
-                    <div className="relative mb-2">
-                        <img src={s.avatar} className="w-12 h-12 rounded-2xl object-cover border-2 border-gray-50 shadow-sm" alt="" />
+                <div className="flex flex-col items-center text-center mb-2.5 pt-1">
+                    <div className="relative mb-2 shrink-0">
+                        <img src={s.avatar} className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl object-cover border-2 border-white shadow-sm" alt="" />
                         {isFullyPaid && (
-                            <div className="absolute -top-1.5 -right-1.5 bg-emerald-500 text-white p-0.5 rounded-full border-2 border-white shadow-sm">
-                                <CheckCircle size={10} strokeWidth={3} />
+                            <div className="absolute -top-1 -right-1 bg-emerald-500 text-white p-0.5 rounded-full border-2 border-white shadow-sm">
+                                <CheckCircle size={8} strokeWidth={4} />
                             </div>
                         )}
                     </div>
-                    <div className="min-w-0 px-1">
-                        <h4 className="font-bold text-gray-800 text-xs truncate group-hover:text-indigo-600 transition-colors">{s.name}</h4>
-                        <div className="flex items-center justify-center gap-1 mt-1">
-                            <span className="text-[8px] font-bold bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded-md uppercase tracking-tighter">{s.classGroup}</span>
-                            <span className="text-[8px] font-bold text-gray-400">{record?.monthlyAmount || 0} {t('currency')}</span>
+                    <div className="min-w-0 w-full">
+                        <h4 className="font-bold text-gray-800 text-[10px] sm:text-[11px] truncate group-hover:text-indigo-600 transition-colors leading-tight px-1">{s.name}</h4>
+                        <div className="flex items-center justify-center gap-1 mt-0.5">
+                            <span className="text-[7px] sm:text-[8px] font-bold bg-indigo-50 text-indigo-600 px-1 py-0.5 rounded uppercase">{s.classGroup}</span>
+                            <span className="text-[7px] sm:text-[8px] font-bold text-gray-400">{record?.monthlyAmount || 0} {t('currency')}</span>
                         </div>
                     </div>
                 </div>
 
-                <div className="flex-1 space-y-2">
-                    <div className="bg-gray-50/80 rounded-2xl p-2.5 border border-gray-100 text-center">
-                         <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest mb-1">{formatMonthYear(currentMonth)}</p>
-                         <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold border inline-block ${isFullyPaid ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : 'bg-amber-50 border-amber-100 text-amber-600'}`}>
+                <div className="flex-1">
+                    <div className="bg-gray-50/80 rounded-xl p-1.5 border border-gray-100 text-center">
+                         <p className="text-[7px] font-bold text-gray-400 uppercase tracking-tighter mb-0.5">{formatMonthYear(currentMonth)}</p>
+                         <span className={`px-1.5 py-0.5 rounded-md text-[9px] font-bold border inline-block ${isFullyPaid ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : 'bg-amber-50 border-amber-100 text-amber-600'}`}>
                             {paidThisMonth} / {record?.monthlyAmount || 0}
                          </span>
                     </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 mt-4">
+                <div className="grid grid-cols-2 gap-1.5 mt-2.5">
                     <button 
                         onClick={() => handleOpenHistoryModal(s)} 
-                        className="flex items-center justify-center p-2 bg-white border border-gray-200 rounded-xl text-gray-400 hover:bg-gray-50 hover:text-indigo-600 transition-all"
-                        title={t('paymentHistory')}
+                        className="flex items-center justify-center p-1.5 bg-white border border-gray-200 rounded-lg text-gray-400 hover:bg-gray-50 hover:text-indigo-600 transition-all"
                     >
-                        <History size={14} />
+                        <History size={12} />
                     </button>
                     {currentUser?.role !== 'parent' && (
                         <button 
                             onClick={() => handleOpenModal(s, 'payment')} 
-                            className="flex items-center justify-center p-2 bg-slate-900 text-white rounded-xl text-[10px] font-bold hover:bg-black shadow-sm active:scale-95 flex-1"
+                            className="flex items-center justify-center p-1.5 bg-slate-900 text-white rounded-lg text-[9px] font-bold hover:bg-black shadow-sm active:scale-95 flex-1"
                         >
-                            <Plus size={12} className="mr-1" />
+                            <Plus size={10} className="mr-0.5" />
                             {t('add')}
                         </button>
                     )}
@@ -334,29 +334,29 @@ const FeesManagement: React.FC = () => {
       )}
 
       {activeTab === 'setup' && (
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden animate-fade-in">
           <table className={`w-full ${language === 'ar' ? 'text-right' : 'text-left'}`}>
-            <thead className="bg-gray-50 text-xs">
+            <thead className="bg-gray-50 text-[10px] sm:text-xs">
               <tr>
-                <th className="px-6 py-3 font-bold text-gray-600">{t('studentName')}</th>
-                <th className="px-6 py-3 font-bold text-gray-600">{t('monthlyTuition')}</th>
-                <th className="px-6 py-3 font-bold text-gray-600"></th>
+                <th className="px-4 py-3 font-bold text-gray-600">{t('studentName')}</th>
+                <th className="px-4 py-3 font-bold text-gray-600">{t('monthlyTuition')}</th>
+                <th className="px-4 py-3 font-bold text-gray-600"></th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50">
+            <tbody className="divide-y divide-gray-50 text-[11px] sm:text-xs">
               {filteredStudents.map(s => {
                 const record = fees.find(f => f.studentId === s.id);
                 return (
                   <tr key={s.id} className="hover:bg-gray-50/50 transition-colors group">
-                    <td className="px-6 py-3">
+                    <td className="px-4 py-2.5">
                         <div className="flex items-center gap-2">
                             <img src={s.avatar} className="w-6 h-6 rounded-full" alt="" />
-                            <span className="font-bold text-gray-800 text-xs">{s.name}</span>
+                            <span className="font-bold text-gray-800">{s.name}</span>
                         </div>
                     </td>
-                    <td className="px-6 py-3 font-bold text-emerald-600 text-xs">{record?.monthlyAmount || 0} {t('currency')}</td>
-                    <td className="px-6 py-3 text-left flex justify-end gap-2">
-                       <button onClick={() => handleOpenModal(s, 'tuition')} className="p-1.5 bg-gray-100 text-gray-500 rounded-lg hover:bg-indigo-50 hover:text-indigo-600 transition-all"><Settings2 size={14} /></button>
+                    <td className="px-4 py-2.5 font-bold text-emerald-600">{record?.monthlyAmount || 0} {t('currency')}</td>
+                    <td className="px-4 py-2.5 text-left flex justify-end gap-2">
+                       <button onClick={() => handleOpenModal(s, 'tuition')} className="p-1.5 bg-gray-100 text-gray-500 rounded-lg hover:bg-indigo-50 hover:text-indigo-600 transition-all"><Settings2 size={12} /></button>
                     </td>
                   </tr>
                 );
@@ -367,47 +367,41 @@ const FeesManagement: React.FC = () => {
       )}
 
       {activeTab === 'history' && (
-        <div className="space-y-3">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div className="space-y-2 animate-fade-in">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
             {allTransactions.filter(tr => tr.studentName.toLowerCase().includes(searchTerm.toLowerCase())).map(tr => (
-                <div key={tr.id} className="bg-white p-3 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between group hover:shadow-md transition-all">
-                    <div className="flex items-center gap-3 min-w-0">
-                        <img src={tr.studentAvatar} className="w-8 h-8 rounded-xl object-cover border border-gray-100 shrink-0" alt="" />
+                <div key={tr.id} className="bg-white p-2.5 rounded-xl border border-gray-100 shadow-sm flex items-center justify-between group hover:shadow-md transition-all">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                        <img src={tr.studentAvatar} className="w-8 h-8 rounded-lg object-cover border border-gray-100 shrink-0" alt="" />
                         <div className="min-w-0">
-                            <p className="font-bold text-gray-800 text-[11px] truncate">{tr.studentName}</p>
-                            <p className="text-[9px] text-gray-400 font-bold uppercase">{formatMonthYear(tr.forMonth)}</p>
+                            <p className="font-bold text-gray-800 text-[10px] truncate">{tr.studentName}</p>
+                            <p className="text-[8px] text-gray-400 font-bold uppercase">{formatMonthYear(tr.forMonth)}</p>
                         </div>
                     </div>
-                    <div className="flex items-center gap-3 shrink-0">
+                    <div className="flex items-center gap-2 shrink-0">
                         <div className="text-right">
-                            <p className="font-bold text-emerald-600 text-[11px]">{tr.amount} {t('currency')}</p>
-                            <p className="text-[8px] text-gray-400 font-mono" dir="ltr">{tr.date}</p>
+                            <p className="font-bold text-emerald-600 text-[10px]">{tr.amount} {t('currency')}</p>
+                            <p className="text-[7px] text-gray-400 font-mono" dir="ltr">{tr.date}</p>
                         </div>
                         {canManage && (
                             <button 
                                 onClick={() => handleDeleteTransaction(tr.studentId, tr.id)}
-                                className="p-1.5 text-gray-300 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                                className="p-1 text-gray-300 hover:text-rose-500 hover:bg-rose-50 rounded-md transition-all opacity-0 group-hover:opacity-100"
                             >
-                                <Trash2 size={14} />
+                                <Trash2 size={12} />
                             </button>
                         )}
                     </div>
                 </div>
             ))}
           </div>
-          {allTransactions.length === 0 && (
-             <div className="py-16 text-center text-gray-300 bg-white rounded-3xl border-2 border-dashed">
-                 <Receipt size={40} className="mx-auto mb-2 opacity-20" />
-                 <p className="text-xs font-medium">No transactions found.</p>
-             </div>
-          )}
         </div>
       )}
 
       {/* Payment/Tuition Modal - UPDATED TO ALLOW EDITING */}
       {isModalOpen && selectedStudent && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-md animate-fade-in border-4 border-white overflow-hidden relative">
+          <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-sm animate-fade-in border-4 border-white overflow-hidden relative">
             
             <div className="absolute top-0 right-0 p-4 z-10">
                 <button onClick={() => setIsModalOpen(false)} className="bg-gray-100 text-gray-400 hover:text-rose-500 p-1.5 rounded-full transition-colors"><X size={18} /></button>
@@ -420,18 +414,19 @@ const FeesManagement: React.FC = () => {
                 <p className="text-indigo-600 font-bold text-[10px] relative z-10 uppercase tracking-widest mt-0.5">{selectedStudent.classGroup}</p>
             </div>
 
-            <div className="p-6 space-y-5">
+            <div className="p-6 space-y-4">
               {modalError && (
-                <div className="bg-rose-50 text-rose-600 p-3 rounded-xl border border-rose-100 flex items-center gap-2 text-xs font-bold animate-shake">
-                  <AlertCircle size={16} />
+                <div className="bg-rose-50 text-rose-600 p-3 rounded-xl border border-rose-100 flex items-center gap-2 text-[10px] font-bold animate-shake">
+                  <AlertCircle size={14} />
                   {modalError}
                 </div>
               )}
               
               <div className="space-y-4">
                   <div>
-                    <label className="block text-[9px] font-bold text-gray-400 uppercase tracking-widest ml-1 mb-1.5">
+                    <label className="block text-[9px] font-bold text-gray-400 uppercase tracking-widest ml-1 mb-1.5 flex items-center gap-1">
                         {modalType === 'payment' ? t('amount') : (language === 'ar' ? 'المبلغ الشهري' : 'Monthly Fee')}
+                        <Edit3 size={10} className="text-indigo-300" />
                     </label>
                     <div className="relative group">
                         <div className="absolute left-4 top-1/2 -translate-y-1/2 p-1.5 bg-indigo-50 text-indigo-500 rounded-lg group-focus-within:bg-indigo-600 group-focus-within:text-white transition-all">
@@ -439,17 +434,12 @@ const FeesManagement: React.FC = () => {
                         </div>
                         <input 
                             type="number" 
-                            className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100 outline-none font-bold text-lg transition-all" 
+                            className="w-full pl-12 pr-4 py-3 bg-gray-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100 outline-none font-bold text-lg transition-all" 
                             value={amount} 
                             onChange={e => {setAmount(e.target.value); setModalError(null);}} 
                             placeholder="0.00"
                         />
                     </div>
-                    {modalType === 'payment' && (
-                         <p className="text-[8px] text-gray-400 mt-2 ml-1 flex items-center gap-1">
-                             <Edit3 size={8} /> {language === 'ar' ? 'يمكنك تعديل المبلغ إذا كانت الدفعة جزئية' : 'You can edit the amount for partial payments'}
-                         </p>
-                    )}
                   </div>
 
                   {modalType === 'payment' && (
@@ -486,7 +476,7 @@ const FeesManagement: React.FC = () => {
 
               <button 
                 onClick={handleSave} 
-                className="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold flex items-center justify-center gap-3 hover:bg-black transition-all shadow-lg active:scale-95"
+                className="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold flex items-center justify-center gap-3 hover:bg-black transition-all shadow-lg active:scale-95 mt-2"
               >
                 <Save size={18} />
                 {t('save')}
@@ -499,7 +489,7 @@ const FeesManagement: React.FC = () => {
       {/* History Modal - Compact */}
       {isHistoryModalOpen && selectedStudent && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-md animate-fade-in border-4 border-white overflow-hidden max-h-[80vh] flex flex-col">
+          <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-sm animate-fade-in border-4 border-white overflow-hidden max-h-[80vh] flex flex-col">
             <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
                 <div className="flex items-center gap-2">
                     <div className="p-1.5 bg-indigo-100 text-indigo-600 rounded-lg"><History size={16} /></div>
@@ -518,29 +508,19 @@ const FeesManagement: React.FC = () => {
 
             <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar bg-slate-50/30">
               {fees.find(f => f.studentId === selectedStudent.id)?.history.map(tr => (
-                <div key={tr.id} className="bg-white border border-gray-100 p-3.5 rounded-2xl shadow-sm hover:shadow-md transition-all relative group">
+                <div key={tr.id} className="bg-white border border-gray-100 p-3 rounded-xl shadow-sm relative">
                   <div className="flex justify-between items-start mb-2">
                       <span className="text-[9px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md flex items-center gap-1 border border-indigo-100 uppercase">
                           <Calendar size={10} /> {formatMonthYear(tr.forMonth)}
                       </span>
-                      <span className="text-sm font-bold text-gray-800">{tr.amount} <span className="text-[9px] opacity-50">{t('currency')}</span></span>
+                      <span className="text-xs font-bold text-gray-800">{tr.amount} <span className="text-[9px] opacity-50">{t('currency')}</span></span>
                   </div>
                   <div className="flex justify-between items-end mt-1 pt-2 border-t border-gray-50">
                     <div className="space-y-0.5">
                       <p className="text-[8px] text-gray-400 font-bold uppercase flex items-center gap-1"><Banknote size={8} /> {tr.method === 'Cash' ? t('cash') : t('bank')}</p>
                       <p className="text-[8px] text-gray-400 font-bold uppercase flex items-center gap-1"><User size={8} /> {tr.recordedBy}</p>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <div className="text-[8px] text-gray-500 font-bold bg-gray-100 px-1.5 py-0.5 rounded-md" dir="ltr">{tr.date}</div>
-                      {canManage && (
-                        <button 
-                          onClick={() => handleDeleteTransaction(selectedStudent.id, tr.id)}
-                          className="p-1 text-gray-300 hover:text-rose-500 transition-all"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      )}
-                    </div>
+                    <div className="text-[8px] text-gray-500 font-bold bg-gray-100 px-1.5 py-0.5 rounded-md" dir="ltr">{tr.date}</div>
                   </div>
                 </div>
               )) || (
