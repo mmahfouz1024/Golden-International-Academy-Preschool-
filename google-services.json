@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "6265941016",
+    "project_id": "goldenacademy-bf29c",
+    "storage_bucket": "goldenacademy-bf29c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:6265941016:android:d9bc84bc910aae5a77276d",
+        "android_client_info": {
+          "package_name": "com.goldenacademy.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBCBVqP_HZbTe4DNG8LH-OyHnitxMWhSFc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
