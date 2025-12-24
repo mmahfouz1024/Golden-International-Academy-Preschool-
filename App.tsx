@@ -32,7 +32,6 @@ import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import { NotificationProvider, useNotification } from './contexts/NotificationContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { initStorage, getStudents, getUsers } from './services/storageService';
-import { App as CapacitorApp } from '@capacitor/app';
 
 const AppContent: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -48,7 +47,7 @@ const AppContent: React.FC = () => {
   const [initError, setInitError] = useState<string | null>(null);
   
   const { t, dir, language } = useLanguage();
-  const { unreadCount, addNotification } = useNotification();
+  const { unreadCount } = useNotification();
   const notificationRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
