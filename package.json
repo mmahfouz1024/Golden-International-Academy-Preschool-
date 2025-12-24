@@ -1,6 +1,5 @@
-
 {
-  "name": "com.goldenacademy.app",
+  "name": "app.goldeninternationalacademy.android",
   "private": true,
   "version": "1.0.0",
   "type": "module",

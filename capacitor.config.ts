@@ -1,8 +1,7 @@
-
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.goldenacademy.app',
+  appId: 'app.goldeninternationalacademy.android',
   appName: 'Golden Academy',
   webDir: 'dist',
   server: {
