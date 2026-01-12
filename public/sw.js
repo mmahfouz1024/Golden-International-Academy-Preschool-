@@ -21,11 +21,11 @@ self.addEventListener('push', (event) => {
     try {
       data = event.data.json();
     } catch (e) {
-      data = { title: 'Golden Academy', body: event.data.text() };
+      data = { title: 'Planet of Science', body: event.data.text() };
     }
   }
 
-  const title = data.title || 'Golden Academy';
+  const title = data.title || 'Planet of Science';
   const options = {
     body: data.body || data.message || 'New update available',
     icon: ICON_URL,

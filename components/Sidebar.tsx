@@ -33,8 +33,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   const allMenuItems = [
     { id: 'dashboard', label: t('dashboard'), icon: LayoutDashboard, defaultRoles: ['admin', 'manager', 'teacher', 'parent'] },
     { id: 'focus-mode', label: t('focusMode'), icon: Zap, defaultRoles: ['admin', 'manager', 'teacher'] },
-    { id: 'gate-scanner', label: t('gateScanner'), icon: ScanLine, defaultRoles: ['admin', 'manager', 'teacher'] }, // New Scanner for Staff
-    { id: 'pickup-pass', label: t('pickupPass'), icon: QrCode, defaultRoles: ['parent'] }, // New Pass for Parents
+    { id: 'gate-scanner', label: t('gateScanner'), icon: ScanLine, defaultRoles: ['admin', 'manager', 'teacher'] },
+    { id: 'pickup-pass', label: t('pickupPass'), icon: QrCode, defaultRoles: ['parent'] },
     { id: 'daily-report', label: t('dailyReportMenu'), icon: FileText, defaultRoles: ['admin', 'manager', 'teacher'] },
     { id: 'students', label: t('students'), icon: Users, defaultRoles: ['admin', 'manager', 'teacher'] },
     { id: 'gallery', label: t('gallery'), icon: ImageIcon, defaultRoles: ['admin', 'manager', 'teacher', 'parent'] },
@@ -55,27 +55,15 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   const hasPermission = (item: any) => {
     if (!user) return false;
-    
-    // Admin always sees everything (except parent specific items usually)
     if (user.role === 'admin' && item.id !== 'parent-view' && item.id !== 'pickup-pass') return true;
-
-    // Parent Logic
     if (user.role === 'parent') {
-      // Basic Parent Pages
       if (item.id === 'parent-view' || item.id === 'dashboard' || item.id === 'gallery' || item.id === 'pickup-pass') return true;
-      
-      // Optional Permissions (controlled by Admin via UserManagement)
       if (user.permissions && user.permissions.includes(item.id)) return true;
-      
       return false;
     }
-
-    // If explicit permissions exist for the user, use them
     if (user.permissions && user.permissions.length > 0) {
       return user.permissions.includes(item.id);
     }
-
-    // Fallback to default role-based permissions
     return item.defaultRoles.includes(user.role);
   };
 
@@ -89,7 +77,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   };
 
   const themes: { id: Theme; label: string; color: string }[] = [
-    { id: 'smart', label: t('themeSmart'), color: '#4f46e5' },
+    { id: 'smart', label: t('themeSmart'), color: '#7c3aed' },
     { id: 'blossom', label: t('themeBlossom'), color: '#db2777' },
     { id: 'garden', label: t('themeGarden'), color: '#16a34a' },
     { id: 'sunshine', label: t('themeSunshine'), color: '#d97706' },
@@ -106,40 +94,55 @@ const Sidebar: React.FC<SidebarProps> = ({
 
       <aside className={`
         fixed inset-y-0 left-0 z-30 w-72
-        bg-white/80 dark:bg-gray-900/90 backdrop-blur-xl border-r-4 border-white dark:border-gray-800 shadow-2xl
+        bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl border-r-4 border-white dark:border-gray-800 shadow-2xl
         transform transition-transform duration-300 ease-in-out flex flex-col
         ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
         
-        {/* Header - Matching Login Page Design */}
-        <div className="relative bg-gradient-to-b from-indigo-500 to-purple-600 pb-8 pt-6 px-4 rounded-b-[2rem] shadow-lg mb-2 overflow-hidden shrink-0">
+        {/* Header - Matching Circular Logo Design */}
+        <div className="relative bg-gradient-to-br from-indigo-800 to-indigo-600 pb-8 pt-6 px-4 rounded-b-[2.5rem] shadow-lg mb-2 overflow-hidden shrink-0">
           
-          {/* Decorative Circles */}
-          <div className="absolute top-[-20%] left-[-20%] w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
-          <div className="absolute bottom-[0%] right-[-10%] w-24 h-24 bg-yellow-300/20 rounded-full blur-xl"></div>
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl transform translate-x-10 -translate-y-10"></div>
+          <div className="absolute bottom-0 left-0 w-32 h-32 bg-gold-400/20 rounded-full blur-2xl transform -translate-x-5 translate-y-5"></div>
 
           <div className="relative z-10 flex flex-col items-center">
-            <div className="w-24 h-24 rounded-full border-4 border-white shadow-lg bg-white flex items-center justify-center p-0.5 mb-3">
+            {/* Exact Vector Replica of the Provided Logo Image */}
+            <div className="w-28 h-28 rounded-full shadow-2xl bg-white flex items-center justify-center overflow-hidden mb-3">
               <svg viewBox="0 0 500 500" className="w-full h-full">
-                  <circle cx="250" cy="250" r="240" fill="#ffffff" stroke="#fcd34d" strokeWidth="15" />
-                  <g transform="translate(120, 100) rotate(-15) scale(0.9)">
-                     <ellipse cx="40" cy="30" rx="20" ry="26" fill="#9333ea" opacity="0.9" />
-                     <ellipse cx="95" cy="10" rx="20" ry="26" fill="#7c3aed" opacity="0.9" />
-                     <ellipse cx="150" cy="30" rx="20" ry="26" fill="#db2777" opacity="0.9" />
-                     <path d="M 30 75 Q 95 150 160 75 Q 160 140 95 170 Q 30 140 30 75 Z" fill="#4f46e5" opacity="0.9" />
+                  {/* Outer Border */}
+                  <circle cx="250" cy="250" r="245" fill="white" stroke="#333" strokeWidth="2" />
+                  
+                  {/* Thick Split Ring */}
+                  <path d="M 30,250 A 220,220 0 0 1 470,250" fill="none" stroke="#9333ea" strokeWidth="40" />
+                  <path d="M 30,250 A 220,220 0 0 0 470,250" fill="none" stroke="#f59e0b" strokeWidth="40" />
+                  
+                  {/* Inner Divider */}
+                  <circle cx="250" cy="250" r="200" fill="white" stroke="#333" strokeWidth="2" />
+                  
+                  {/* Center Content Group */}
+                  <g transform="translate(0, -25)">
+                      {/* Globe (Gold) */}
+                      <path d="M 170,200 Q 250,130 330,200" fill="none" stroke="#f59e0b" strokeWidth="8" />
+                      <path d="M 170,200 Q 250,270 330,200" fill="none" stroke="#f59e0b" strokeWidth="8" />
+                      <line x1="250" y1="130" x2="250" y2="270" stroke="#f59e0b" strokeWidth="8" />
+                      <line x1="150" y1="200" x2="350" y2="200" stroke="#f59e0b" strokeWidth="8" />
+                      <path d="M 170,200 A 80,80 0 0 1 330,200" fill="none" stroke="#f59e0b" strokeWidth="8" />
+                      
+                      {/* Cap (Blue) */}
+                      <path d="M 200,120 L 250,90 L 300,120 L 250,150 Z" fill="#3b82f6" stroke="#1e40af" strokeWidth="5" strokeLinejoin="round" />
+                      <line x1="300" y1="120" x2="300" y2="160" stroke="#1e40af" strokeWidth="4" />
+                      
+                      {/* Book (Blue) */}
+                      <path d="M 150,260 Q 250,310 350,260" fill="none" stroke="#3b82f6" strokeWidth="12" strokeLinecap="round" />
+                      <path d="M 150,280 Q 250,330 350,280" fill="none" stroke="#3b82f6" strokeWidth="12" strokeLinecap="round" />
+                      <line x1="250" y1="260" x2="250" y2="310" stroke="#3b82f6" strokeWidth="8" />
                   </g>
-                  <g transform="translate(45, 290)">
-                     <text x="0" y="0" fontFamily="Arial, sans-serif" fontWeight="900" fontSize="120" fill="#7e22ce" stroke="#ffffff" strokeWidth="4">G</text>
-                     <text x="85" y="0" fontFamily="Arial, sans-serif" fontWeight="900" fontSize="120" fill="#f59e0b" stroke="#ffffff" strokeWidth="4">O</text>
-                     <text x="175" y="0" fontFamily="Arial, sans-serif" fontWeight="900" fontSize="120" fill="#ef4444" stroke="#ffffff" strokeWidth="4">L</text>
-                     <text x="240" y="0" fontFamily="Arial, sans-serif" fontWeight="900" fontSize="120" fill="#10b981" stroke="#ffffff" strokeWidth="4">D</text>
-                     <text x="325" y="0" fontFamily="Arial, sans-serif" fontWeight="900" fontSize="120" fill="#3b82f6" stroke="#ffffff" strokeWidth="4">E</text>
-                     <text x="395" y="0" fontFamily="Arial, sans-serif" fontWeight="900" fontSize="120" fill="#ec4899" stroke="#ffffff" strokeWidth="4">N</text>
-                  </g>
-               </svg>
+
+                  {/* Text exactly as requested */}
+                  <text x="250" y="360" textAnchor="middle" fontFamily="Arial, sans-serif" fontWeight="bold" fontSize="42" fill="#0f172a">Planet of Science</text>
+                  <text x="250" y="410" textAnchor="middle" fontFamily="Arial, sans-serif" fontWeight="bold" fontSize="32" fill="#334155">nersuye</text>
+              </svg>
             </div>
-            <h1 className="text-white font-display font-bold text-base text-center leading-tight px-2">Golden International Academy & Preschool</h1>
-            <p className="text-indigo-100 text-xs opacity-90 mt-1">Smart System</p>
           </div>
         </div>
 
@@ -156,14 +159,17 @@ const Sidebar: React.FC<SidebarProps> = ({
                   setIsMobileOpen(false);
                 }}
                 className={`
-                  w-full flex items-center gap-3 px-5 py-3.5 rounded-2xl transition-all duration-300 font-bold text-sm
+                  w-full flex items-center gap-3 px-5 py-3.5 rounded-2xl transition-all duration-300 font-bold text-sm group
                   ${isActive 
-                    ? 'bg-gradient-to-r from-orange-400 to-pink-500 text-white shadow-lg shadow-orange-200 transform scale-[1.02]' 
-                    : 'bg-white/50 dark:bg-gray-800/50 text-gray-600 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-800 hover:text-indigo-600 hover:shadow-md border border-transparent hover:border-indigo-100 dark:hover:border-gray-700'}
+                    ? 'bg-gradient-to-r from-indigo-600 to-indigo-500 text-white shadow-lg shadow-indigo-200 transform scale-[1.02]' 
+                    : 'bg-white/50 dark:bg-gray-800/50 text-gray-600 dark:text-gray-300 hover:bg-gold-50 dark:hover:bg-gray-800 hover:text-indigo-800 hover:shadow-md border border-transparent hover:border-gold-200'}
                 `}
               >
-                <div className={`${isActive ? 'bg-white/20' : 'bg-gray-100 dark:bg-gray-700'} p-1.5 rounded-lg`}>
-                   <Icon size={18} className={isActive ? 'text-white' : 'text-gray-500 dark:text-gray-400'} />
+                <div className={`
+                  p-1.5 rounded-lg transition-colors
+                  ${isActive ? 'bg-white/20' : 'bg-gray-100 dark:bg-gray-700 group-hover:bg-gold-100'}
+                `}>
+                   <Icon size={18} className={isActive ? 'text-white' : 'text-gray-500 dark:text-gray-400 group-hover:text-indigo-600'} />
                 </div>
                 <span>{item.label}</span>
               </button>
@@ -185,10 +191,10 @@ const Sidebar: React.FC<SidebarProps> = ({
           {showInstallButton && (
             <button
               onClick={onInstall}
-              className="w-full flex items-center gap-3 px-5 py-3 rounded-2xl transition-all duration-200 text-indigo-600 bg-white border-2 border-indigo-100 hover:bg-indigo-50 mt-4 font-bold shadow-sm"
+              className="w-full flex items-center gap-3 px-5 py-3 rounded-2xl transition-all duration-200 text-indigo-700 bg-gold-50 border-2 border-gold-200 hover:bg-gold-100 mt-4 font-bold shadow-sm"
             >
-              <div className="bg-indigo-100 p-1.5 rounded-lg">
-                <Download size={18} />
+              <div className="bg-white p-1.5 rounded-lg">
+                <Download size={18} className="text-gold-600" />
               </div>
               <span>{t('installApp')}</span>
             </button>

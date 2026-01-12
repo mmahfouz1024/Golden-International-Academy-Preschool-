@@ -1,18 +1,17 @@
-
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Golden International Academy</title>
-    <meta name="description" content="تطبيق روضة Golden Academy: تقارير يومية، متابعة لحظية، وتواصل ذكي مع الأهل. الحل المتكامل لإدارة الحضانات ومتابعة الأطفال.">
+    <title>Planet of Science</title>
+    <meta name="description" content="تطبيق روضة Planet of Science: تقارير يومية، متابعة لحظية، وتواصل ذكي مع الأهل. الحل المتكامل لإدارة الحضانات ومتابعة الأطفال.">
     
     <!-- PWA Settings -->
     <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#4f46e5">
+    <meta name="theme-color" content="#7c3aed">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="Golden Academy">
+    <meta name="apple-mobile-web-app-title" content="Planet of Science">
 
     <script>
       // Polyfill process for browser environment to prevent crashes
@@ -31,21 +30,22 @@
               display: ['Fredoka', 'Tajawal', 'sans-serif'],
             },
             colors: {
-              // Softening the grays to be more "Slate/Blueish" for a friendlier look
+              // New Palette based on the Logo: Purple and Yellow/Gold
               gray: {
-                50: '#f8fafc',
-                100: '#f1f5f9',
-                200: '#e2e8f0',
-                300: '#cbd5e1',
-                400: '#94a3b8',
-                500: '#64748b',
-                600: '#475569',
-                700: '#334155', // Softer than standard gray-700
-                800: '#1e293b', // Deep blue-gray instead of black
-                900: '#0f172a',
-                950: '#020617', // Added for Dark Mode
+                50: '#fcfbf9', // Warmer off-white
+                100: '#f4f2ee',
+                200: '#e6e2de',
+                300: '#d1cdc7',
+                400: '#a39f98',
+                500: '#736f68',
+                600: '#5c5852',
+                700: '#45423e',
+                800: '#2e2c29',
+                900: '#1a1917',
+                950: '#0d0c0b',
               },
-              indigo: {
+              // Primary is now the Deep Purple from the logo
+              indigo: { 
                 50: 'var(--color-primary-50)',
                 100: 'var(--color-primary-100)',
                 200: 'var(--color-primary-200)',
@@ -57,17 +57,35 @@
                 800: 'var(--color-primary-800)',
                 900: 'var(--color-primary-900)',
                 950: 'var(--color-primary-950)',
+              },
+              // Secondary Yellow/Gold from the logo
+              gold: {
+                50: '#fffbeb',
+                100: '#fef3c7',
+                200: '#fde68a',
+                300: '#fcd34d',
+                400: '#fbbf24',
+                500: '#f59e0b',
+                600: '#d97706', // Base Gold
+                700: '#b45309',
+                800: '#92400e',
+                900: '#78350f',
               }
             },
             animation: {
               'fade-in': 'fadeIn 0.5s ease-out',
               'blob': 'blob 7s infinite',
               'spin-slow': 'spin 10s linear infinite',
+              'float': 'float 3s ease-in-out infinite',
             },
             keyframes: {
               fadeIn: {
                 '0%': { opacity: '0', transform: 'translateY(10px)' },
                 '100%': { opacity: '1', transform: 'translateY(0)' },
+              },
+              float: {
+                '0%, 100%': { transform: 'translateY(0)' },
+                '50%': { transform: 'translateY(-10px)' },
               },
               blob: {
                 '0%': { transform: 'translate(0px, 0px) scale(1)' },
@@ -85,7 +103,7 @@
     <style>
       body {
         font-family: 'Quicksand', 'Tajawal', sans-serif;
-        font-weight: 500; /* Slightly bolder for "Light/Distinctive" readability */
+        font-weight: 500;
         transition: background-color 0.3s ease, color 0.3s ease;
       }
       
@@ -94,7 +112,7 @@
         letter-spacing: 0.02em; 
       }
 
-      /* Custom scrollbar for better aesthetics */
+      /* Custom scrollbar */
       ::-webkit-scrollbar {
         width: 8px;
         height: 8px;
@@ -110,23 +128,23 @@
         background: #94a3b8; 
       }
 
-      /* Default Theme Variables (Indigo) */
+      /* Logo Theme Variables (Purple) */
       :root {
-        --color-primary-50: #eef2ff;
-        --color-primary-100: #e0e7ff;
-        --color-primary-200: #c7d2fe;
-        --color-primary-300: #a5b4fc;
-        --color-primary-400: #818cf8;
-        --color-primary-500: #6366f1;
-        --color-primary-600: #4f46e5;
-        --color-primary-700: #4338ca;
-        --color-primary-800: #3730a3;
-        --color-primary-900: #312e81;
-        --color-primary-950: #1e1b4b;
+        --color-primary-50: #f5f3ff;
+        --color-primary-100: #ede9fe;
+        --color-primary-200: #ddd6fe;
+        --color-primary-300: #c4b5fd;
+        --color-primary-400: #a78bfa;
+        --color-primary-500: #8b5cf6;
+        --color-primary-600: #7c3aed; /* Primary Purple */
+        --color-primary-700: #6d28d9;
+        --color-primary-800: #5b21b6;
+        --color-primary-900: #4c1d95;
+        --color-primary-950: #2e1065;
       }
 
       .dark body {
-        background-color: #0f172a;
+        background-color: #2e1065;
         color: #e2e8f0;
       }
     </style>
@@ -156,7 +174,7 @@
 }
 </script>
 </head>
-  <body class="bg-sky-50 dark:bg-gray-900 text-slate-700 dark:text-gray-200 antialiased transition-colors duration-300">
+  <body class="bg-indigo-50 dark:bg-gray-900 text-slate-700 dark:text-gray-200 antialiased transition-colors duration-300">
     <div id="root"></div>
     <script type="module" src="./index.tsx"></script>
   </body>

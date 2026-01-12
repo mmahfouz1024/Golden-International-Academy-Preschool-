@@ -125,16 +125,15 @@ const Dashboard: React.FC<DashboardProps> = ({ setCurrentView }) => {
 
   const getRelativeTime = (dateString: string) => {
     const date = new Date(dateString);
-    // Force English Month Names
     return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
   };
 
   const getScheduleItemStyle = (color: string) => {
     switch (color) {
       case 'green': return 'bg-emerald-50 border-emerald-200 text-emerald-700';
-      case 'blue': return 'bg-sky-50 border-sky-200 text-sky-700';
-      case 'orange': return 'bg-amber-50 border-amber-200 text-amber-700';
-      case 'purple': return 'bg-violet-50 border-violet-200 text-violet-700';
+      case 'blue': return 'bg-indigo-50 border-indigo-200 text-indigo-700';
+      case 'orange': return 'bg-gold-50 border-gold-200 text-gold-700';
+      case 'purple': return 'bg-purple-50 border-purple-200 text-purple-700';
       case 'red': return 'bg-rose-50 border-rose-200 text-rose-700';
       default: return 'bg-slate-50 border-slate-200 text-slate-700';
     }
@@ -163,42 +162,133 @@ const Dashboard: React.FC<DashboardProps> = ({ setCurrentView }) => {
           <div className="flex items-center gap-2 bg-white/60 backdrop-blur-md px-4 py-2 rounded-full border border-white/50 shadow-sm text-indigo-700">
              <Calendar size={18} className="text-indigo-500" />
              <span className="text-sm font-bold" dir="ltr">
-                {/* Hardcoded en-GB for English long date format */}
                 {new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
              </span>
           </div>
         </div>
-        <h3 className="text-lg font-bold text-indigo-900 opacity-80 mt-1">Golden International Academy & Preschool</h3>
+        <h3 className="text-lg font-bold text-indigo-900 opacity-80 mt-1">Planet of Science</h3>
         <p className="text-slate-500 font-medium text-sm">Welcome back, {currentUser?.name}</p>
       </div>
 
       {permissionStatus === 'default' && (
-         <div className="bg-gradient-to-r from-violet-600 to-indigo-600 rounded-3xl p-1 shadow-xl shadow-indigo-200"><div className="bg-white/10 backdrop-blur-sm rounded-[1.3rem] p-5 flex flex-col sm:flex-row items-center justify-between gap-4 text-white"><div className="flex items-center gap-4"><div className="p-3 bg-white/20 rounded-full"><Bell size={24} className="animate-pulse" /></div><div><h3 className="font-bold text-lg">{t('enableSystemNotifications')}</h3><p className="text-indigo-100 opacity-90 text-sm">{t('systemNotificationsDesc')}</p></div></div><button onClick={async () => {setIsRequestingPermission(true); await requestPermission(); setIsRequestingPermission(false);}} disabled={isRequestingPermission} className="bg-white text-indigo-600 px-6 py-2.5 rounded-xl font-bold hover:bg-indigo-50 transition-colors shadow-lg whitespace-nowrap flex items-center gap-2 disabled:opacity-70">{isRequestingPermission && (<div className="w-4 h-4 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>)}{t('allow')}</button></div></div>
+         <div className="bg-gradient-to-r from-indigo-700 to-purple-700 rounded-3xl p-1 shadow-xl shadow-indigo-200"><div className="bg-white/10 backdrop-blur-sm rounded-[1.3rem] p-5 flex flex-col sm:flex-row items-center justify-between gap-4 text-white"><div className="flex items-center gap-4"><div className="p-3 bg-white/20 rounded-full"><Bell size={24} className="animate-pulse" /></div><div><h3 className="font-bold text-lg">{t('enableSystemNotifications')}</h3><p className="text-indigo-100 opacity-90 text-sm">{t('systemNotificationsDesc')}</p></div></div><button onClick={async () => {setIsRequestingPermission(true); await requestPermission(); setIsRequestingPermission(false);}} disabled={isRequestingPermission} className="bg-white text-indigo-600 px-6 py-2.5 rounded-xl font-bold hover:bg-indigo-50 transition-colors shadow-lg whitespace-nowrap flex items-center gap-2 disabled:opacity-70">{isRequestingPermission && (<div className="w-4 h-4 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>)}{t('allow')}</button></div></div>
       )}
 
       {currentUser?.role === 'parent' && (
-         <div className="relative overflow-hidden bg-gradient-to-br from-rose-400 via-pink-500 to-orange-400 rounded-3xl p-8 text-white shadow-xl shadow-pink-200 group hover:-translate-y-1 transition-all duration-300"><div className="absolute top-0 right-0 -mr-10 -mt-10 w-40 h-40 bg-white/10 rounded-full blur-3xl group-hover:bg-white/20 transition-all"></div><div className="relative z-10 flex flex-col sm:flex-row items-center justify-between gap-6"><div className="flex items-center gap-5"><div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-md shadow-inner border border-white/20"><Sparkles size={32} className="text-yellow-200 animate-spin-slow" fill="currentColor" /></div><div><h3 className="text-2xl font-bold mb-1 font-display">{t('checkDailyReport')}</h3><p className="text-rose-100 text-sm font-medium opacity-90 max-w-md">{t('dailyReportPrompt')}</p></div></div><button onClick={() => setCurrentView?.('parent-view')} className="bg-white text-rose-600 px-8 py-3.5 rounded-2xl font-bold shadow-lg hover:bg-rose-50 transition-colors flex items-center gap-2 whitespace-nowrap group-hover:scale-105"><FileText size={20} />{t('viewChildReport')}{language === 'ar' ? <ArrowLeft size={20} /> : <ArrowRight size={20} />}</button></div></div>
+         <div className="relative overflow-hidden bg-gradient-to-br from-purple-500 to-indigo-600 rounded-3xl p-8 text-white shadow-xl shadow-indigo-200 group hover:-translate-y-1 transition-all duration-300">
+            <div className="absolute top-0 right-0 -mr-10 -mt-10 w-40 h-40 bg-white/10 rounded-full blur-3xl group-hover:bg-white/20 transition-all"></div>
+            <div className="relative z-10 flex flex-col sm:flex-row items-center justify-between gap-6">
+                <div className="flex items-center gap-5">
+                    <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-md shadow-inner border border-white/20">
+                        <Sparkles size={32} className="text-gold-300 animate-spin-slow" fill="currentColor" />
+                    </div>
+                    <div>
+                        <h3 className="text-2xl font-bold mb-1 font-display">{t('checkDailyReport')}</h3>
+                        <p className="text-indigo-100 text-sm font-medium opacity-90 max-w-md">{t('dailyReportPrompt')}</p>
+                    </div>
+                </div>
+                <button onClick={() => setCurrentView?.('parent-view')} className="bg-white text-indigo-700 px-8 py-3.5 rounded-2xl font-bold shadow-lg hover:bg-indigo-50 transition-colors flex items-center gap-2 whitespace-nowrap group-hover:scale-105">
+                    <FileText size={20} />
+                    {t('viewChildReport')}
+                    {language === 'ar' ? <ArrowLeft size={20} /> : <ArrowRight size={20} />}
+                </button>
+            </div>
+         </div>
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 flex flex-col gap-6">
-            <div className="flex items-center gap-3"><div className="p-2.5 bg-orange-100 text-orange-600 rounded-xl"><Megaphone size={24} /></div><h3 className="text-xl font-bold text-slate-800">{t('schoolAnnouncements')}</h3></div>
+            <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-gold-100 text-gold-600 rounded-xl"><Megaphone size={24} /></div>
+                <h3 className="text-xl font-bold text-slate-800">{t('schoolAnnouncements')}</h3>
+            </div>
             <div className="bg-white/70 backdrop-blur-xl rounded-[2rem] p-6 shadow-sm border border-white/50 h-[600px] flex flex-col relative overflow-hidden">
                 {canCreatePost && (
-                  <div className="mb-6 bg-white p-2 rounded-3xl border border-slate-100 focus-within:ring-2 focus-within:ring-indigo-100 transition-all"><textarea className="w-full bg-transparent p-4 focus:outline-none text-slate-700 placeholder-slate-400 text-sm resize-none rounded-2xl" rows={2} placeholder={t('writeAnnouncement')} value={newPostContent} onChange={(e) => setNewPostContent(e.target.value)} /><div className="flex justify-end px-2 pb-2"><button onClick={handlePost} disabled={!newPostContent.trim()} className="bg-slate-900 text-white px-6 py-2 rounded-xl text-sm font-bold hover:bg-slate-800 transition-all flex items-center gap-2 disabled:opacity-50 shadow-md active:scale-95"><Send size={16} />{t('post')}</button></div></div>
+                  <div className="mb-6 bg-white p-2 rounded-3xl border border-slate-100 focus-within:ring-2 focus-within:ring-indigo-100 transition-all">
+                      <textarea className="w-full bg-transparent p-4 focus:outline-none text-slate-700 placeholder-slate-400 text-sm resize-none rounded-2xl" rows={2} placeholder={t('writeAnnouncement')} value={newPostContent} onChange={(e) => setNewPostContent(e.target.value)} />
+                      <div className="flex justify-end px-2 pb-2">
+                          <button onClick={handlePost} disabled={!newPostContent.trim()} className="bg-slate-900 text-white px-6 py-2 rounded-xl text-sm font-bold hover:bg-slate-800 transition-all flex items-center gap-2 disabled:opacity-50 shadow-md active:scale-95">
+                              <Send size={16} />{t('post')}
+                          </button>
+                      </div>
+                  </div>
                 )}
                 <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-5 pb-4">
                   {posts.length > 0 ? (posts.map(post => {
                       const isLiked = post.likedBy?.includes(currentUser?.id || '');
                       return (
-                      <div key={post.id} className={`p-6 rounded-3xl border transition-all hover:shadow-md ${post.isPinned ? 'bg-gradient-to-br from-amber-50 to-orange-50 border-amber-100' : 'bg-white border-slate-100'}`}>{post.isPinned && (<div className="flex items-center gap-1.5 text-amber-600 text-xs font-bold mb-3 uppercase tracking-wide"><Pin size={12} fill="currentColor" /><span>Pinned Announcement</span></div>)}<div className="flex justify-between items-start mb-3"><div className="flex items-center gap-3"><div className={`w-10 h-10 rounded-2xl flex items-center justify-center text-sm font-bold text-white shadow-md ${post.authorRole === 'admin' ? 'bg-gradient-to-br from-violet-500 to-purple-600' : 'bg-gradient-to-br from-orange-400 to-pink-500'}`}>{post.authorName.charAt(0).toUpperCase()}</div><div><p className="text-sm font-bold text-slate-800">{post.authorName}</p><p className="text-[11px] font-medium text-slate-400 flex items-center gap-1" dir="ltr"><span>{t(`role${post.authorRole.charAt(0).toUpperCase() + post.authorRole.slice(1)}` as any)}</span><span className="w-1 h-1 bg-slate-300 rounded-full"></span><span>{getRelativeTime(post.date)}</span></p></div></div>{canCreatePost && (<div className="flex items-center gap-1 opacity-60 hover:opacity-100"><button onClick={() => handleTogglePin(post.id)} className={`p-2 rounded-xl transition-colors ${post.isPinned ? 'text-amber-600 bg-amber-100' : 'text-slate-400 hover:bg-slate-100'}`} title={post.isPinned ? t('unpinPost') : t('pinPost')}>{post.isPinned ? <PinOff size={16} /> : <Pin size={16} />}</button><button onClick={() => handleDeletePost(post.id)} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl" title={t('deletePost')}><Trash2 size={16} /></button></div>)}</div><p className="text-slate-600 text-sm leading-relaxed whitespace-pre-wrap font-medium mb-3">{post.content}</p><div className="flex items-center gap-2"><button onClick={() => handleLikeToggle(post.id)} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${isLiked ? 'text-rose-600 bg-rose-50' : 'text-slate-400 bg-slate-50 hover:text-rose-500'}`}><Heart size={14} fill={isLiked ? "currentColor" : "none"} /><span>{post.likes || 0}</span></button></div></div>
+                      <div key={post.id} className={`p-6 rounded-3xl border transition-all hover:shadow-md ${post.isPinned ? 'bg-gradient-to-br from-gold-50 to-orange-50 border-gold-100' : 'bg-white border-slate-100'}`}>
+                          {post.isPinned && (<div className="flex items-center gap-1.5 text-gold-600 text-xs font-bold mb-3 uppercase tracking-wide"><Pin size={12} fill="currentColor" /><span>Pinned Announcement</span></div>)}
+                          <div className="flex justify-between items-start mb-3">
+                              <div className="flex items-center gap-3">
+                                  <div className={`w-10 h-10 rounded-2xl flex items-center justify-center text-sm font-bold text-white shadow-md ${post.authorRole === 'admin' ? 'bg-gradient-to-br from-indigo-500 to-purple-600' : 'bg-gradient-to-br from-gold-400 to-orange-500'}`}>
+                                      {post.authorName.charAt(0).toUpperCase()}
+                                  </div>
+                                  <div>
+                                      <p className="text-sm font-bold text-slate-800">{post.authorName}</p>
+                                      <p className="text-[11px] font-medium text-slate-400 flex items-center gap-1" dir="ltr">
+                                          <span>{t(`role${post.authorRole.charAt(0).toUpperCase() + post.authorRole.slice(1)}` as any)}</span>
+                                          <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
+                                          <span>{getRelativeTime(post.date)}</span>
+                                      </p>
+                                  </div>
+                              </div>
+                              {canCreatePost && (
+                                  <div className="flex items-center gap-1 opacity-60 hover:opacity-100">
+                                      <button onClick={() => handleTogglePin(post.id)} className={`p-2 rounded-xl transition-colors ${post.isPinned ? 'text-gold-600 bg-gold-100' : 'text-slate-400 hover:bg-slate-100'}`} title={post.isPinned ? t('unpinPost') : t('pinPost')}>
+                                          {post.isPinned ? <PinOff size={16} /> : <Pin size={16} />}
+                                      </button>
+                                      <button onClick={() => handleDeletePost(post.id)} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl" title={t('deletePost')}>
+                                          <Trash2 size={16} />
+                                      </button>
+                                  </div>
+                              )}
+                          </div>
+                          <p className="text-slate-600 text-sm leading-relaxed whitespace-pre-wrap font-medium mb-3">{post.content}</p>
+                          <div className="flex items-center gap-2">
+                              <button onClick={() => handleLikeToggle(post.id)} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${isLiked ? 'text-rose-600 bg-rose-50' : 'text-slate-400 bg-slate-50 hover:text-rose-500'}`}>
+                                  <Heart size={14} fill={isLiked ? "currentColor" : "none"} /><span>{post.likes || 0}</span>
+                              </button>
+                          </div>
+                      </div>
                     )})) : (<div className="flex flex-col items-center justify-center h-64 text-slate-300"><Megaphone size={48} className="mb-4 opacity-20" /><p className="text-sm font-medium">{t('noNotifications')}</p></div>)}
                 </div>
             </div>
         </div>
         <div className="flex flex-col gap-8">
-            <div className="flex flex-col gap-6"><div className="flex items-center gap-3"><div className="p-2.5 bg-yellow-100 text-yellow-600 rounded-xl"><Utensils size={24} /></div><h3 className="text-xl font-bold text-slate-800">{t('todaysMenu')}</h3></div><div className="bg-white/70 backdrop-blur-xl rounded-[2rem] p-6 shadow-sm border border-white/50 flex flex-col gap-4">{renderMenuItem(t('breakfast'), 'breakfast', Coffee, 'bg-orange-50 border-orange-100 text-orange-800')}{renderMenuItem(t('lunch'), 'lunch', Pizza, 'bg-red-50 border-red-100 text-red-800')}{renderMenuItem(t('snack'), 'snack', Apple, 'bg-green-50 border-green-100 text-green-800')}</div></div>
-            <div className="flex flex-col gap-6"><div className="flex items-center gap-3"><div className="p-2.5 bg-blue-100 text-blue-600 rounded-xl"><Clock size={24} /></div><h3 className="text-xl font-bold text-slate-800">{t('dailySchedule')}</h3></div><div className="bg-white/70 backdrop-blur-xl rounded-[2rem] p-6 shadow-sm border border-white/50 h-fit min-h-[400px]"><div className="relative space-y-0 before:absolute before:inset-0 before:ml-5 before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-indigo-100 before:via-slate-200 before:to-transparent z-0">{schedule.map((item) => (<div key={item.id} className="relative flex items-center mb-6 last:mb-0 group z-10"><div className="absolute left-0 ml-5 -translate-x-1/2 w-4 h-4 rounded-full border-4 border-white bg-indigo-500 shadow-md group-hover:scale-125 transition-transform"></div><div className={`ml-10 flex-1 p-4 rounded-2xl border transition-all hover:shadow-md hover:-translate-y-0.5 hover:bg-white ${getScheduleItemStyle(item.color)}`}><div className="flex justify-between items-center mb-1"><span className="text-xs font-bold opacity-70 flex items-center gap-1"><Clock size={12} /><span dir="ltr">{item.time}</span></span></div><h4 className="font-bold text-slate-800 text-sm">{item.title}</h4></div></div>))}{schedule.length === 0 && (<div className="text-center py-12 text-slate-400"><div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-3"><Calendar size={24} /></div><p className="text-sm">No schedule items yet</p></div>)}</div></div></div>
+            <div className="flex flex-col gap-6">
+                <div className="flex items-center gap-3">
+                    <div className="p-2.5 bg-yellow-100 text-yellow-600 rounded-xl"><Utensils size={24} /></div>
+                    <h3 className="text-xl font-bold text-slate-800">{t('todaysMenu')}</h3>
+                </div>
+                <div className="bg-white/70 backdrop-blur-xl rounded-[2rem] p-6 shadow-sm border border-white/50 flex flex-col gap-4">
+                    {renderMenuItem(t('breakfast'), 'breakfast', Coffee, 'bg-gold-50 border-gold-100 text-gold-800')}
+                    {renderMenuItem(t('lunch'), 'lunch', Pizza, 'bg-red-50 border-red-100 text-red-800')}
+                    {renderMenuItem(t('snack'), 'snack', Apple, 'bg-green-50 border-green-100 text-green-800')}
+                </div>
+            </div>
+            <div className="flex flex-col gap-6">
+                <div className="flex items-center gap-3">
+                    <div className="p-2.5 bg-blue-100 text-blue-600 rounded-xl"><Clock size={24} /></div>
+                    <h3 className="text-xl font-bold text-slate-800">{t('dailySchedule')}</h3>
+                </div>
+                <div className="bg-white/70 backdrop-blur-xl rounded-[2rem] p-6 shadow-sm border border-white/50 h-fit min-h-[400px]">
+                    <div className="relative space-y-0 before:absolute before:inset-0 before:ml-5 before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-indigo-100 before:via-slate-200 before:to-transparent z-0">
+                        {schedule.map((item) => (
+                            <div key={item.id} className="relative flex items-center mb-6 last:mb-0 group z-10">
+                                <div className="absolute left-0 ml-5 -translate-x-1/2 w-4 h-4 rounded-full border-4 border-white bg-indigo-500 shadow-md group-hover:scale-125 transition-transform"></div>
+                                <div className={`ml-10 flex-1 p-4 rounded-2xl border transition-all hover:shadow-md hover:-translate-y-0.5 hover:bg-white ${getScheduleItemStyle(item.color)}`}>
+                                    <div className="flex justify-between items-center mb-1">
+                                        <span className="text-xs font-bold opacity-70 flex items-center gap-1"><Clock size={12} /><span dir="ltr">{item.time}</span></span>
+                                    </div>
+                                    <h4 className="font-bold text-slate-800 text-sm">{item.title}</h4>
+                                </div>
+                            </div>
+                        ))}
+                        {schedule.length === 0 && (<div className="text-center py-12 text-slate-400"><div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-3"><Calendar size={24} /></div><p className="text-sm">No schedule items yet</p></div>)}
+                    </div>
+                </div>
+            </div>
         </div>
       </div>
     </div>

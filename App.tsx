@@ -24,6 +24,7 @@ import GateScanner from './components/GateScanner';
 import LoginHistory from './components/LoginHistory';
 import Login from './components/Login';
 import Chat from './components/Chat';
+import Welcome from './components/Welcome';
 import NotificationDropdown from './components/NotificationDropdown';
 import BackgroundPattern from './components/BackgroundPattern';
 import { Menu, Bell, ChevronRight, ChevronLeft, WifiOff, RefreshCw } from 'lucide-react';
@@ -42,6 +43,9 @@ const AppContent: React.FC = () => {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showNotifications, setShowNotifications] = useState(false);
   
+  // Welcome Page State
+  const [showWelcome, setShowWelcome] = useState(window.location.hash === '#/welcome');
+  
   const [parentChildren, setParentChildren] = useState<Student[]>([]);
   const [isInitialized, setIsInitialized] = useState(false);
   const [initError, setInitError] = useState<string | null>(null);
@@ -49,6 +53,15 @@ const AppContent: React.FC = () => {
   const { t, dir, language } = useLanguage();
   const { unreadCount } = useNotification();
   const notificationRef = useRef<HTMLDivElement>(null);
+
+  // Listen for hash changes to toggle Welcome page
+  useEffect(() => {
+    const handleHashChange = () => {
+        setShowWelcome(window.location.hash === '#/welcome');
+    };
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
 
   useEffect(() => {
     const startApp = async () => {
@@ -231,6 +244,14 @@ const AppContent: React.FC = () => {
       default: return <Dashboard setCurrentView={handleSetView} />;
     }
   };
+
+  // Render Welcome Page if route matches (Priority over initialized check to be instant if needed, but waiting for init is safer)
+  if (showWelcome) {
+      return <Welcome onLoginClick={() => {
+          window.location.hash = ''; 
+          setShowWelcome(false);
+      }} />;
+  }
 
   if (initError) return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-red-50 p-4 text-center">

@@ -113,7 +113,7 @@ const PickupPass: React.FC<PickupPassProps> = ({ user }) => {
             
             ctx.font = '24px Arial';
             ctx.fillStyle = '#9ca3af'; // Light Gray
-            ctx.fillText('Golden Academy Pickup Pass', canvas.width/2, canvas.height - 20);
+            ctx.fillText('Planet of Science Pickup Pass', canvas.width/2, canvas.height - 20);
 
             // 8. Convert to Blob
             canvas.toBlob((blob) => {

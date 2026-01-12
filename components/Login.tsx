@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
-import { LogIn, Sun, Cloud, Star, Sparkles, UserCircle, KeyRound, LockKeyhole, ArrowLeft, ArrowRight, CheckCircle, Send } from 'lucide-react';
-import { getUsers, getMessages, saveMessages, recordLoginLog } from '../services/storageService';
+import { LogIn, Sun, Cloud, Star, Sparkles, UserCircle, KeyRound, LockKeyhole, ArrowLeft, ArrowRight, CheckCircle, Send, PlayCircle } from 'lucide-react';
+import { getUsers, saveUsers, getMessages, saveMessages, recordLoginLog } from '../services/storageService';
 import { User, ChatMessage } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
 
@@ -43,6 +43,28 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     }
   };
 
+  const handleDemoLogin = () => {
+    const demoUser: User = {
+        id: 'demo-admin-user',
+        username: 'demo',
+        name: language === 'ar' ? 'مدير تجريبي' : 'Demo Admin',
+        role: 'admin', // Full access
+        password: 'demo',
+        avatar: 'https://ui-avatars.com/api/?name=Demo+Admin&background=f59e0b&color=fff',
+        permissions: ['dashboard', 'students', 'attendance', 'reports-archive', 'directory', 'ai-planner', 'classes', 'users', 'database', 'teachers', 'schedule-manage', 'daily-report', 'fees-management', 'gallery', 'focus-mode', 'gate-scanner'],
+        phone: '0000000000'
+    };
+
+    // Ensure demo user exists in storage for consistency (so lookups don't fail)
+    const currentUsers = getUsers();
+    if (!currentUsers.find(u => u.id === demoUser.id)) {
+        saveUsers([...currentUsers, demoUser]);
+    }
+
+    recordLoginLog(demoUser);
+    onLogin(demoUser);
+  };
+
   const handleRecoverSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -60,7 +82,6 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
         return;
     }
 
-    // Find BOTH Admins (General Managers) AND Managers to send the notification to
     const recipients = users.filter(u => u.role === 'admin' || u.role === 'manager');
     
     if (recipients.length === 0) {
@@ -72,11 +93,10 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     const newMessages: ChatMessage[] = [];
     const timestamp = new Date().toISOString();
 
-    // Send a message to EACH recipient (Admin & Manager) from the user
     recipients.forEach(recipient => {
         newMessages.push({
             id: `sys-recover-${Date.now()}-${recipient.id}`,
-            senderId: targetUser.id, // Comes "from" the user so admin sees who it is
+            senderId: targetUser.id, 
             receiverId: recipient.id,
             content: `⚠️ *FORGOT PASSWORD ALERT* \n\nUser *${targetUser.name}* (Username: ${targetUser.username}) requested a password reset.\n\nRole: ${targetUser.role}\nPhone: ${targetUser.phone || 'N/A'}\n\nPlease reset their password and contact them via WhatsApp.`,
             timestamp: timestamp,
@@ -98,19 +118,19 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   };
 
   return (
-    <div className={`min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-sky-100 ${dir === 'rtl' ? 'text-right' : 'text-left'}`} dir={dir}>
+    <div className={`min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-indigo-50 ${dir === 'rtl' ? 'text-right' : 'text-left'}`} dir={dir}>
       
       {/* Playful Background Elements */}
-      <div className="absolute top-10 left-10 text-yellow-400 animate-bounce delay-1000">
+      <div className="absolute top-10 left-10 text-gold-400 animate-bounce delay-1000">
         <Sun size={64} fill="currentColor" className="opacity-80" />
       </div>
-      <div className="absolute top-20 right-20 text-white animate-pulse">
+      <div className="absolute top-20 right-20 text-indigo-300 animate-pulse">
         <Cloud size={80} fill="currentColor" className="opacity-60" />
       </div>
-      <div className="absolute bottom-10 left-20 text-pink-400 animate-bounce">
+      <div className="absolute bottom-10 left-20 text-purple-400 animate-bounce">
         <Star size={48} fill="currentColor" className="opacity-70" />
       </div>
-      <div className="absolute bottom-32 right-10 text-indigo-400 animate-pulse delay-700">
+      <div className="absolute bottom-32 right-10 text-gold-300 animate-pulse delay-700">
         <Cloud size={60} fill="currentColor" className="opacity-60" />
       </div>
 
@@ -118,38 +138,54 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
       <div className="bg-white/80 backdrop-blur-lg w-full max-w-md rounded-[2.5rem] shadow-2xl border-4 border-white relative z-10 overflow-hidden transform transition-all hover:scale-[1.01]">
         
         {/* Header Section */}
-        <div className="bg-gradient-to-b from-indigo-500 to-purple-600 p-8 text-center relative overflow-hidden">
+        <div className="bg-gradient-to-b from-indigo-700 to-indigo-900 p-8 text-center relative overflow-hidden">
           {/* Decorative Circles in Header */}
           <div className="absolute top-[-50%] left-[-20%] w-48 h-48 bg-white/10 rounded-full blur-2xl"></div>
-          <div className="absolute bottom-[-20%] right-[-20%] w-40 h-40 bg-yellow-300/20 rounded-full blur-xl"></div>
+          <div className="absolute bottom-[-20%] right-[-20%] w-40 h-40 bg-gold-400/20 rounded-full blur-xl"></div>
 
           <div className="flex justify-center mb-4 relative z-10">
-            <div className="w-40 h-40 rounded-full border-4 border-white shadow-lg bg-white flex items-center justify-center p-1">
-               {/* Logo SVG */}
+            {/* Logo Container */}
+            <div className="w-36 h-36 rounded-full border-4 border-white shadow-lg bg-white flex items-center justify-center overflow-hidden">
                <svg viewBox="0 0 500 500" className="w-full h-full">
-                  <circle cx="250" cy="250" r="240" fill="#ffffff" stroke="#fcd34d" strokeWidth="15" />
-                  <g transform="translate(120, 100) rotate(-15) scale(0.9)">
-                     <ellipse cx="40" cy="30" rx="20" ry="26" fill="#9333ea" opacity="0.9" />
-                     <ellipse cx="95" cy="10" rx="20" ry="26" fill="#7c3aed" opacity="0.9" />
-                     <ellipse cx="150" cy="30" rx="20" ry="26" fill="#db2777" opacity="0.9" />
-                     <path d="M 30 75 Q 95 150 160 75 Q 160 140 95 170 Q 30 140 30 75 Z" fill="#4f46e5" opacity="0.9" />
+                  <circle cx="250" cy="250" r="245" fill="white" stroke="#333" strokeWidth="2" />
+                  
+                  {/* Thick Split Ring */}
+                  <path d="M 30,250 A 220,220 0 0 1 470,250" fill="none" stroke="#9333ea" strokeWidth="40" />
+                  <path d="M 30,250 A 220,220 0 0 0 470,250" fill="none" stroke="#f59e0b" strokeWidth="40" />
+                  
+                  {/* Inner Divider */}
+                  <circle cx="250" cy="250" r="200" fill="white" stroke="#333" strokeWidth="2" />
+                  
+                  {/* Center Content Group */}
+                  <g transform="translate(0, -25)">
+                      {/* Globe */}
+                      <path d="M 170,200 Q 250,130 330,200" fill="none" stroke="#f59e0b" strokeWidth="8" />
+                      <path d="M 170,200 Q 250,270 330,200" fill="none" stroke="#f59e0b" strokeWidth="8" />
+                      <line x1="250" y1="130" x2="250" y2="270" stroke="#f59e0b" strokeWidth="8" />
+                      <line x1="150" y1="200" x2="350" y2="200" stroke="#f59e0b" strokeWidth="8" />
+                      <path d="M 170,200 A 80,80 0 0 1 330,200" fill="none" stroke="#f59e0b" strokeWidth="8" />
+                      
+                      {/* Cap */}
+                      <path d="M 200,120 L 250,90 L 300,120 L 250,150 Z" fill="#3b82f6" stroke="#1e40af" strokeWidth="5" strokeLinejoin="round" />
+                      <line x1="300" y1="120" x2="300" y2="160" stroke="#1e40af" strokeWidth="4" />
+                      
+                      {/* Book */}
+                      <path d="M 150,260 Q 250,310 350,260" fill="none" stroke="#3b82f6" strokeWidth="12" strokeLinecap="round" />
+                      <path d="M 150,280 Q 250,330 350,280" fill="none" stroke="#3b82f6" strokeWidth="12" strokeLinecap="round" />
+                      <line x1="250" y1="260" x2="250" y2="310" stroke="#3b82f6" strokeWidth="8" />
                   </g>
-                  <g transform="translate(45, 290)">
-                     <text x="0" y="0" fontFamily="Arial, sans-serif" fontWeight="900" fontSize="120" fill="#7e22ce" stroke="#ffffff" strokeWidth="4">G</text>
-                     <text x="85" y="0" fontFamily="Arial, sans-serif" fontWeight="900" fontSize="120" fill="#f59e0b" stroke="#ffffff" strokeWidth="4">O</text>
-                     <text x="175" y="0" fontFamily="Arial, sans-serif" fontWeight="900" fontSize="120" fill="#ef4444" stroke="#ffffff" strokeWidth="4">L</text>
-                     <text x="240" y="0" fontFamily="Arial, sans-serif" fontWeight="900" fontSize="120" fill="#10b981" stroke="#ffffff" strokeWidth="4">D</text>
-                     <text x="325" y="0" fontFamily="Arial, sans-serif" fontWeight="900" fontSize="120" fill="#3b82f6" stroke="#ffffff" strokeWidth="4">E</text>
-                     <text x="395" y="0" fontFamily="Arial, sans-serif" fontWeight="900" fontSize="120" fill="#ec4899" stroke="#ffffff" strokeWidth="4">N</text>
-                  </g>
-               </svg>
+
+                  {/* Text */}
+                  <text x="250" y="360" textAnchor="middle" fontFamily="Arial, sans-serif" fontWeight="bold" fontSize="42" fill="#0f172a">Planet of Science</text>
+                  <text x="250" y="410" textAnchor="middle" fontFamily="Arial, sans-serif" fontWeight="bold" fontSize="32" fill="#334155">nersuye</text>
+              </svg>
             </div>
           </div>
           <h2 className="text-2xl font-bold text-white mb-1 flex items-center justify-center gap-2">
             {t('welcome')}
-            <Sparkles size={20} className="text-yellow-300 animate-spin-slow" />
+            <Sparkles size={20} className="text-gold-300 animate-spin-slow" />
           </h2>
-          <p className="text-white text-sm font-bold mt-2 tracking-wide drop-shadow-md">Golden International Academy & Preschool</p>
+          <p className="text-indigo-200 text-sm font-bold mt-1 tracking-wide">Planet of Science</p>
         </div>
 
         {/* Content Section */}
@@ -157,61 +193,78 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
           
           {/* LOGIN FORM */}
           {!isRecovering && (
-              <form onSubmit={handleLoginSubmit} className="space-y-5 animate-fade-in">
-                <div className="space-y-2 group">
-                  <label className="text-sm font-bold text-gray-500 ml-4">{t('username')}</label>
-                  <div className="relative">
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-indigo-400 group-focus-within:text-indigo-600 transition-colors">
-                      <UserCircle size={24} />
+              <div className="space-y-5 animate-fade-in">
+                <form onSubmit={handleLoginSubmit} className="space-y-5">
+                    <div className="space-y-2 group">
+                    <label className="text-sm font-bold text-gray-500 ml-4">{t('username')}</label>
+                    <div className="relative">
+                        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-indigo-400 group-focus-within:text-indigo-600 transition-colors">
+                        <UserCircle size={24} />
+                        </div>
+                        <input
+                        type="text"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        className="w-full pl-12 pr-4 py-4 rounded-full border-2 border-indigo-100 bg-indigo-50/50 focus:bg-white focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100 outline-none transition-all font-medium text-gray-700 placeholder-gray-400"
+                        placeholder="Enter your username"
+                        />
                     </div>
-                    <input
-                      type="text"
-                      value={username}
-                      onChange={(e) => setUsername(e.target.value)}
-                      className="w-full pl-12 pr-4 py-4 rounded-full border-2 border-indigo-100 bg-indigo-50/50 focus:bg-white focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100 outline-none transition-all font-medium text-gray-700 placeholder-gray-400"
-                      placeholder="Enter your username"
-                    />
-                  </div>
-                </div>
-                
-                <div className="space-y-2 group">
-                  <label className="text-sm font-bold text-gray-500 ml-4">{t('password')}</label>
-                  <div className="relative">
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-pink-400 group-focus-within:text-pink-600 transition-colors">
-                      <KeyRound size={24} />
                     </div>
-                    <input
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="w-full pl-12 pr-4 py-4 rounded-full border-2 border-pink-100 bg-pink-50/50 focus:bg-white focus:border-pink-400 focus:ring-4 focus:ring-pink-100 outline-none transition-all font-medium text-gray-700 placeholder-••••••••"
-                    />
-                  </div>
-                </div>
+                    
+                    <div className="space-y-2 group">
+                    <label className="text-sm font-bold text-gray-500 ml-4">{t('password')}</label>
+                    <div className="relative">
+                        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gold-400 group-focus-within:text-gold-600 transition-colors">
+                        <KeyRound size={24} />
+                        </div>
+                        <input
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="w-full pl-12 pr-4 py-4 rounded-full border-2 border-gold-100 bg-gold-50/50 focus:bg-white focus:border-gold-400 focus:ring-4 focus:ring-gold-100 outline-none transition-all font-medium text-gray-700 placeholder-••••••••"
+                        />
+                    </div>
+                    </div>
 
-                <div className="text-end">
-                    <button type="button" onClick={switchMode} className="text-sm text-indigo-500 font-bold hover:text-indigo-700">
-                        {t('forgotPassword')}
+                    <div className="text-end">
+                        <button type="button" onClick={switchMode} className="text-sm text-indigo-500 font-bold hover:text-indigo-700">
+                            {t('forgotPassword')}
+                        </button>
+                    </div>
+
+                    {error && (
+                    <div className="animate-fade-in text-center bg-red-50 text-red-500 text-sm font-bold py-3 px-4 rounded-2xl border-2 border-red-100 flex items-center justify-center gap-2">
+                        <div className="w-2 h-2 bg-red-500 rounded-full animate-ping" />
+                        {error}
+                    </div>
+                    )}
+
+                    <button
+                    type="submit"
+                    className="w-full bg-gradient-to-r from-indigo-600 to-indigo-800 hover:from-indigo-700 hover:to-indigo-900 text-white text-lg font-bold py-4 rounded-full shadow-lg shadow-indigo-200 transform transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2 mt-4"
+                    >
+                    <span>{t('loginButton')}</span>
+                    <div className="bg-white/20 rounded-full p-1">
+                        <LogIn size={20} />
+                    </div>
                     </button>
-                </div>
+                </form>
 
-                {error && (
-                  <div className="animate-fade-in text-center bg-red-50 text-red-500 text-sm font-bold py-3 px-4 rounded-2xl border-2 border-red-100 flex items-center justify-center gap-2">
-                    <div className="w-2 h-2 bg-red-500 rounded-full animate-ping" />
-                    {error}
-                  </div>
-                )}
+                <div className="relative flex py-2 items-center">
+                    <div className="flex-grow border-t border-gray-200"></div>
+                    <span className="flex-shrink-0 mx-4 text-gray-400 text-xs font-bold uppercase">Or try for free</span>
+                    <div className="flex-grow border-t border-gray-200"></div>
+                </div>
 
                 <button
-                  type="submit"
-                  className="w-full bg-gradient-to-r from-orange-400 to-pink-500 hover:from-orange-500 hover:to-pink-600 text-white text-lg font-bold py-4 rounded-full shadow-lg shadow-orange-200 transform transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2 mt-4"
+                    type="button"
+                    onClick={handleDemoLogin}
+                    className="w-full bg-white border-2 border-gold-400 text-gold-600 hover:bg-gold-50 text-base font-bold py-3 rounded-full shadow-sm transform transition-all hover:scale-[1.01] active:scale-95 flex items-center justify-center gap-2"
                 >
-                  <span>{t('loginButton')}</span>
-                  <div className="bg-white/20 rounded-full p-1">
-                    <LogIn size={20} />
-                  </div>
+                    <PlayCircle size={20} />
+                    <span>{language === 'ar' ? 'دخول تجريبي (مدير)' : 'Trial Mode (Admin)'}</span>
                 </button>
-              </form>
+              </div>
           )}
 
           {/* FORGOT PASSWORD FORM */}
