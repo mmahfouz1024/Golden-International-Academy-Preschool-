@@ -1,8 +1,8 @@
 
 import React, { useState } from 'react';
-import { LogIn, Sun, Cloud, Star, Sparkles, UserCircle, KeyRound, LockKeyhole, ArrowLeft, ArrowRight, CheckCircle, Send, PlayCircle } from 'lucide-react';
-import { getUsers, saveUsers, getMessages, saveMessages, recordLoginLog } from '../services/storageService';
-import { User, ChatMessage } from '../types';
+import { LogIn, Sun, Cloud, Star, Sparkles, UserCircle, KeyRound, LockKeyhole, ArrowLeft, ArrowRight, CheckCircle, Send, PlayCircle, Baby } from 'lucide-react';
+import { getUsers, saveUsers, getMessages, saveMessages, recordLoginLog, getStudents, saveStudents } from '../services/storageService';
+import { User, ChatMessage, Student, StudentStatus } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
 
 interface LoginProps {
@@ -63,6 +63,49 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
     recordLoginLog(demoUser);
     onLogin(demoUser);
+  };
+
+  const handleDemoParentLogin = () => {
+    // 1. Create Demo Student first so the parent has someone to view
+    const demoStudentId = 'demo-child-1';
+    const demoStudent: Student = {
+        id: demoStudentId,
+        name: language === 'ar' ? 'طفل تجريبي' : 'Demo Child',
+        age: 4,
+        classGroup: 'Birds',
+        parentName: language === 'ar' ? 'ولي أمر تجريبي' : 'Demo Parent',
+        phone: '0100000000',
+        status: StudentStatus.Active,
+        attendanceToday: false,
+        avatar: 'https://ui-avatars.com/api/?name=Demo+Child&background=random'
+    };
+
+    const currentStudents = getStudents();
+    if (!currentStudents.find(s => s.id === demoStudentId)) {
+        saveStudents([...currentStudents, demoStudent]);
+    }
+
+    // 2. Create Demo Parent User
+    const demoParent: User = {
+        id: 'demo-parent-user',
+        username: 'demo_parent',
+        name: language === 'ar' ? 'ولي أمر تجريبي' : 'Demo Parent',
+        role: 'parent',
+        password: 'demo',
+        avatar: 'https://ui-avatars.com/api/?name=Demo+Parent&background=0ea5e9&color=fff',
+        permissions: ['parent-view', 'gallery'],
+        phone: '0100000000',
+        linkedStudentId: demoStudentId,
+        linkedStudentIds: [demoStudentId]
+    };
+
+    const currentUsers = getUsers();
+    if (!currentUsers.find(u => u.id === demoParent.id)) {
+        saveUsers([...currentUsers, demoParent]);
+    }
+
+    recordLoginLog(demoParent);
+    onLogin(demoParent);
   };
 
   const handleRecoverSubmit = (e: React.FormEvent) => {
@@ -256,14 +299,25 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                     <div className="flex-grow border-t border-gray-200"></div>
                 </div>
 
-                <button
-                    type="button"
-                    onClick={handleDemoLogin}
-                    className="w-full bg-white border-2 border-gold-400 text-gold-600 hover:bg-gold-50 text-base font-bold py-3 rounded-full shadow-sm transform transition-all hover:scale-[1.01] active:scale-95 flex items-center justify-center gap-2"
-                >
-                    <PlayCircle size={20} />
-                    <span>{language === 'ar' ? 'دخول تجريبي (مدير)' : 'Trial Mode (Admin)'}</span>
-                </button>
+                <div className="space-y-3">
+                    <button
+                        type="button"
+                        onClick={handleDemoLogin}
+                        className="w-full bg-white border-2 border-gold-400 text-gold-600 hover:bg-gold-50 text-base font-bold py-3 rounded-full shadow-sm transform transition-all hover:scale-[1.01] active:scale-95 flex items-center justify-center gap-2"
+                    >
+                        <PlayCircle size={20} />
+                        <span>{language === 'ar' ? 'دخول تجريبي (مدير)' : 'Trial Mode (Admin)'}</span>
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={handleDemoParentLogin}
+                        className="w-full bg-white border-2 border-indigo-400 text-indigo-600 hover:bg-indigo-50 text-base font-bold py-3 rounded-full shadow-sm transform transition-all hover:scale-[1.01] active:scale-95 flex items-center justify-center gap-2"
+                    >
+                        <Baby size={20} />
+                        <span>{language === 'ar' ? 'دخول تجريبي (ولي أمر)' : 'Trial Mode (Parent)'}</span>
+                    </button>
+                </div>
               </div>
           )}
 
